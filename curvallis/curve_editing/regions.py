@@ -952,6 +952,7 @@ class Regions(object):
         points=[]
         for region in self._regions:
             points.extend(region.get_fit_curve_points())
+
         return points
 
     def _get_data_sets(self):
@@ -1034,8 +1035,15 @@ class Regions(object):
         data_sets = self._get_data_sets()
         self._io_manager.write_movable_data_sets(data_sets)
         if not self._is_eos_data:
+            fit_points = self._get_fit_curve_points()
+
+            # Remove any duplicate fit points at region boundaries
+            for i in range(1, len(fit_points)-2):
+                if fit_points[i][0] == fit_points[i-1][0]:
+                    del fit_points[i]
+                    
             io.write_point_file(self._args.curve_output_file_name,
-                                self._get_fit_curve_points())
+                                fit_points)
 
     def smooth_data(self, smooth_type, xmin, xmax, ymin, ymax):
         """
