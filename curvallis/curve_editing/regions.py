@@ -1036,14 +1036,15 @@ class Regions(object):
         self._io_manager.write_movable_data_sets(data_sets)
         if not self._is_eos_data:
             fit_points = self._get_fit_curve_points()
+            filtered_points = [fit_points[0]] #don't miss the 1st point
 
             # Remove any duplicate fit points at region boundaries
             for i in range(1, len(fit_points)-2):
-                if fit_points[i][0] == fit_points[i-1][0]:
-                    del fit_points[i]
+                if fit_points[i][0] != fit_points[i-1][0]:
+                    filtered_points.append(fit_points[i])
                     
             io.write_point_file(self._args.curve_output_file_name,
-                                fit_points)
+                                filtered_points)
 
     def smooth_data(self, smooth_type, xmin, xmax, ymin, ymax):
         """
