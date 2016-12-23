@@ -452,13 +452,24 @@ class Line_Set(object):
         if self.move_point_in_progress():
             x, y = self.movable.get_xy_data()[self._moving_point_index]
             if xy_only:
-                return '%s at (%.15E,%.15E) = %.15E' % \
-                    (self._name.split(":")[0], x,
-                     float(self._name.split(" ")[1]), y)
+                if len(self._name.split(" ")) > 1:
+                    #Print if 2d data
+                    return '%s at (%.15E,%.15E) = %.15E' % \
+                        (self._name.split(":")[0], x,
+                         float(self._name.split(" ")[1]), y)
+                else:
+                    #Print if 1d data
+                    return '%.15E, %.15E' % (x,y)
             else:
-                return '\nat: %s at (%.15E,%.15E) = %.15E' % \
-                    (self._name.split(":")[0], x,
-                     float(self._name.split(" ")[1]), y)
+                if len(self._name.split(" ")) > 1:
+                    #Print if 2d data
+                    return '\nat: %s at (%.15E,%.15E) = %.15E' % \
+                        (self._name.split(":")[0], x,
+                         float(self._name.split(" ")[1]), y)
+                else:
+                    #Print if 1d data
+                    return '\nat: %.15E, %.15E' % (x,y)
+                
         else:
             return '(no point move in progress)'
 
