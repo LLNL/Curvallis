@@ -27,7 +27,7 @@ import numpy as np
 import scipy.optimize as opt
 import scipy.special as spec
 from pylab import polyfit
-from math import e
+from math import e, factorial
 
 def define_args(parser):
     fitter_args = parser.add_argument_group(
@@ -44,10 +44,10 @@ def define_args(parser):
         ' Select the type of fit to apply to each region in sequential order[default: %(default)s]')
     fitter_args.add_argument(
         '--refine_fit',
-        choices=factory.get_sorted_polys(),
+        choices=factory.get_sorted_refine_fit_names(),
         metavar ='<fit>',
         nargs='+',
-        help=str(factory.get_sorted_polys()) + 
+        help=str(factory.get_sorted_refine_fit_names()) + 
         ' Select the type of fit to apply to the error of each fit type[default: %(default)s]')
     fitter_args.add_argument(
         '--delta_p_guess', dest='k0',
@@ -111,7 +111,7 @@ def define_args(parser):
         x_integral_ref=0,
         y_axis='P',
         y_integral_ref=0,
-
+        
         a=1.0,
         b=1.0,
         c=1.0,
@@ -133,7 +133,7 @@ def define_args(parser):
         c2 = 1.0,
         c3 = 1.0,
         c4 = 1.0,
-
+        cn = [1.0] * 12,        #12 is maximum power of eseries
     )
 
 #------------------------------------------------------------------------------
@@ -215,10 +215,13 @@ class Factory(object):
         names.sort()
         return names
 
-    def get_sorted_polys(self):
+    def get_sorted_refine_fit_names(self):
         names = []
         for i in range(0, 12):
             names.append('poly'+str(i+1))
+        for i in range(3, 12):
+            names.append('eseries'+str(i+1))
+        names.append('eseries')
         names.append('none')
         names.append('highp')
         return names
@@ -226,6 +229,8 @@ class Factory(object):
     def make_object_of_class(self, name, args):
         if name[:4] == 'poly':
             return self._classes[name[:4]](args, name)
+        elif name[:7] == 'eseries':
+            return self._classes[name[:7]](args, name)
         else:
             return self._classes[name](args, name)
 
@@ -1386,8 +1391,6 @@ class EBirch_Murnaghan4(Base_Fit_Class):
 factory.register ('ebirch4', EBirch_Murnaghan4)
 
 
-
-
 class EMurnaghan(Base_Fit_Class):
     def __init__(self, args, name):
         super(EMurnaghan, self).__init__(args, name)
@@ -1425,6 +1428,67 @@ class EMurnaghan(Base_Fit_Class):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
 factory.register ('emurnaghan', EMurnaghan)
+
+# ----------------------------------------------------------------------------
+# eSeries
+# This model is specifically a refined fit type.
+# It can be any order between 4 and 12.
+
+class ESeries(Base_Fit_Class):
+    def __init__(self, args, name):
+        super(ESeries, self).__init__(args, name)
+        self.rho0 = args.rho0
+        self.cn = args.cn
+        if len(name) > 7:
+            self.order = int(name[7:])
+        else:
+            # Set default order to 7
+            self.order = 7
+
+    def _set_coefficients(self, coeffs):
+        (self.rho0, self.cn[0], self.cn[1], self.cn[2],
+         self.cn[3], self.cn[4], self.cn[5], self.cn[6], self.cn[7],
+         self.cn[8], self.cn[9], self.cn[10], self.cn[11],
+         self.order) = coeffs
+        
+    def _get_coefficients(self):
+        if self.rho0 == None:
+            self.rho0 = 5.0
+        return (self.rho0, self.cn[0], self.cn[1],
+                self.cn[2], self.cn[3], self.cn[4], self.cn[5],
+                self.cn[6], self.cn[7], self.cn[8], self.cn[9],
+                self.cn[10], self.cn[11], self.order)
+        
+    def _print_coefficients(self):
+        print ("rho0 = {};".format(self.rho0))
+        for i in range(0, int(self.order)-3):
+            print("C{} = {};".format(i+4, self.cn[i]))
+                  
+    @staticmethod
+    def _f(x, *coeffs):
+        cn = [None] * 12  #12 is the maximum order of eseries
+        (rho0, cn[0], cn[1], cn[2], cn[3],
+         cn[4], cn[5], cn[6], cn[7], cn[8],
+         cn[9], cn[10], cn[11], order) = coeffs
+        
+        answer = 0
+        for i in range(0, int(order)-3):
+            answer += ((float(cn[i]) / float(factorial(i+4))) *
+                       pow(0.5 * (pow(np.asarray(x)/rho0,
+                                      2.0/3.0) - 1.0), i+4))
+            
+        return answer
+
+    def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _energy_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _pressure_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+factory.register ('eseries', ESeries)
 
 
 # Allow option for none, doesn't acually use Poly_Original
