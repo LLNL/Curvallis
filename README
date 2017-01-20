@@ -204,7 +204,7 @@ Option Categories
     - **--refine_fit <fit> <fit> ... (Default: none)**
 
     Refine_fit fits a second equation to the existing fit type in order to more closely fit the data. It accomplishes this by taking the error between the data points and the fit type, and fitting another equation to the error. This new equation is then added to the original fit type. This argument works the same as --fit_type. An equation must be selected for each region. This means if the region the user wants to add a refine_fit to isn't the first region, a refine fit must be specified for all regions before it. For example, if the user wants to add a refine fit to the third region, but no other regions, they would type: --refine_fit none none poly5. If there are more than three regions, the rest of the regions will be specified none by default. Available equations are:
-    poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11, poly12, none, highp.
+    poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11, poly12, eseries4, eseries5, eseries6, eseries7, eseries8, eseries9, eseries10, eseries11, eseries12, eseries (same as eseries7), none, highp.
 
     - **--delta_p_guess <float>**
 
