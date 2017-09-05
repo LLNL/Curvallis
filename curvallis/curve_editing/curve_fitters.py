@@ -1542,3 +1542,58 @@ class EHighP(Base_Fit_Class):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
 factory.register ('highp', EHighP)
+
+class EVinet(Base_Fit_Class):
+    """ Fit function for third-order Vinet Energy EOS
+        R. Jeanloz, "Universal equation of state"
+            Physical Review B 38(1) 805
+    """
+    def __init__(self, args, name):
+        super(EVinet, self).__init__(args, name)
+        self.k0             = args.k0       # B0 (Bulk Modulus)
+        self.k0_prime       = args.k0_prime # B'
+        self.rho0           = args.rho0     # rho0
+        self.e0             = args.e0       # E0
+
+    def _set_coefficients(self, coeffs):
+        (self.k0, self.k0_prime, self.rho0, self.e0) = coeffs
+
+    def _get_coefficients(self):
+        return self.k0, self.k0_prime, self.rho0, self.e0
+
+    def _print_coefficients(self):
+        print ("E0 = {};".format(self.e0))
+        print ("B0 = {};".format(self.k0))
+        print ("Bp = {};".format(self.k0_prime))
+        print ("rho0 = {};".format(self.rho0))
+
+    @staticmethod
+    def _f(rho, *coeffs):
+        (k0, k0_prime, rho0, e0) = coeffs
+#        x = pow(rho0/rho, 1.0/3.0 )
+#        term1 = np.exp(-1.5 * (k0_prime - 1.0) *(x  - 1.0));
+#        term2 = 5.0+3.0* k0_prime * (x-1) - 3.0*x;
+#        term3 = (2.0*k0) / (rho0 * pow( (k0_prime - 1.0), 2.0));
+#        term4 = (4.0*k0) / (rho0 * pow( (k0_prime - 1.0), 2.0));
+#        fcold = e0 + term4 -term3 * term2 * term1;
+#        return fcold;
+
+        #Christine Version:
+#        for thisRho in rho:
+#            print(thisRho, rho0, rho0/thisRho, pow(rho0/thisRho, 1.0/3.0 ))
+        x = 1.5*(k0_prime - 1) * (pow(rho0/rho, 1.0/3.0 ) - 1);
+        term1 = (4*k0) / (rho0 * pow(k0_prime -1, 2.0));
+        term2 = 1 - (1+x) * np.exp( -x);
+        return term1 * term2 + e0
+
+
+    def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _energy_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _pressure_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+factory.register ('evinet', EVinet)
