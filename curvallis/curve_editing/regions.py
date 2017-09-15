@@ -203,6 +203,8 @@ class _Line_Set_With_Fit(lines.Line_Set):
 
         return zip(x_values, y_values)
 
+    #guess_coefficents should really go into the curve fitters, I don't
+    #know why it's here.  Putting in an issue
     def guess_coefficients(self, points):
         zero_point = points[0]
         num = 0
@@ -243,7 +245,8 @@ class _Line_Set_With_Fit(lines.Line_Set):
         else:
             num = -1
 
-        # Use parabola fit to guess coefficients
+        #Use the points around the zero point to fit a parabola to guess
+        #coefficients. This only makes sense for a pressure curve
         if num > 0:
             xcoords, ycoords = zip(*temp)
             a,b,c = polyfit(xcoords,ycoords,2)
