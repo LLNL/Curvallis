@@ -675,6 +675,7 @@ class _Region(object):
         self._line_sets.plot_movable_xy_data(data_sets)
         print (self.get_info())
         self._line_sets.plot_boundary_line()
+        print("Approximate Fit (No ghost points yet):")
         self.calculate_fit()
         self._line_sets.plot_curves()
 
