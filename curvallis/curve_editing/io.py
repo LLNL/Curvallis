@@ -813,13 +813,14 @@ def _do_include_scale_and_shift (points_in, name, args):
     for point in points_in:
         if args.x_include[0] < point[0] < args.x_include[1]:
             if args.y_include[0] < point[1] < args.y_include[1]:
+                lpoint = list(point)
                 # Do y scale and shift first because their logic  depends on the
                 # value of x, which is changed by x scale and shift.
-                point = apply_y_scale(point)
-                point = apply_y_shift(point)
-                point = apply_x_scale(point)
-                point = apply_x_shift(point)
-                points_out.append(point)
+                point = apply_y_scale(lpoint)
+                point = apply_y_shift(lpoint)
+                point = apply_x_scale(lpoint)
+                point = apply_x_shift(lpoint)
+                points_out.append(tuple(lpoint))
             else:
                 point_changes.y.excluded += 1
         else:
