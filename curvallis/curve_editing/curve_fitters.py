@@ -127,6 +127,8 @@ def define_args(parser):
         k3=1.0,
         lam=1.0,
         rho0=None,              #Same
+        q=1.5,                  #For ThetaBP fitter only
+        theta0=1000,            #For Theta fitters 
         z=1.0,
         e0 = 1.0,
         c1 = 1.0,
@@ -1231,9 +1233,9 @@ def _print_polynomial(coeffs):
     for index in range(0, length):
         x_order = length - index - 1
         if index == 0:
-            print ('%.3E x^%d ' % (coeffs[index], x_order), end='')
+            print ('%.3E * x**%d ' % (coeffs[index], x_order), end='')
         elif x_order > 0:
-            print ('%+.3E x^%d ' % (coeffs[index], x_order), end='')
+            print ('%+.3E * x**%d ' % (coeffs[index], x_order), end='')
         else:
             print ('%+.3E' % coeffs[index])
     print ()
@@ -1597,3 +1599,55 @@ class EVinet(Base_Fit_Class):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
 factory.register ('evinet', EVinet)
+
+
+class ThetaBP(Base_Fit_Class):
+    """ Fit function for theta > rho0  
+        Leonid Burakovsky and Dean L Preston, "Analytic model of the Gruneisen parameter all densities"
+             J. Phys. C 65, 1581 2004
+    """
+    def __init__(self, args, name):
+        super(ThetaBP, self).__init__(args, name)
+        self.theta0         = args.theta0   # theta at rho0
+        self.rho0           = args.rho0     # rho0
+        self.q              = args.q        # q exponent
+        self.c1             = args.c1       # coefficent 1
+        self.c2             = args.c2       # coefficent 2
+
+    def _set_coefficients(self, coeffs):
+        (self.theta0, self.rho0, self.q, self.c1, self.c2) = coeffs
+
+    def _get_coefficients(self):
+        return self.theta0, self.rho0, self.q, self.c1, self.c2
+
+    def _print_coefficients(self):
+        print ("theta0 = {};".format(self.theta0))
+        print ("rho0 = {};".format(self.rho0))
+        print ("q = {};".format(self.q))
+        print ("c1 = {};".format(self.c1))
+        print ("c2 = {};".format(self.c2))
+
+    @staticmethod
+    def _f(rho, *coeffs):
+        (theta0, rho0, q, c1, c2) = coeffs
+        # theta = theta0 * sqrt(rho/rho0) * np.exp( -3 * c1 * ( pow(rho, -1.0/3.0) - pow(rho0, -1.0/3.0) ) - (c2 / q) * (pow(rho, -q) - pow(rho0, -q) ))
+        inner_term1 = -3 * c1 * ( pow(rho, -1.0/3.0) - pow(rho0, -1.0/3.0) )
+        inner_term2 = (c2 / q) * (pow(rho, -q) - pow(rho0, -q) )
+        exp_term = np.exp(inner_term1 - inner_term2)
+        theta = theta0 * np.sqrt(rho/rho0) * exp_term
+
+        return theta
+
+
+    def _derivative(self, x):
+        term1 = self.c1 / pow(x, 1.0/3.0)
+        term2 = self.c2 / pow(x, self.q)
+        return 0.5 + term1 + term2
+
+    def _energy_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _pressure_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+factory.register ('thetabp', ThetaBP)
