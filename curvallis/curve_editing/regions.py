@@ -120,7 +120,6 @@ class _Line_Set_With_Fit(lines.Line_Set):
         self._x_view_low_limit = x_low_limit
         self._logscale = False
         self._ax = ax
-        self._is_first_fit = True
         if not is_eos_data:
             self.fit_curve = lines.Line(ax, lines.line_attributes['fit_curve'])
             self.derivative_curve = lines.Line(ax, lines.line_attributes['derivative'])
@@ -203,78 +202,6 @@ class _Line_Set_With_Fit(lines.Line_Set):
 
         return zip(x_values, y_values)
 
-    #guess_coefficents should really go into the curve fitters, I don't
-    #know why it's here.  Putting in an issue
-    def guess_coefficients(self, points):
-        zero_point = points[0]
-        num = 0
-        num2 = 0
-
-        # Check if selected plotter uses coefficients
-        if ((not hasattr (self._fitter, 'k0')) or 
-            (not hasattr (self._fitter, 'k0_prime')) or 
-            (not hasattr (self._fitter, 'rho0'))):
-
-            # If not, set defaults for required coefficients
-            if (hasattr (self._fitter, 'k0')):
-                self._fitter.k0 = 1.0e11
-            if (hasattr (self._fitter, 'k0_prime')):
-                self._fitter.k0_prime = 20.0
-            if (hasattr (self._fitter, 'rho0')):
-                self._fitter.rho0 = 5.0
-
-            return
-
-        # Find point closest to zero
-        for point in points:
-            if (abs(point[1]) < abs(zero_point[1])):
-                zero_point = point
-                num = num2
-            num2 = num2 + 1
-
-        # Create list of points around zero point
-        if num > 25 and len(points) > num + 25:
-            num = num - 25
-            temp = []
-            for i in range(0,50):
-                temp.append(points[num + i])
-        elif num > 0 and len(points) > num + 25:
-            temp = []
-            for i in range(0,num*2):
-                temp.append(points[i])
-        else:
-            num = -1
-
-        #Use the points around the zero point to fit a parabola to guess
-        #coefficients. This only makes sense for a pressure curve
-        if num > 0:
-            xcoords, ycoords = zip(*temp)
-            a,b,c = polyfit(xcoords,ycoords,2)
-            rho0 = zero_point[0]
-            k0 = ((2.0 * a * rho0) + b) * rho0
-            k0_prime = 1 + ((2 * a * rho0 * rho0) / k0)
-
-            if self._args.rho0 is None:
-                self._fitter.rho0 = rho0
-            if self._args.k0 is None:
-                self._fitter.k0 = k0
-            if self._args.k0_prime is None:
-                self._fitter.k0_prime = k0_prime
-
-        else:
-            print ("Unable to guess coefficients, using defaults.")
-
-            if self._args.rho0 is None:
-                self._fitter.rho0 = 5.0
-            if self._args.k0 is None:
-                self._fitter.k0 = 1.0e11
-            if self._args.k0_prime is None:
-                self._fitter.k0_prime = 20.0
-            
-        print ("Coefficient Guesses: ", self._fitter.k0, 
-               self._fitter.k0_prime, self._fitter.rho0)
-
-        self._is_first_fit = False
 
     def get_ghost_points(self):
         return self._ghost_set
@@ -290,8 +217,8 @@ class _Line_Set_With_Fit(lines.Line_Set):
             points = self.get_ghost_points()
 
             # guess better coefficients than defaults for first fit
-            if self._is_first_fit:
-                self.guess_coefficients(points)
+            if self._fitter._is_first_fit:
+                self._fitter.guess_coefficients(points)
 
             # print ('points:\n%s' % points)
             point_count = self.get_movable_point_count()

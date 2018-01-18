@@ -97,6 +97,10 @@ def define_args(parser):
         '--e0_guess', dest='e0',
         type=float, metavar='<float>',
         help='Initial guess for E0 [default: %(default)s]')
+    fitter_args.add_argument(
+        '--theta0_guess', dest='theta0',
+        type=float, metavar='<float>',
+        help='Initial guess for theta0 [default: %(default)s]')
     # fitter_args.add_argument(
     #     '--z_guess', dest='z',
     #     type=float, metavar='<float>',
@@ -127,8 +131,8 @@ def define_args(parser):
         k3=1.0,
         lam=1.0,
         rho0=None,              #Same
-        q=1.5,                  #For ThetaBP fitter only
-        theta0=1000,            #For Theta fitters 
+        q=None,                 #For ThetaBP fitter only
+        theta0=None,            #For Theta fitters 
         z=1.0,
         e0 = 1.0,
         c1 = 1.0,
@@ -257,6 +261,8 @@ class Base_Fit_Class(object):
         self.x_integral_ref = args.x_integral_ref
         self.y_integral_ref = args.y_integral_ref
         self.name = name
+        self._is_first_fit = True #Is first regression fit
+
 
     @staticmethod
     @abstractmethod
@@ -301,6 +307,12 @@ class Base_Fit_Class(object):
         self._print_coefficients()
 
 
+    @staticmethod
+    @abstractmethod
+    def guess_coefficients(self, points):
+        """ Does the first guess of coefficients for this fitter
+        """
+    
     def func(self, x):
         """ Return f(x) using the coefficients for f derived by fit().  Call this
         to plot each point on the curve.
@@ -340,47 +352,161 @@ class Base_Fit_Class(object):
                (integral_func(x) +
                 (self.y_integral_ref - integral_func(self.x_integral_ref)))
 
-
-class Template(Base_Fit_Class):
+class Pressure_Fit_Class(Base_Fit_Class):
+    """ An abstract superclass for all the fitters for pressure curves.
+    It defines some shared functionality.
+    """
     def __init__(self, args, name):
-        super(Template, self).__init__(args)
-        self.k0             = args.k0
-        self.k0_prime       = args.k0_prime
-        self.rho0           = args.rho0
+        super(Pressure_Fit_Class, self).__init__(args,name)
 
-    def _set_coefficients(self, coeffs):
-        (self.k0, self.k0_prime, self.rho0) = coeffs
+    def guess_coefficients(self, points):
 
-    def _get_coefficients(self):
-        return self.k0, self.k0_prime, self.rho0
+        # Check if selected plotter uses coefficients
+        if ((not hasattr (self, 'k0')) or 
+            (not hasattr (self, 'k0_prime')) or 
+            (not hasattr (self, 'rho0'))):
 
-    def _print_coefficients(self):
-        print ("B0 = {};".format(self.k0))
-        print ("Bp = {};".format(self.k0_prime))
-        print ("rho0 = {};".format(self.rho0))
+            # If not, set defaults for required coefficients
+            if (hasattr (self, 'k0')):
+                self.k0 = 1.0e11
+            if (hasattr (self, 'k0_prime')):
+                self.k0_prime = 20.0
+            if (hasattr (self, 'rho0')):
+                self.rho0 = 5.0
 
-    @staticmethod
-    def _f(x, *coeffs):
-        # (k0, k0_prime, rho0) = coeffs
-        raise RuntimeError("template only - not to be run")
+            return
 
-    def _derivative(self, x):
-        raise RuntimeError("template only - not to be run")
+        # Find point closest to zero
+        zero_point = points[0]
+        zero_point_index = 0
+        for idx in range(0, len(points)):
+            if (abs(points[idx][1]) < abs(zero_point[1])):
+                zero_point = points[idx]
+                zero_point_index = idx
 
-    def _energy_integral(self, x):
-        raise RuntimeError("template only - not to be run")
+        parabola_points = []
+        # Create list of points around zero point
+        if zero_point_index > 25 and len(points) > zero_point_index + 25:
+            startidx = zero_point_index - 25
+            for i in range(startidx, startidx+50):
+                parabola_points.append(points[i])
+        elif zero_point_index > 0 and len(points) > zero_point_index + 25:  #Or just take what points we have
+            for i in range(0,zero_point_index*2):
+                parabola_points.append(points[i])
+#        else:  zero_point_index is 0, nothing we can do
 
-    def _pressure_integral(self, x):
-        raise RuntimeError("template only - not to be run")
+        #Use the points around the zero point to fit a parabola to guess
+        #coefficients. This only makes sense for a pressure curve
+        if len(parabola_points) > 0:
+            xcoords, ycoords = zip(*parabola_points)
+            a,b,c = polyfit(xcoords,ycoords,2)
+            rho0 = zero_point[0]
+            k0 = ((2.0 * a * rho0) + b) * rho0
+            k0_prime = 1 + ((2 * a * rho0 * rho0) / k0)
 
-# fit_factory.register ('Template', Template)
+            if self.rho0 is None:
+                self.rho0 = rho0
+            if self.k0 is None:
+                self.k0 = k0
+            if self.k0_prime is None:
+                self.k0_prime = k0_prime
+
+        else:
+            print ("Unable to guess coefficients, using defaults.")
+
+            if self.rho0 is None:
+                self.rho0 = 5.0
+            if self.k0 is None:
+                self.k0 = 1.0e11
+            if self.k0_prime is None:
+                self.k0_prime = 20.0
+            
+        print ("Coefficient Guesses: ", self.k0, 
+               self.k0_prime, self.rho0)
+
+        self._is_first_fit = False
+
+class Energy_Fit_Class(Base_Fit_Class):
+    """ An abstract superclass for all the fitters for pressure curves.
+    It defines some shared functionality.
+    """
+    def __init__(self, args, name):
+        super(Energy_Fit_Class, self).__init__(args,name)
+
+    def guess_coefficients(self, points):
+
+        # Check if selected plotter uses coefficients
+        if ((not hasattr (self, 'k0')) or 
+            (not hasattr (self, 'k0_prime')) or 
+            (not hasattr (self, 'rho0'))):
+
+            # If not, set defaults for required coefficients
+            if (hasattr (self, 'k0')):
+                self.k0 = 1.0e11
+            if (hasattr (self, 'k0_prime')):
+                self.k0_prime = 20.0
+            if (hasattr (self, 'rho0')):
+                self.rho0 = 5.0
+
+            return
+
+        # Find the minimum point, that's rho0. ( unless rho0 isn't in the region)
+        min_point = points[0]
+        min_point_index = 0
+        for idx in range(0, len(points)):
+            if (points[idx][1] < min_point[1]):
+                min_point = points[idx]
+                min_point_index = idx
+
+        parabola_points = []
+        # Create list of points around min point
+        if min_point_index > 25 and len(points) > min_point_index + 25:
+            startidx = min_point_index - 25
+            for i in range(startidx, startidx+50):
+                parabola_points.append(points[i])
+        elif min_point_index > 0 and len(points) > min_point_index + 25:  #Or just take what points we have
+            for i in range(0,min_point_index*2):
+                parabola_points.append(points[i])
+#        else:  min_point_index is 0, nothing we can do
+
+        #Use the points around the min point to fit a parabola to guess
+        #coefficients. This only makes sense for an energy curve?
+        if len(parabola_points) > 0:
+            xcoords, ycoords = zip(*parabola_points)
+            a,b,c = polyfit(xcoords,ycoords,2)
+            rho0 = min_point[0]
+            k0 = ((2.0 * a * rho0) + b) * rho0
+            k0_prime = 1 + ((2 * a * rho0 * rho0) / k0)
+
+            if self.rho0 is None:
+                self.rho0 = rho0
+            if self.k0 is None:
+                self.k0 = k0
+            if self.k0_prime is None:
+                self.k0_prime = k0_prime
+
+        else:
+            print ("Unable to guess coefficients, using defaults.")
+
+            if self.rho0 is None:
+                self.rho0 = 5.0
+            if self.k0 is None:
+                self.k0 = 1.0e11
+            if self.k0_prime is None:  #TODO: Change these checks to make sure the value exists before checking
+                self.k0_prime = 20.0
+            
+        print ("Coefficient Guesses: ", self.k0, 
+               self.k0_prime, self.rho0)
+
+        self._is_first_fit = False
+        
 
 #------------------------------------------------------------------------------
 # EOS models tested against MEOS Equations
 # These models have all been tested against the MEOS data to make sure they
 # produce the same curve.
 
-class Birch_Murnaghan3(Base_Fit_Class):
+class Birch_Murnaghan3(Pressure_Fit_Class):
     """ Fit function for third-order Birch-Murnaghan EOS (BE2?)
     Jeanloz, Raymond. "Finite-Strain Equation of State for High-Pressure Phases"
         Geophysical Research Letters 8(12) 1219-1222, December 1981
@@ -439,7 +565,7 @@ factory.register ('birch3', Birch_Murnaghan3)
 
 
 
-class Birch_Murnaghan4(Base_Fit_Class):
+class Birch_Murnaghan4(Pressure_Fit_Class):
     """ Fit function for fourth-order Birch-Murnaghan EOS
         Jeanloz, Raymond. "Finite-Strain Equation of State for High-Pressure Phases"
             Geophysical Research Letters 8(12) 1219-1222, December 1981
@@ -521,7 +647,7 @@ factory.register ('birch4', Birch_Murnaghan4)
 
 
 
-class Vinet(Base_Fit_Class):
+class Vinet(Pressure_Fit_Class):
     """ Fit function for third-order Vinet EOS
         R. Jeanloz, "Universal equation of state"
             Physical Review B 38(1) 805
@@ -590,7 +716,7 @@ factory.register ('vinet', Vinet)
 
 
 
-class Murnaghan(Base_Fit_Class):
+class Murnaghan(Pressure_Fit_Class):
     """ Fit function for Murnaghan EOS (MU2)
         FD Stacey, et al., "Finite Strain Theories and Comparisons with Seismological Data
             Geophysical Surveys 4 (1981) 189-232
@@ -645,7 +771,7 @@ factory.register ('murnaghan', Murnaghan)
 # graphs
 
 
-class Anton_Schmidt(Base_Fit_Class):
+class Anton_Schmidt(Pressure_Fit_Class):
     """ Fit function for Anton-Schmidt EOS
         H. Anton and P.C. Schmidt, "Theoretical investigations of the elastic
         constants in Laves phases"
@@ -708,7 +834,7 @@ class Anton_Schmidt(Base_Fit_Class):
 factory.register ('anton', Anton_Schmidt)
 
 
-class Bardeen(Base_Fit_Class):
+class Bardeen(Pressure_Fit_Class):
     """ Fit function for Bardeen EOS
         I. Alkammash, "Evaluation of pressure and bulk modulus for alkali
         halides under high pressure and temperature using different EOS"
@@ -762,7 +888,7 @@ class Bardeen(Base_Fit_Class):
 factory.register('bardeen', Bardeen)
 
 
-class Birch_Murnaghan2(Base_Fit_Class):
+class Birch_Murnaghan2(Pressure_Fit_Class):
     """ Fit function for second-order Murnaghan EOS (BE1?)
     R. Jeanloz, "Finite-Strian Equation of State for High-Pressure Phases"
         Geophysical Research Letters 8 (12) 1219-1222 (1981)
@@ -809,7 +935,7 @@ factory.register ('birch2', Birch_Murnaghan2)
 
 
 
-class Johnson_Holmquist(Base_Fit_Class):
+class Johnson_Holmquist(Pressure_Fit_Class):
     """ Fit function for Johnson-Holmquist EOS, compression mode only
         G. McIntosh, "The Johnson-Holmquist Ceramic Model as used in LS-DYNA2D"
             Report DREV-TM-9822 Department of National Defence, Canada
@@ -870,7 +996,7 @@ class Johnson_Holmquist(Base_Fit_Class):
 factory.register ('johnson', Johnson_Holmquist)
 
 
-class Kumari_Dass(Base_Fit_Class):
+class Kumari_Dass(Pressure_Fit_Class):
     """ Fit function for Kumari-Dass Equation of State
         UCD PhysWiki: http://physwiki.ucdavis.edu/Condensed_Matter/
         Equations_of_state/Kumari-Dass_equation_of_state
@@ -932,7 +1058,7 @@ class Kumari_Dass(Base_Fit_Class):
 factory.register ('kumari', Kumari_Dass)
 
 
-class Logarithmic2(Base_Fit_Class):
+class Logarithmic2(Pressure_Fit_Class):
     """ Fit function for second-order Logarithmic EOS
         J.-P. Poirier and A. Tarantola, "A logarithmic equation of state"
             Physics of the Earth and Planetary Interiors 109 (1998) 1-8
@@ -976,7 +1102,7 @@ class Logarithmic2(Base_Fit_Class):
 factory.register ('log2', Logarithmic2)
 
 
-class Logarithmic3(Base_Fit_Class):
+class Logarithmic3(Pressure_Fit_Class):
     """ Fit function for third-order Logarithmic EOS
         J.-P. Poirier and A. Tarantola, "A logarithmic equation of state"
             Physics of the Earth and Planetary Interiors 109 (1998) 1-8
@@ -1028,7 +1154,7 @@ class Logarithmic3(Base_Fit_Class):
 
 factory.register ('log', Logarithmic3)
 
-class Shankar(Base_Fit_Class):
+class Shankar(Pressure_Fit_Class):
     """ Fit function for Shankar EOS
         JC Bhatt, et al., "High Pressure Equation of State for Nanomaterials"
             ISRN Nanotechnology 2013 404920 1-6
@@ -1091,7 +1217,7 @@ factory.register ('shank', Shankar)
 # Incomplete EOS models
 
 
-class Ap1(Base_Fit_Class):
+class Ap1(Pressure_Fit_Class):
     """ Fit function for first-order Adapted Polynomial EOS (AP1)
         W. Holzapfel, "Equations of state for regular solids"
         High Pressure Research 22(1) 209-216 (2002)
@@ -1151,7 +1277,7 @@ class Ap1(Base_Fit_Class):
 factory.register ('ap1', Ap1)
 
 
-class Ap2(Base_Fit_Class):
+class Ap2(Pressure_Fit_Class):
     """ Fit function for second-order Adapted Polynomial EOS
         Jun Jiuxun, et al. "Equation of state for solids with high accuracy
         and satisfying the limitation condition at high pressure"
@@ -1250,6 +1376,7 @@ class Poly_Original(object):
 #        self._order = args.polynomial_order
         self._order = int(name[4:])
         self._f = None
+        self._is_first_fit = True
 
     def fit_to_points(self, points):
         """ Calculate the coefficients and create the polynomial function.
@@ -1283,6 +1410,9 @@ class Poly_Original(object):
         # calculate a new curve:
         self._f =  np.poly1d(coeffs)
 
+    def guess_coefficients(self, points): 
+        pass
+
     def func(self, x):
         return self._f(x)
 
@@ -1303,7 +1433,7 @@ factory.register ('poly', Poly_Original)
 # The main MEOS Code. No integrals or derivatives are currently calculated. All 
 # energy model names begin with an 'E'.
 
-class EBirch_Murnaghan3(Base_Fit_Class):
+class EBirch_Murnaghan3(Energy_Fit_Class):
     def __init__(self, args, name):
         super(EBirch_Murnaghan3, self).__init__(args, name)
         self.k0 = args.k0
@@ -1349,7 +1479,7 @@ class EBirch_Murnaghan3(Base_Fit_Class):
 factory.register ('ebirch3', EBirch_Murnaghan3)
 
 
-class EBirch_Murnaghan4(Base_Fit_Class):
+class EBirch_Murnaghan4(Energy_Fit_Class):
     def __init__(self, args, name):
         super(EBirch_Murnaghan4, self).__init__(args, name)
         self.k0 = args.k0
@@ -1393,7 +1523,7 @@ class EBirch_Murnaghan4(Base_Fit_Class):
 factory.register ('ebirch4', EBirch_Murnaghan4)
 
 
-class EMurnaghan(Base_Fit_Class):
+class EMurnaghan(Energy_Fit_Class):
     def __init__(self, args, name):
         super(EMurnaghan, self).__init__(args, name)
         self.k0 = args.k0
@@ -1436,7 +1566,7 @@ factory.register ('emurnaghan', EMurnaghan)
 # This model is specifically a refined fit type.
 # It can be any order between 4 and 12.
 
-class ESeries(Base_Fit_Class):
+class ESeries(Energy_Fit_Class):
     def __init__(self, args, name):
         super(ESeries, self).__init__(args, name)
         self.rho0 = args.rho0
@@ -1496,56 +1626,7 @@ factory.register ('eseries', ESeries)
 # Allow option for none, doesn't acually use Poly_Original
 factory.register ('none', Poly_Original)
 
-
-#-----------------------------------------------------------------------------------------
-# High Pressure Correction Equation
-# This model doesn't fit any other descriptions because it is specifically a refined fit
-# type for the energy version of birch murnaghan. 
-
-class EHighP(Base_Fit_Class):
-    def __init__(self, args, name):
-        super(EHighP, self).__init__(args, name)
-        self.rho0 = args.rho0
-        self.c1 = args.c1
-        self.c2 = args.c2
-        self.c3 = args.c3
-        self.c4 = args.c4
-
-    def _set_coefficients(self, coeffs):
-        (self.rho0, self.c1, self.c2, self.c3, self.c4) = coeffs
-
-    def _get_coefficients(self):
-        if self.rho0 == None:
-            self.rho0 = 1.0
-        return self.rho0, self.c1, self.c2, self.c3, self.c4
-
-    def _print_coefficients(self):
-        print ("rho0 = {};".format(self.rho0))
-        print ("c1 = {};".format(self.c1))
-        print ("c2 = {};".format(self.c2))
-        print ("c3 = {};".format(self.c3))
-        print ("c4 = {};".format(self.c4))
-
-    @staticmethod
-    def _f(x, *coeffs):
-        (rho0, c1, c2, c3, c4) = coeffs
-        xx = .5*(((x/rho0)**(2.0/3.0)) -1.0)
-        answer = (c1*xx + c2*((xx**2)/2) + 
-                  c3*((xx**3)/(3*2)) + c4*((xx**4)/(4*3*2)))
-        return answer
-
-    def _derivative(self, x):
-        raise RuntimeError("NOT YET IMPLEMENTED")
-
-    def _energy_integral(self, x):
-        raise RuntimeError("NOT YET IMPLEMENTED")
-
-    def _pressure_integral(self, x):
-        raise RuntimeError("NOT YET IMPLEMENTED")
-
-factory.register ('highp', EHighP)
-
-class EVinet(Base_Fit_Class):
+class EVinet(Energy_Fit_Class):
     """ Fit function for third-order Vinet Energy EOS
         R. Jeanloz, "Universal equation of state"
             Physical Review B 38(1) 805
@@ -1600,6 +1681,54 @@ class EVinet(Base_Fit_Class):
 
 factory.register ('evinet', EVinet)
 
+#-----------------------------------------------------------------------------------------
+# High Pressure Correction Equation
+# This model doesn't fit any other descriptions because it is specifically a refined fit
+# type for the energy version of birch murnaghan. 
+
+class EHighP(Energy_Fit_Class):
+    def __init__(self, args, name):
+        super(EHighP, self).__init__(args, name)
+        self.rho0 = args.rho0
+        self.c1 = args.c1
+        self.c2 = args.c2
+        self.c3 = args.c3
+        self.c4 = args.c4
+
+    def _set_coefficients(self, coeffs):
+        (self.rho0, self.c1, self.c2, self.c3, self.c4) = coeffs
+
+    def _get_coefficients(self):
+        if self.rho0 == None:
+            self.rho0 = 1.0
+        return self.rho0, self.c1, self.c2, self.c3, self.c4
+
+    def _print_coefficients(self):
+        print ("rho0 = {};".format(self.rho0))
+        print ("c1 = {};".format(self.c1))
+        print ("c2 = {};".format(self.c2))
+        print ("c3 = {};".format(self.c3))
+        print ("c4 = {};".format(self.c4))
+
+    @staticmethod
+    def _f(x, *coeffs):
+        (rho0, c1, c2, c3, c4) = coeffs
+        xx = .5*(((x/rho0)**(2.0/3.0)) -1.0)
+        answer = (c1*xx + c2*((xx**2)/2) + 
+                  c3*((xx**3)/(3*2)) + c4*((xx**4)/(4*3*2)))
+        return answer
+
+    def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _energy_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _pressure_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+factory.register ('highp', EHighP)
+
 
 class ThetaBP(Base_Fit_Class):
     """ Fit function for theta > rho0  
@@ -1626,6 +1755,15 @@ class ThetaBP(Base_Fit_Class):
         print ("q = {};".format(self.q))
         print ("c1 = {};".format(self.c1))
         print ("c2 = {};".format(self.c2))
+
+    def guess_coefficients(self, points):  #We don't have a guess method for ThetaBP yet.  It only handles the compression side
+        if(self.theta0 == None):
+            self.theta0 = 1000
+        if(self.rho0 == None):
+            self.rho0   = 3.0
+        self.q      = 1.5
+        self.c1     = 1.0
+        self.c2     = 1.0
 
     @staticmethod
     def _f(rho, *coeffs):
