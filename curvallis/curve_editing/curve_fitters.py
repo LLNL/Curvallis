@@ -599,19 +599,16 @@ class Birch_Murnaghan4(Pressure_Fit_Class):
         (self.k0, self.k0_prime, self.rho0) = self.BMurn3._get_coefficients()
 
     @staticmethod
-    def _f(x, *coeffs):
+    def _f(rho, *coeffs):
         (k0, k0_prime, k0_prime_prime, rho0) = coeffs
-        xi = .75 * (k0_prime - 4.0)
-        zeta = (3.0 / 8.0) * \
-               (k0 * k0_prime_prime +
-                k0_prime * (k0_prime - 7.0) +
-                (143.0 / 9.0))
-        return (1.5 * k0) * \
-               (_eta7(x, rho0) - _eta5(x, rho0)) * \
-               (1.0 +
-                xi * (_eta2(x, rho0) - 1.0) +
-                zeta * np.square(_eta2(x, rho0) - 1.0))
-
+        strain = (1.0/2.0) * pow((rho/rho0), (2.0/3.0)) - 1.0
+        
+        term1 = (3.0/2.0)*(k0*k0_prime_prime + k0_prime*(k0_prime-7)+(143.0/9.0)) * pow(strain, 2.0)
+        term2 = 1 + (3.0/2.0)*(k0_prime-4)*strain
+        bracket_term = term1+term2
+        outer_term = 3*k0*strain* pow(1+2*strain, (5.0/2.0))
+        return outer_term * bracket_term
+    
     def _derivative(self, x):
         xi = .75 * (4.0 - self.k0_prime)
         zeta = (3.0 / 8.0) * \
