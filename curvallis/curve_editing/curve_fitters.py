@@ -578,6 +578,7 @@ class Birch_Murnaghan4(Pressure_Fit_Class):
         self.k0_prime       = args.k0_prime
         self.k0_prime_prime = args.k0_prime_prime
         self.rho0           = args.rho0
+        self.BMurn3         = Birch_Murnaghan3(args, name)
 
     def _set_coefficients(self, coeffs):
         (self.k0, self.k0_prime, k0_prime_prime, self.rho0) = coeffs
@@ -591,6 +592,11 @@ class Birch_Murnaghan4(Pressure_Fit_Class):
         print ("Bpp = {};".format(self.k0_prime_prime))
         print ("rho0 = {};".format(self.rho0))
 
+    #Birch_Murnaghan4 doesn't seem to converge well, use BMurn3 as inital guess.
+    def guess_coefficients(self, points):
+        self.BMurn3.guess_coefficients(points)
+        self.BMurn3.fit_to_points(points)
+        (self.k0, self.k0_prime, self.rho0) = self.BMurn3._get_coefficients()
 
     @staticmethod
     def _f(x, *coeffs):
@@ -1487,6 +1493,7 @@ class EBirch_Murnaghan4(Energy_Fit_Class):
         self.k0_prime_prime = args.k0_prime_prime
         self.rho0 = args.rho0
         self.e0 = args.e0
+        self.EBMurn3         = EBirch_Murnaghan3(args, name)
 
     def _set_coefficients(self, coeffs):
         (self.k0, self.k0_prime, self.k0_prime_prime, self.rho0, self.e0) = coeffs
@@ -1500,6 +1507,13 @@ class EBirch_Murnaghan4(Energy_Fit_Class):
         print ("Bpp = {};".format(self.k0_prime_prime))
         print ("rho0 = {};".format(self.rho0))
         print ("E0 = {};".format(self.e0))
+
+    #Birch_Murnaghan4 doesn't seem to converge well, use BMurn3 as inital guess.
+    def guess_coefficients(self, points):
+        self.EBMurn3.guess_coefficients(points)
+        self.EBMurn3.fit_to_points(points)
+        (self.k0, self.k0_prime, self.rho0, self.e0) = self.EBMurn3._get_coefficients()
+
 
     @staticmethod
     def _f(x, *coeffs):
