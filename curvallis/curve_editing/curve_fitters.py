@@ -28,6 +28,7 @@ import scipy.optimize as opt
 import scipy.special as spec
 from pylab import polyfit
 from math import e, factorial
+import bisect
 
 def define_args(parser):
     fitter_args = parser.add_argument_group(
@@ -124,8 +125,9 @@ def define_args(parser):
         f=1.0,
         delta_p=1.0,
         k0=None,                #Calculated in guess_coefficients
-        k0_prime=None,          #Same
+        k0_prime=None,          #May be calcualted in guess_coefficients 
         k0_prime_prime=1.0,
+        e0 = None,              #Energy Curve, calcualted in guess_coefficients
         k1=1.0,
         k2=1.0,
         k3=1.0,
@@ -134,7 +136,6 @@ def define_args(parser):
         q=None,                 #For ThetaBP fitter only
         theta0=None,            #For Theta fitters 
         z=1.0,
-        e0 = 1.0,
         c1 = 1.0,
         c2 = 1.0,
         c3 = 1.0,
@@ -435,55 +436,55 @@ class Energy_Fit_Class(Base_Fit_Class):
 
     def guess_coefficients(self, points):
 
-        # Check if selected plotter uses coefficients
-        if ((not hasattr (self, 'k0')) or 
-            (not hasattr (self, 'k0_prime')) or 
-            (not hasattr (self, 'rho0'))):
+        if(len(points) < 10):
+            print("The data does not have many points in it.  The fit will probably be poor.");
 
-            # If not, set defaults for required coefficients
-            if (hasattr (self, 'k0')):
-                self.k0 = 1.0e11
-            if (hasattr (self, 'k0_prime')):
-                self.k0_prime = 20.0
-            if (hasattr (self, 'rho0')):
-                self.rho0 = 5.0
-
-            return
-
-        # Find the minimum point, that's rho0. ( unless rho0 isn't in the region)
-        min_point = points[0]
-        min_point_index = 0
-        for idx in range(0, len(points)):
-            if (points[idx][1] < min_point[1]):
-                min_point = points[idx]
-                min_point_index = idx
+        if(self.rho0 == None):
+            # Find the minimum point, that's rho0. ( unless rho0 isn't in the region)
+            min_point = points[0]
+            min_point_index = 0
+            for idx in range(0, len(points)):
+                if (points[idx][1] < min_point[1]):
+                    min_point = points[idx]
+                    min_point_index = idx
+        else: #a rho0 guess exists, so try to find it in the data
+            xcoords, ycoords = zip(*points)
+            min_point_index = bisect.bisect(xcoords, self.rho0)-1 #bisect seems to find the index after the target for some reason.
+            min_point = points[min_point_index]
 
         parabola_points = []
-        # Create list of points around min point
-        if min_point_index > 25 and len(points) > min_point_index + 25:
-            startidx = min_point_index - 25
-            for i in range(startidx, startidx+50):
-                parabola_points.append(points[i])
-        elif min_point_index > 0 and len(points) > min_point_index + 25:  #Or just take what points we have
-            for i in range(0,min_point_index*2):
-                parabola_points.append(points[i])
-#        else:  min_point_index is 0, nothing we can do
+        # Create list of points around min point to make a parabola if possible
+        if min_point_index <= 0 or min_point_index >= len(points)-1:
+            #rho0 is at or off the end of the data range, so we can't make a parabola
+            if(self.rho0 == None):
+                print("rho0 doesn't appear to be in the data, please provide a guess for rho0.")
+                self.rho0 = 5.0 
+            else:
+                print("Your guess for rho0 doesn't appear to be in the data range.\n Cannot use it to guess other coefficients. The fit may be poor");
 
-        #Use the points around the min point to fit a parabola to guess
-        #coefficients. This only makes sense for an energy curve?
+        else: #Get points as many points as possible around the min_point, up to 10.
+            self.rho0 = min_point[0]
+            start_idx = min_point_index -10
+            if(start_idx < 0):
+                start_idx = 0
+            end_idx = min_point_index+10
+            if(end_idx > len(points)):
+               end_idx = len_points
+            parabola_points.extend(points[start_idx:end_idx])
+
+        #Use the points around rho0 to fit a parabola to guess
+        #coefficients. This only makes sense for an energy curve
         if len(parabola_points) > 0:
-            xcoords, ycoords = zip(*parabola_points)
+            xcoords_tup, ycoords = zip(*parabola_points)
+            xcoords = map(lambda rho: rho-self.rho0, xcoords_tup) #Shift the rho axis so rho0 is 0 (otherwise the parabolo fit doesn't work)
             a,b,c = polyfit(xcoords,ycoords,2)
-            rho0 = min_point[0]
-            k0 = ((2.0 * a * rho0) + b) * rho0
-            k0_prime = 1 + ((2 * a * rho0 * rho0) / k0)
-
-            if self.rho0 is None:
-                self.rho0 = rho0
+            
             if self.k0 is None:
-                self.k0 = k0
+                self.k0 = a #a is the coefficent of x^2
             if self.k0_prime is None:
-                self.k0_prime = k0_prime
+                self.k0_prime = 5.0
+            if self.e0 is None:
+               self.e0 = c #c should be the parabola minimum point on the y axis
 
         else:
             print ("Unable to guess coefficients, using defaults.")
@@ -492,8 +493,10 @@ class Energy_Fit_Class(Base_Fit_Class):
                 self.rho0 = 5.0
             if self.k0 is None:
                 self.k0 = 1.0e11
-            if self.k0_prime is None:  #TODO: Change these checks to make sure the value exists before checking
-                self.k0_prime = 20.0
+            if self.k0_prime is None:
+                self.k0_prime = 5.0
+            if self.e0 is None:
+               self.e0 = 1.0
             
         print ("Coefficient Guesses: ", self.k0, 
                self.k0_prime, self.rho0)
@@ -1506,10 +1509,11 @@ class EBirch_Murnaghan4(Energy_Fit_Class):
         print ("E0 = {};".format(self.e0))
 
     #Birch_Murnaghan4 doesn't seem to converge well, use BMurn3 as inital guess.
-    def guess_coefficients(self, points):
-        self.EBMurn3.guess_coefficients(points)
-        self.EBMurn3.fit_to_points(points)
-        (self.k0, self.k0_prime, self.rho0, self.e0) = self.EBMurn3._get_coefficients()
+    #New guessing algorithm works well now, so taking out BMurn3 stuff
+#    def guess_coefficients(self, points):
+#        self.EBMurn3.guess_coefficients(points)
+#        self.EBMurn3.fit_to_points(points)
+#        (self.k0, self.k0_prime, self.rho0, self.e0) = self.EBMurn3._get_coefficients()
 
 
     @staticmethod
