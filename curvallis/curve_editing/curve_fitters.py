@@ -26,6 +26,7 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 import scipy.optimize as opt
 import scipy.special as spec
+import scipy.interpolate as interp
 from pylab import polyfit
 from math import e, factorial
 import bisect
@@ -102,6 +103,10 @@ def define_args(parser):
         '--theta0_guess', dest='theta0',
         type=float, metavar='<float>',
         help='Initial guess for theta0 [default: %(default)s]')
+    fitter_args.add_argument(
+        '--gamma0_guess', dest='gamma0',
+        type=float, metavar='<float>',
+        help='Initial guess for gamma0 [default: %(default)s]')
     # fitter_args.add_argument(
     #     '--z_guess', dest='z',
     #     type=float, metavar='<float>',
@@ -133,8 +138,9 @@ def define_args(parser):
         k3=1.0,
         lam=1.0,
         rho0=None,              #Same
-        q=None,                 #For ThetaBP fitter only
+        q=None,                 #For Theta and Gamma fitters
         theta0=None,            #For Theta fitters 
+        gamma0=None,            #For gamma fitters 
         z=1.0,
         c1 = 1.0,
         c2 = 1.0,
@@ -1804,3 +1810,126 @@ class ThetaBP(Base_Fit_Class):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
 factory.register ('thetabp', ThetaBP)
+
+class GammaRho(Base_Fit_Class):
+    """ Fit function for gamma on density g/cc  
+        Reference?
+    """
+    def __init__(self, args, name):
+        super(GammaRho, self).__init__(args, name)
+        self.gamma0         = args.gamma0   # gamma at rho0
+        self.rho0           = args.rho0     # rho0
+        self.q              = args.q        # q exponent
+        self.c1             = args.c1       # coefficent 1
+        self.c2             = args.c2       # coefficent 2
+
+    def _set_coefficients(self, coeffs):
+        (self.gamma0, self.rho0, self.q, self.c1, self.c2) = coeffs
+
+    def _get_coefficients(self):
+        return self.gamma0, self.rho0, self.q, self.c1, self.c2
+
+    def _print_coefficients(self):
+        print ("gamma0 = {};".format(self.gamma0))
+        print ("rho0 = {};".format(self.rho0))
+        print ("q = {};".format(self.q))
+        print ("c1 = {};".format(self.c1))
+        print ("c2 = {};".format(self.c2))
+
+    def guess_coefficients(self, points):  
+        #If we don't have either gamma0 or rho0, just up the first point for both.
+        if(self.gamma0 == None and self.rho0 == None):
+            rho0 = points[0][0]
+            gamma0 = points[0][1]
+        elif(self.gamma0 == None): #If we have rho0 but no gamma, find gamma0 at that point
+            x_values, y_values = zip(*points)
+            interpFunc = interp.interp1d(x_values, y_values);
+            self.gamma0 = interpFunc(rh0)
+        elif(self.rho0 == None):
+            raise RuntimeError("Please define rho0 if gamma0 is defined")
+        if(self.q == None): #Calculate a guess for q
+            yy = (self.gamma0/self.c2) - (1/(2*self.c2)) - ((self.c1/self.c2) * pow(self.rho0, -1.0/3.0))
+            self.q = -math.log(yy) / math.log(self.rho0)
+            
+
+    @staticmethod
+    def _f(rho, *coeffs):
+        (gamma0, rho0, q, c1, c2) = coeffs
+        term1 = c1 / pow(rho, 1.0/3.0)
+        term2 = c2 / pow(rho, q)
+        return 0.5 + term1 + term2
+
+
+    def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _energy_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _pressure_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+factory.register ('gammaRho', GammaRho)
+
+class GammaV(Base_Fit_Class):
+    """ Fit function for gamma on volume cc/g
+        We just treat rho0 and V0 here, rather than using a different name.  Pass in V0 under the name rho0
+        Reference?
+    """
+    def __init__(self, args, name):
+        super(GammaV, self).__init__(args, name)
+        self.gamma0         = args.gamma0   # theta at v0
+        self.rho0           = args.rho0     # v0
+        self.q              = args.q        # q exponent
+        self.c1             = args.c1       # coefficent 1
+        self.c2             = args.c2       # coefficent 2
+
+    def _set_coefficients(self, coeffs):
+        (self.gamma0, self.rho0, self.q, self.c1, self.c2) = coeffs
+
+    def _get_coefficients(self):
+        return self.gamma0, self.rho0, self.q, self.c1, self.c2
+
+    def _print_coefficients(self):
+        print ("gamma0 = {};".format(self.gamma0))
+        print ("V0 = {};".format(self.rho0))
+        print ("q = {};".format(self.q))
+        print ("c1 = {};".format(self.c1))
+        print ("c2 = {};".format(self.c2))
+
+    def guess_coefficients(self, points):  
+        #If we don't have either gamma0 or rho0, just up the first point for both.
+        if(self.gamma0 == None and self.rho0 == None):
+            rho0 = points[0][0]
+            gamma0 = points[0][1]
+        elif(self.gamma0 == None): #If we have rho0 but no gamma, find gamma0 at that point
+            x_values, y_values = zip(*points)
+            interpFunc = interp.interp1d(x_values, y_values);
+            self.gamma0 = interpFunc(rh0)
+        elif(self.rho0 == None):
+            raise RuntimeError("Please define rho0 if gamma0 is defined")
+
+        if(self.q == None): #Calculate a guess for q
+            yy = (self.gamma0/self.c2) - (1/(2*self.c2)) - (self.c1*pow(self.rho0, 1.0/3.0))/self.c2
+            self.q = - math.log(yy) / math.log(self.rho0)
+            
+
+    @staticmethod
+    def _f(x, *coeffs):
+        (gamma0, rho0, q, c1, c2) = coeffs
+        term1 = c1 * pow(x, 1.0/3.0)
+        term2 = c2 * pow(x, q)
+        return 0.5 + term1 + term2
+
+
+    def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _energy_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _pressure_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+factory.register ('gammaV', GammaV)
+
