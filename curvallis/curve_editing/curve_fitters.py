@@ -30,6 +30,7 @@ import scipy.interpolate as interp
 from pylab import polyfit
 from math import e, factorial
 import bisect
+import math
 
 def define_args(parser):
     fitter_args = parser.add_argument_group(
@@ -1839,8 +1840,8 @@ class GammaRho(Base_Fit_Class):
     def guess_coefficients(self, points):  
         #If we don't have either gamma0 or rho0, just up the first point for both.
         if(self.gamma0 == None and self.rho0 == None):
-            rho0 = points[0][0]
-            gamma0 = points[0][1]
+            self.rho0 = points[0][0]
+            self.gamma0 = points[0][1]
         elif(self.gamma0 == None): #If we have rho0 but no gamma, find gamma0 at that point
             x_values, y_values = zip(*points)
             interpFunc = interp.interp1d(x_values, y_values);
@@ -1900,8 +1901,8 @@ class GammaV(Base_Fit_Class):
     def guess_coefficients(self, points):  
         #If we don't have either gamma0 or rho0, just up the first point for both.
         if(self.gamma0 == None and self.rho0 == None):
-            rho0 = points[0][0]
-            gamma0 = points[0][1]
+            self.rho0 = points[0][0]
+            self.gamma0 = points[0][1]
         elif(self.gamma0 == None): #If we have rho0 but no gamma, find gamma0 at that point
             x_values, y_values = zip(*points)
             interpFunc = interp.interp1d(x_values, y_values);
