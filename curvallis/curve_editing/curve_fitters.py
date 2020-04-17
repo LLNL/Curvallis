@@ -28,9 +28,8 @@ import scipy.optimize as opt
 import scipy.special as spec
 import scipy.interpolate as interp
 from pylab import polyfit
-from math import e, factorial
-import bisect
 import math
+import bisect
 
 def define_args(parser):
     fitter_args = parser.add_argument_group(
@@ -776,6 +775,23 @@ class Murnaghan(Pressure_Fit_Class):
 
 factory.register ('murnaghan', Murnaghan)
 
+
+
+class SandiaPC(Pressure_Fit_Class):
+    def __init__(self, args, name):
+        super(SandiaPC, self).__init__(args, name)
+        self.rho0 = args.rho0
+
+    def _set_coefficients(self, coeffs):
+        (self.rho0) = coeffs
+
+    def _get_coefficients(self):
+        return self.rho0
+
+    def _print_coefficients(self):
+        print ("rho0 = {};".format(self.rho0))
+
+factory.register ('sandiapc', SandiaPC)
 
 #------------------------------------------------------------------------------
 # Working EOS models:
