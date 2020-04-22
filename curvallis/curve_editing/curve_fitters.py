@@ -133,9 +133,12 @@ def define_args(parser):
         k0_prime=None,          #May be calcualted in guess_coefficients 
         k0_prime_prime=1.0,
         e0 = None,              #Energy Curve, calcualted in guess_coefficients
+        kneg1=1.0,
         k1=1.0,
         k2=1.0,
         k3=1.0,
+        k4=1.0,
+        k5=1.0,
         lam=1.0,
         rho0=None,              #Same
         q=None,                 #For Theta and Gamma fitters
@@ -775,21 +778,63 @@ class Murnaghan(Pressure_Fit_Class):
 
 factory.register ('murnaghan', Murnaghan)
 
+#------------------------------------------------------------------------------
+# Pressure Fitter from Sandia wanted by Christine; hasn't been
+# tested yet in MEOS
 
 
 class SandiaPC(Pressure_Fit_Class):
     def __init__(self, args, name):
         super(SandiaPC, self).__init__(args, name)
-        self.rho0 = args.rho0
+        self.kneg1 = args.kneg1
+	self.k0    = args.k0
+	self.k1    = args.k1
+	self.k2    = args.k2
+	self.k3    = args.k3
+	self.k4    = args.k4
+	self.k5    = args.k5
+        self.rho0  = args.rho0
 
     def _set_coefficients(self, coeffs):
-        (self.rho0) = coeffs
+        (self.kneg1, self.k0, self.k1, self.k2, self.k3, self.k4, self.k5, self.rho0) = coeffs
 
     def _get_coefficients(self):
-        return self.rho0
+        return self.kneg1, self.k0, self.k1, self.k2, self.k3, self.k4, self.k5, self.rho0
 
     def _print_coefficients(self):
+        print ("kneg1 = {};".format(self.kneg1))
+        print ("k0 = {};".format(self.k0))
+        print ("k1 = {};".format(self.k1))
+        print ("k2 = {};".format(self.k2))
+        print ("k3 = {};".format(self.k3))
+        print ("k4 = {};".format(self.k4))
+        print ("k5 = {};".format(self.k5))
         print ("rho0 = {};".format(self.rho0))
+
+    @staticmethod
+    def _f(x, *coeffs):
+        (kneg1, k0, k1, k2, k3, k4, k5, rho0) = coeffs
+        y = _eta(x, rho0)
+        return kneg1 * y**(-1) + \
+               k0 * 1 + \
+               k1 * y + \
+               k2 * y**2 + \
+               k3 * y**3 + \
+               k4 * y**4 + \
+               k5 * y**5
+
+    def _derivative(self, x):
+        y = _eta(x, rho0)
+        return -(self.kneg1 * y**(-2)) + \
+               self.k1 / self.rho0 + \
+               2 * self.k2 * y + \
+               3 * self.k3 * y**2 + \
+               4 * self.k4 * y**3 + \
+               5 * self.k5 * y**4
+
+    def _energy_integral(self, x): pass#Needed to implement the abstract method, even though it's not of use for this fitter
+
+    def _pressure_integral(self, x): pass#Needed to implement the abstract method, even though it's not of use for this fitter
 
 factory.register ('sandiapc', SandiaPC)
 
