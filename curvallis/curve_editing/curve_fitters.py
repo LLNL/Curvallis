@@ -134,6 +134,7 @@ def define_args(parser):
         k0_prime_prime=1.0,
         e0 = None,              #Energy Curve, calcualted in guess_coefficients
         kneg1=1.0,
+	kneg0=1.0,
         k1=1.0,
         k2=1.0,
         k3=1.0,
@@ -787,7 +788,7 @@ class SandiaPC(Pressure_Fit_Class):
     def __init__(self, args, name):
         super(SandiaPC, self).__init__(args, name)
         self.kneg1 = args.kneg1
-	self.k0    = args.k0
+	self.kneg0 = args.kneg0
 	self.k1    = args.k1
 	self.k2    = args.k2
 	self.k3    = args.k3
@@ -796,14 +797,14 @@ class SandiaPC(Pressure_Fit_Class):
         self.rho0  = args.rho0
 
     def _set_coefficients(self, coeffs):
-        (self.kneg1, self.k0, self.k1, self.k2, self.k3, self.k4, self.k5, self.rho0) = coeffs
+        (self.kneg1, self.kneg0, self.k1, self.k2, self.k3, self.k4, self.k5, self.rho0) = coeffs
 
     def _get_coefficients(self):
-        return self.kneg1, self.k0, self.k1, self.k2, self.k3, self.k4, self.k5, self.rho0
+        return self.kneg1, self.kneg0, self.k1, self.k2, self.k3, self.k4, self.k5, self.rho0
 
     def _print_coefficients(self):
         print ("kneg1 = {};".format(self.kneg1))
-        print ("k0 = {};".format(self.k0))
+        print ("k0 = {};".format(self.kneg0))
         print ("k1 = {};".format(self.k1))
         print ("k2 = {};".format(self.k2))
         print ("k3 = {};".format(self.k3))
@@ -813,10 +814,10 @@ class SandiaPC(Pressure_Fit_Class):
 
     @staticmethod
     def _f(x, *coeffs):
-        (kneg1, k0, k1, k2, k3, k4, k5, rho0) = coeffs
+        (kneg1, kneg0, k1, k2, k3, k4, k5, rho0) = coeffs
         y = _eta(x, rho0)
         return kneg1 * y**(-1) + \
-               k0 * 1 + \
+               kneg0 * 1 + \
                k1 * y + \
                k2 * y**2 + \
                k3 * y**3 + \
