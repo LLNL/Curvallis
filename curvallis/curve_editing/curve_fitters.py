@@ -133,13 +133,13 @@ def define_args(parser):
         k0_prime=None,          #May be calcualted in guess_coefficients 
         k0_prime_prime=1.0,
         e0 = None,              #Energy Curve, calcualted in guess_coefficients
-        kneg1=1.0,
-	kneg0=1.0,
-        k1=1.0,
-        k2=1.0,
-        k3=1.0,
-        k4=1.0,
-        k5=1.0,
+        kneg1=1.0e11,
+	    kneg0=1.0e11,
+        k1=1.0e11,
+        k2=1.0e11,
+        k3=1.0e11,
+        k4=1.0e11,
+        k5=1.0e11,
         lam=1.0,
         rho0=None,              #Same
         q=None,                 #For Theta and Gamma fitters
@@ -301,6 +301,15 @@ class Base_Fit_Class(object):
         """ Prints coefficients used by specific equation
         """
 
+    def bounds(self):
+        """ Gives bounds, if any, to how parameters for the
+            'fit_to_points()' function should be optimized. Default
+            is no bounds, though if values are given by the user that
+            shouldn't be changed, their bounds should be set here
+            to prevent change
+        """
+        return (-np.inf, np.inf)
+
     def fit_to_points(self, points):
         """ Derive the coefficients for this fit function that best fit the
         data.  Call this whenever the data changes.  Args to _f are provided via
@@ -312,6 +321,7 @@ class Base_Fit_Class(object):
             xdata=x_values,
             ydata=y_values,
             p0=self._get_coefficients(),
+            bounds=self.bounds(),
             maxfev=self.maxfev)
         self._set_coefficients(new_coefficients)
 #        print("curve_fit parameters out = ", new_coefficients)
@@ -378,11 +388,11 @@ class Pressure_Fit_Class(Base_Fit_Class):
             (not hasattr (self, 'rho0'))):
 
             # If not, set defaults for required coefficients
-            if (hasattr (self, 'k0')):
+            if (not hasattr (self, 'k0')):
                 self.k0 = 1.0e11
-            if (hasattr (self, 'k0_prime')):
+            if (not hasattr (self, 'k0_prime')):
                 self.k0_prime = 20.0
-            if (hasattr (self, 'rho0')):
+            if (not hasattr (self, 'rho0')):
                 self.rho0 = 5.0
 
             return
@@ -788,16 +798,16 @@ class SandiaPC(Pressure_Fit_Class):
     def __init__(self, args, name):
         super(SandiaPC, self).__init__(args, name)
         self.kneg1 = args.kneg1
-	self.kneg0 = args.kneg0
-	self.k1    = args.k1
-	self.k2    = args.k2
-	self.k3    = args.k3
-	self.k4    = args.k4
-	self.k5    = args.k5
+        self.kneg0 = args.kneg0
+        self.k1    = args.k1
+        self.k2    = args.k2
+        self.k3    = args.k3
+        self.k4    = args.k4
+        self.k5    = args.k5
         self.rho0  = args.rho0
 
     def _set_coefficients(self, coeffs):
-        (self.kneg1, self.kneg0, self.k1, self.k2, self.k3, self.k4, self.k5, self.rho0) = coeffs
+        (self.kneg1, self.kneg0, self.k1, self.k2, self.k3, self.k4, self.k5) = coeffs[:-1]
 
     def _get_coefficients(self):
         return self.kneg1, self.kneg0, self.k1, self.k2, self.k3, self.k4, self.k5, self.rho0
@@ -811,6 +821,16 @@ class SandiaPC(Pressure_Fit_Class):
         print ("k4 = {};".format(self.k4))
         print ("k5 = {};".format(self.k5))
         print ("rho0 = {};".format(self.rho0))
+
+    def bounds(self):
+        """ Since rho0 is required to be given by the user, rho0 should
+            not be changed during the parameter optimizing process.
+            This is done by making the bounds of rho0 to change so
+            small that the user won't see it and won't affect
+            calculations
+        """
+        return ([-np.inf,-np.inf,-np.inf,-np.inf,-np.inf,-np.inf,-np.inf,self.rho0],
+                [np.inf,np.inf,np.inf,np.inf,np.inf,np.inf,np.inf,self.rho0+1e10])
 
     @staticmethod
     def _f(x, *coeffs):
