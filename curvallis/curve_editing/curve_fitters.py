@@ -388,11 +388,11 @@ class Pressure_Fit_Class(Base_Fit_Class):
             (not hasattr (self, 'rho0'))):
 
             # If not, set defaults for required coefficients
-            if (hasattr (self, 'k0')):
+            if (not hasattr (self, 'k0')):
                 self.k0 = 1.0e11
-            if (hasattr (self, 'k0_prime')):
+            if (not hasattr (self, 'k0_prime')):
                 self.k0_prime = 20.0
-            if (hasattr (self, 'rho0')):
+            if (not hasattr (self, 'rho0')):
                 self.rho0 = 5.0
 
             return
