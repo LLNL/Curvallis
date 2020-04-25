@@ -269,11 +269,21 @@ def process_args (parser, args):
             parser.error('Both --in_eos_file_base and --out_eos_file_base '
                          'must be set, or neither must be set.')
 
+    def check_sandiapc_rho0():
+        """ If the fitter sandiapc is selected, the user must
+            be forced to enter the constant "rho0" instead of
+            Curvallis gussing it.
+        """
+	if args.rho0 is None and "sandiapc" in args.fit_type:
+            parser.error('If using the fitter "sandiapc" you must '
+                         'give a value for "rho0_guess".')
+
     check_no_config_file()
     check_decimate_and_step()
     check_input_arg()
     check_output_arg()
     check_eos_args()
+    check_sandiapc_rho0()
 
 class XY_Limits(object):
     """ Contains an x range and a y range.

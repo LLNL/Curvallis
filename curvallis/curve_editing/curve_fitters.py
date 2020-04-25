@@ -28,9 +28,8 @@ import scipy.optimize as opt
 import scipy.special as spec
 import scipy.interpolate as interp
 from pylab import polyfit
-from math import e, factorial
-import bisect
 import math
+import bisect
 
 def define_args(parser):
     fitter_args = parser.add_argument_group(
@@ -134,9 +133,13 @@ def define_args(parser):
         k0_prime=None,          #May be calcualted in guess_coefficients 
         k0_prime_prime=1.0,
         e0 = None,              #Energy Curve, calcualted in guess_coefficients
-        k1=1.0,
-        k2=1.0,
-        k3=1.0,
+        kneg1=1.0e11,
+	    kneg0=1.0e11,
+        k1=1.0e11,
+        k2=1.0e11,
+        k3=1.0e11,
+        k4=1.0e11,
+        k5=1.0e11,
         lam=1.0,
         rho0=None,              #Same
         q=None,                 #For Theta and Gamma fitters
@@ -298,6 +301,15 @@ class Base_Fit_Class(object):
         """ Prints coefficients used by specific equation
         """
 
+    def bounds(self):
+        """ Gives bounds, if any, to how parameters for the
+            'fit_to_points()' function should be optimized. Default
+            is no bounds, though if values are given by the user that
+            shouldn't be changed, their bounds should be set here
+            to prevent change
+        """
+        return (-np.inf, np.inf)
+
     def fit_to_points(self, points):
         """ Derive the coefficients for this fit function that best fit the
         data.  Call this whenever the data changes.  Args to _f are provided via
@@ -309,6 +321,7 @@ class Base_Fit_Class(object):
             xdata=x_values,
             ydata=y_values,
             p0=self._get_coefficients(),
+            bounds=self.bounds(),
             maxfev=self.maxfev)
         self._set_coefficients(new_coefficients)
 #        print("curve_fit parameters out = ", new_coefficients)
@@ -375,11 +388,11 @@ class Pressure_Fit_Class(Base_Fit_Class):
             (not hasattr (self, 'rho0'))):
 
             # If not, set defaults for required coefficients
-            if (hasattr (self, 'k0')):
+            if (not hasattr (self, 'k0')):
                 self.k0 = 1.0e11
-            if (hasattr (self, 'k0_prime')):
+            if (not hasattr (self, 'k0_prime')):
                 self.k0_prime = 20.0
-            if (hasattr (self, 'rho0')):
+            if (not hasattr (self, 'rho0')):
                 self.rho0 = 5.0
 
             return
@@ -776,6 +789,75 @@ class Murnaghan(Pressure_Fit_Class):
 
 factory.register ('murnaghan', Murnaghan)
 
+#------------------------------------------------------------------------------
+# Pressure Fitter from Sandia wanted by Christine; hasn't been
+# tested yet in MEOS
+
+
+class SandiaPC(Pressure_Fit_Class):
+    def __init__(self, args, name):
+        super(SandiaPC, self).__init__(args, name)
+        self.kneg1 = args.kneg1
+        self.kneg0 = args.kneg0
+        self.k1    = args.k1
+        self.k2    = args.k2
+        self.k3    = args.k3
+        self.k4    = args.k4
+        self.k5    = args.k5
+        self.rho0  = args.rho0
+
+    def _set_coefficients(self, coeffs):
+        (self.kneg1, self.kneg0, self.k1, self.k2, self.k3, self.k4, self.k5) = coeffs[:-1]
+
+    def _get_coefficients(self):
+        return self.kneg1, self.kneg0, self.k1, self.k2, self.k3, self.k4, self.k5, self.rho0
+
+    def _print_coefficients(self):
+        print ("kneg1 = {};".format(self.kneg1))
+        print ("k0 = {};".format(self.kneg0))
+        print ("k1 = {};".format(self.k1))
+        print ("k2 = {};".format(self.k2))
+        print ("k3 = {};".format(self.k3))
+        print ("k4 = {};".format(self.k4))
+        print ("k5 = {};".format(self.k5))
+        print ("rho0 = {};".format(self.rho0))
+
+    def bounds(self):
+        """ Since rho0 is required to be given by the user, rho0 should
+            not be changed during the parameter optimizing process.
+            This is done by making the bounds of rho0 to change so
+            small that the user won't see it and won't affect
+            calculations
+        """
+        return ([-np.inf,-np.inf,-np.inf,-np.inf,-np.inf,-np.inf,-np.inf,self.rho0],
+                [np.inf,np.inf,np.inf,np.inf,np.inf,np.inf,np.inf,self.rho0+1e10])
+
+    @staticmethod
+    def _f(x, *coeffs):
+        (kneg1, kneg0, k1, k2, k3, k4, k5, rho0) = coeffs
+        y = _eta(x, rho0)
+        return kneg1 * y**(-1) + \
+               kneg0 * 1 + \
+               k1 * y + \
+               k2 * y**2 + \
+               k3 * y**3 + \
+               k4 * y**4 + \
+               k5 * y**5
+
+    def _derivative(self, x):
+        y = _eta(x, rho0)
+        return -(self.kneg1 * y**(-2)) + \
+               self.k1 / self.rho0 + \
+               2 * self.k2 * y + \
+               3 * self.k3 * y**2 + \
+               4 * self.k4 * y**3 + \
+               5 * self.k5 * y**4
+
+    def _energy_integral(self, x): pass#Needed to implement the abstract method, even though it's not of use for this fitter
+
+    def _pressure_integral(self, x): pass#Needed to implement the abstract method, even though it's not of use for this fitter
+
+factory.register ('sandiapc', SandiaPC)
 
 #------------------------------------------------------------------------------
 # Working EOS models:
