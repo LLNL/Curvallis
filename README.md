@@ -328,6 +328,14 @@ Interactive commands can be inputted while the plotter is running. When using th
 
     Undo the last data manipulation. This include moving an moving points, rotating points, adding points, and removing points. This does not undo screen changes, like zooming or panning. This will only undo the last change, no more previous changes are stored.
 
+    - **h**
+
+    Increase the size of the background markers. These background markers are placed when a file is given as an input to the "background_file" optional arguement.
+
+    - **j**
+
+    Decrease the size of the background markers. These background markers are placed when a file is given as an input to the "background_file" optional arguement.
+
     - **<shift> Q**
 
     Pop a window to enter an equation to plot. Equations must be entered using Python syntax. For example, x^2 doesn't work, you have to use either x**2 or pow(x,2). Check the Python Math library to see a list of available math related functions to use. To plot the entered equation, press the plot button. To remove the plotted equation, press the delete button. If the user wants to plot multiple equations, pressing <shift> Q will continue to open new windows to plot more equations. After closing a window, the equation plotted from that window is deleted. After plotting an equation, the user can write the points to a file by specifying a file name in the "Filename" Entry and clicking "Write". The equation must be plotted and a file name must be specified before any points will be written.
