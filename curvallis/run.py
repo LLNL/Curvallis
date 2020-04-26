@@ -771,6 +771,8 @@ class CurveInteractor(object):
         print('Press a to toggle adding and removing points with left and right click \n[default: off]')
         print('Press e to toggle selecting a block of points')
         print('Press u to undo the last point manipulation')
+        print('Press h to increase size of background markers')
+        print('Press j to decrease size of background markers')
         print('Press <shift> Q to enter an equation to plot')
         print('Press <shift> Z for trilocal smoothing')
         print('Press <shift> X for integral smoothing')
