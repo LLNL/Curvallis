@@ -468,6 +468,16 @@ class CurveInteractor(object):
                     self._ax.set_yscale('linear')
                 self._set_xlim_ylim()
                 self._canvas.draw()
+            elif event.key == 'h':
+                #Increase background point marker size
+                lines.line_attributes['background_points']['markersize'] *= 1.25
+                self._plot_background_data()
+                self._canvas.draw()
+            elif event.key == 'j':
+                #Decrease background point marker size
+                lines.line_attributes['background_points']['markersize'] *= 0.75
+                self._plot_background_data()
+                self._canvas.draw()
 
     def xlim_changed_callback(self, event):
         """ xlim is changed by a zoom or a pan
