@@ -468,12 +468,12 @@ class CurveInteractor(object):
                     self._ax.set_yscale('linear')
                 self._set_xlim_ylim()
                 self._canvas.draw()
-            elif event.key == 'h':
+            elif event.key == 'H':
                 #Increase background point marker size
                 for i in range(len(self._background_line)):
                     self._background_line[i].set_marker_size(self._background_line[i].get_marker_size() * 1.25)
                 self._canvas.draw()
-            elif event.key == 'j':
+            elif event.key == 'J':
                 #Decrease background point marker size
                 for i in range(len(self._background_line)):
                     self._background_line[i].set_marker_size(self._background_line[i].get_marker_size() * 0.8)
@@ -771,8 +771,8 @@ class CurveInteractor(object):
         print('Press a to toggle adding and removing points with left and right click \n[default: off]')
         print('Press e to toggle selecting a block of points')
         print('Press u to undo the last point manipulation')
-        print('Press h to increase size of background markers')
-        print('Press j to decrease size of background markers')
+        print('Press <shift> H to increase size of background markers')
+        print('Press <shift> J to decrease size of background markers')
         print('Press <shift> Q to enter an equation to plot')
         print('Press <shift> Z for trilocal smoothing')
         print('Press <shift> X for integral smoothing')

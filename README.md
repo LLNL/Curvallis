@@ -328,11 +328,11 @@ Interactive commands can be inputted while the plotter is running. When using th
 
     Undo the last data manipulation. This include moving an moving points, rotating points, adding points, and removing points. This does not undo screen changes, like zooming or panning. This will only undo the last change, no more previous changes are stored.
 
-    - **h**
+    - **<shift> H**
 
     Increase the size of the background markers. These background markers are placed when a file is given as an input to the "background_file" optional arguement.
 
-    - **j**
+    - **<shift> J**
 
     Decrease the size of the background markers. These background markers are placed when a file is given as an input to the "background_file" optional arguement.
 
