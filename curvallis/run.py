@@ -470,13 +470,13 @@ class CurveInteractor(object):
                 self._canvas.draw()
             elif event.key == 'h':
                 #Increase background point marker size
-                lines.line_attributes['background_points']['markersize'] *= 1.25
-                self._plot_background_data()
+                for i in range(len(self._background_line)):
+                    self._background_line[i].set_marker_size(self._background_line[i].get_marker_size() * 1.25)
                 self._canvas.draw()
             elif event.key == 'j':
                 #Decrease background point marker size
-                lines.line_attributes['background_points']['markersize'] *= 0.75
-                self._plot_background_data()
+                for i in range(len(self._background_line)):
+                    self._background_line[i].set_marker_size(self._background_line[i].get_marker_size() * 0.8)
                 self._canvas.draw()
 
     def xlim_changed_callback(self, event):

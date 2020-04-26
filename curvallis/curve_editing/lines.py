@@ -85,6 +85,9 @@ class Line(object):
     def get_point_count(self):
         return len(self.get_xy_data())
 
+    def get_marker_size(self):
+        return self._id.get_markersize()
+
     def point_to_data_space(self, x, y):
         """ Convert a point in display coordinates, as in an callback event, to
         a point in data coordinates.
@@ -163,7 +166,9 @@ class Line(object):
             self._highlight.set_data(zip(*xy_data))
         else:
             self._highlight.set_data([],[])            
-        
+
+    def set_marker_size(self, pts):
+        self._id.set_markersize(pts)
 
     def set_x_data_y_data(self, x_data_y_data):
         """
