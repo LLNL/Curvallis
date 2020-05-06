@@ -827,17 +827,33 @@ class Regions(object):
             # Check boundaries were entered in ascending order
             assert ascending(self._args.region_bound[0]), "Region boundaries must be entered in ascending order."
 
-            result = [_INFINITY for unused in range(region_count + 1)]
-            result[0] = self._x_min
-            result[-1] = self._x_max
-            for i in range(1, region_count):
-                result[i] = float(self._args.region_bound[0][i-1])
-                assert self._x_min < result[i] < self._x_max, "Region boundaries are not in range of the data. (%E to %E)" % (self._x_min, self._x_max)
-
-            return result
+            #Check to see if user inputed only two region boundaries that were both the same
+            if len(self._args.region_bound[0]) == 2 and self._args.region_bound[0][0] == self._args.region_bound[0][1]:
+                #Create as many regions as possible that contain the amount of data points as the user gave
+                # in self._args.region_bound[0][0] and self._args.region_bound[0][1]
+                data = next(self._data_sets.iteritems())[1]
+                assert len(data) >= self._args.region_bound[0][0], "%E points wanted per region but an insufficient number of data points, %E, has been given" % (self._args.region_bound[0][0], len(data))
+                reg_count = int(len(data)/self._args.region_bound[0][0])
+                result = [_INFINITY for unused in range(reg_count+1)]
+                result[0] = self._x_min
+                result[-1] = self._x_max
+                #Make equal-sized regions that have 'self._args.region_bound[0][0 or 1]' many data points in them
+                for i in range(1, reg_count):
+                    if len(data) > int(i*self._args.region_bound[0][0]+1):
+                        result[i] = float((data[int(i*self._args.region_bound[0][0])][0]+data[int(i*self._args.region_bound[0][0]+1)][0])/2)
+            else:
+                #Use the user-given numbers as the x-values for region boundaries
+                reg_count = region_count
+                result = [_INFINITY for unused in range(region_count + 1)]
+                result[0] = self._x_min
+                result[-1] = self._x_max
+                for i in range(1, region_count):
+                    result[i] = float(self._args.region_bound[0][i-1])
+                    assert self._x_min < result[i] < self._x_max, "Region boundaries are not in range of the data. (%E to %E)" % (self._x_min, self._x_max)
+            return result, reg_count
 
         if self._args.region_bound != None:
-            x_boundaries = input_x_boundaries()
+            x_boundaries, region_count = input_x_boundaries()
         else:
             x_boundaries = calculate_x_boundaries()
         self._plot_lowest_boundary_line(x_boundaries[0])
