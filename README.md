@@ -68,7 +68,7 @@ Option Categories
 
     Plot the integral of the specified --fit_curve functions. Some integral equations are questionable. Unsure if this works with multiple fit_types.
 
-    - **--points_in_fit_curve <int> (Default: 200)**
+    - **--points_in_fit_curve <int> (Default: 100)**
 
     Specify the number of points in each fit curve. If there is more than one region, each region's fit curve will have the specified number of points.
 
@@ -464,7 +464,7 @@ Example Configuration File
 
 # do_integral
 
-# points_in_fit_curve: 200
+# points_in_fit_curve: 100
 
 # points_in_user_curve: 50
 
