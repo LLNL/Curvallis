@@ -74,9 +74,11 @@ Option Categories
 
     - **--region_bound <bound> <bound> ...**
 
-    Specify the boundaries of each region by it's x value. Values may be int or float. The first and last boundary should not be specified because they are the first and last point of the data. The number of regions to create is calculated by the number of boundaries entered. 2 boundaries has 3 regions, 3 boundaries has 4, etc... For example, to create 3 regions with the first regions starting at the beginning of the data and ending at x=30, the second region starting at x=30 and ending at x=45, and the third region starting at x=45 and ending at the end of the data, you would enter '--region_bound 30 45'. Regions cannot overlap, so each boundary specifies the beginning of one region and the end of another.
+    Specify the boundaries of each region by it's x value. Values may be int or float. The first and last boundary should not be specified because they are the first and last point of the data. The number of regions to create is calculated by the number of boundaries entered. 2 boundaries has 3 regions, 3 boundaries has 4, etc... For example, to create 3 regions with the first regions starting at the beginning of the data and ending at x=30, the second region starting at x=30 and ending at x=45, and the third region starting at x=45 and ending at the end of the data, you would enter '--region_bound 30 45'. Regions cannot overlap, so each boundary specifies the beginning of one region and the end of another. This option is NOT able to be used in conjunction with the '--region_data_points' option.
 
-    If only two boundaries are given that are also the same, the number inputted will be used not as the x-value for a boundary but as how many data points each region should hold. Regions will be created with the given number of data points in each region, starting from the left, until the end of the data is reached. If there is a region at the end of the data without the sufficient number of data points, it will be combined with the previous region. For example, if the parameter '--region_bound 40 40' is given when plotting a data file of 209 data points region boundaries would be created between the 40th and 41st, 80th and 81st, 120th and 121st, and the 160th and 161st data points. A region boundary is not created between the 200th and 201st data points because that would leave only 9 points in the last region. NOTE: In this use case, the values given in the '--region_bound' parameter do not usually correlate to x-values unless through coincidence.
+    - **--region_data_points <int>**
+
+    Specify that regions should automatically be made based upon how many data points each region should hold. Regions will be created with the given number of data points in each region, starting from the left/beginning of the data, until the end is reached. If there is a region at the end of the data without the sufficient number of data points, it will be combined with the previous region. For example, if the parameter '--region_data_points 40' is given when plotting a data file of 209 data points, region boundaries would be created between the 40th and 41st, 80th and 81st, 120th and 121st, and the 160th and 161st data points. A region boundary is not created between the 200th and 201st data points because this would leave only 9 points in the last region. This option is NOT able to be used in conjunction with the '--region_bound' option.
 
     - **--overlap <int> (Default: 2)**
 
@@ -471,6 +473,8 @@ Example Configuration File
 # points_in_user_curve: 50
 
 # region_bound [10, 20, 100]
+
+# region_data_points: 10
 
 # overlap 5
 
