@@ -52,6 +52,10 @@ Option Categories
 
     Specify the name of the fit curve output file. This file is written out by pressing 'w' while the program is running. This file will only output if --fit_type is specified as something other than 'None'. If the file already exists, it will be deleted and overwritten when the program is run.
 
+    - **--points_per_decade <int> (Default: 220)**
+
+    Specify how many points per logarithmic decade should be given in the fit curve output file across the entire data set. If one wishes to increase the density of data points in the fit curve output file, simply increase the number given to this command line argument. NOTE: The data points in the fit curve output file are dispersed evenly on a logarithmic scale, not a linear scale.
+
     - **--eos_function (Default: all)**
 
     Allows the user to only plot a portion of a data file. 2d data files are separated into different sections. Each section is a different eos function, which the user can specify with this argument. Usual eos function names are Ec, Pc, Cs, etc. By default, all sections are displayed.
@@ -67,10 +71,6 @@ Option Categories
     - **--do_integral**
 
     Plot the integral of the specified --fit_curve functions. Some integral equations are questionable. Unsure if this works with multiple fit_types.
-
-    - **--points_in_fit_curve <int> (Default: 200)**
-
-    Specify the number of points in each fit curve. If there is more than one region, each region's fit curve will have the specified number of points.
 
     - **--region_bound <bound> <bound> ...**
 
@@ -464,7 +464,7 @@ Example Configuration File
 
 # do_integral
 
-# points_in_fit_curve: 200
+# points_per_decade: 220
 
 # points_in_user_curve: 50
 
