@@ -864,7 +864,7 @@ class Regions(object):
             region.draw()
 
     def _get_fit_curve_points(self):
-        """ Return a list of all the regions' ONLY fit curve points on a logarithmic scale, concatenated.
+        """ Return a list of ONLY fit curve points on a logarithmic scale, concatenated across the entire data range.
         """
         assert not self._is_eos_data
 
