@@ -42,10 +42,6 @@ def define_args(parser):
         help='Calculate this many points per logarithmic decade in the fit curve '
              'when writing the curve to a file [default: %(default)s]', metavar='<count>')
     parser.add_argument(
-        '--points_in_fit_curve', action='store', type=int,
-        help='Calculate this many points in the fit curve when writing the '
-             'curve to a file [default: %(default)s]', metavar='<count>')
-    parser.add_argument(
         '--points_in_user_curve', action='store', type=int,
         help='Calculate this many points in the user inputted curves when writing the '
              'curves to a file [default: %(default)s]', metavar='<count>')
@@ -96,7 +92,6 @@ def define_args(parser):
         do_derivative=False,
         do_integral=False,
         points_per_decade=220,
-        points_in_fit_curve=100,
         points_in_user_curve=100,
         polynomial_order=5,
         overlap=2,
@@ -268,10 +263,13 @@ class _Line_Set_With_Fit(lines.Line_Set):
             else:
                 self._x_view_high_limit = self._x_high_limit
 
+            #Find logarithmic decades covered by new x-scale in view
+            decades_covered = log10(self._x_view_high_limit / self._x_view_low_limit)
+
             fit_points = self.calc_fit_points_for_range(
                 x_first=self._x_view_low_limit,
                 x_last=self._x_view_high_limit,
-                point_count=self._args.points_in_fit_curve)
+                point_count=int(decades_covered * self._args.points_per_decade))
 
             # Need animated = True for curve plots to get the last curve to go away:
             if self.fit_curve._id == None:
@@ -283,14 +281,14 @@ class _Line_Set_With_Fit(lines.Line_Set):
                 derivative_points = self._calc_derivative_points_for_range(
                     x_first=self._x_low_limit,
                     x_last=self._x_high_limit,
-                    point_count=self._args.points_in_fit_curve)
+                    point_count=int(decades_covered * self._args.points_per_decade))
                 self.derivative_curve.plot_xy_data(derivative_points,
                                                    animated=True)
             if self._args.do_integral:
                 integral_points = self._calc_integral_points_for_range(
                     x_first=self._x_low_limit,
                     x_last=self._x_high_limit,
-                    point_count=self._args.points_in_fit_curve)
+                    point_count=int(decades_covered * self._args.points_per_decade))
                 self.integral_curve.plot_xy_data(integral_points,
                                                  animated=True)
 
@@ -386,17 +384,6 @@ class _Line_Sets(object):
         :return: Line_Set
         """
         return self._sets.values()[0]
-
-    def get_fit_curve_points(self):
-        """ Return the line set's ONLY fit curve's points.
-        """
-        line_set = self._get_only_line_set()
-        # The current fit curve data is custom-generated for the current zoom's .
-        # x range. Calculate the curve for the the movable line's full x range:
-        return line_set.calc_fit_points_for_range(
-            x_first=self._x_low_limit,
-            x_last=self._x_high_limit,
-            point_count=self._args.points_in_fit_curve)
 
     def get_info(self, indent=''):
         result  = indent + 'Line sets count: %s\n' % len(self._sets)
@@ -645,11 +632,6 @@ class _Region(object):
 
     def draw(self):
         self._line_sets.draw()
-
-    def get_fit_curve_points(self):
-        """ Return the region's ONLY fit curve's points.
-        """
-        return self._line_sets.get_fit_curve_points()
 
     def plot_curves(self):
         self._line_sets.plot_curves()
@@ -910,6 +892,7 @@ class Regions(object):
             #Check that we're in the right region for this x-value
             if self._regions[current_region_index].get_x_high_limit() < x:
                 current_region_index += 1
+                only_line_set = self._regions[current_region_index]._line_sets._get_only_line_set()
             #Change the y-value based on the presence of _fitter2
             if (only_line_set._fitter2 == 'none'):
                 y_values.append(only_line_set._fitter.func(x))
