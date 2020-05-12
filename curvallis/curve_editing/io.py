@@ -274,9 +274,18 @@ def process_args (parser, args):
             be forced to enter the constant "rho0" instead of
             Curvallis gussing it.
         """
-	if args.rho0 is None and "sandiapc" in args.fit_type:
+        if args.rho0 is None and "sandiapc" in args.fit_type:
             parser.error('If using the fitter "sandiapc" you must '
                          'give a value for "rho0_guess".')
+
+    def check_region_divisions():
+        """ Prevent the user from trying to define regions with both the
+            'region_bound' and the 'region_data_points' command line arguments
+            at the same time.
+        """
+        if args.region_bound != None and args.region_data_points != None:
+            parser.error('Either "--region_bound" or "--region_data_points" '
+                         'is used to define regions, not both at the same time.')
 
     check_no_config_file()
     check_decimate_and_step()
@@ -284,6 +293,7 @@ def process_args (parser, args):
     check_output_arg()
     check_eos_args()
     check_sandiapc_rho0()
+    check_region_divisions()
 
 class XY_Limits(object):
     """ Contains an x range and a y range.

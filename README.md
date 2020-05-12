@@ -52,6 +52,10 @@ Option Categories
 
     Specify the name of the fit curve output file. This file is written out by pressing 'w' while the program is running. This file will only output if --fit_type is specified as something other than 'None'. If the file already exists, it will be deleted and overwritten when the program is run.
 
+    - **--points_per_decade <int> (Default: 220)**
+
+    Specify how many points per logarithmic decade should be given in the fit curve output file across the entire data set. If one wishes to increase the density of data points in the fit curve output file, simply increase the number given to this command line argument. NOTE: The data points in the fit curve output file are dispersed evenly on a logarithmic scale, not a linear scale.
+
     - **--eos_function (Default: all)**
 
     Allows the user to only plot a portion of a data file. 2d data files are separated into different sections. Each section is a different eos function, which the user can specify with this argument. Usual eos function names are Ec, Pc, Cs, etc. By default, all sections are displayed.
@@ -68,13 +72,13 @@ Option Categories
 
     Plot the integral of the specified --fit_curve functions. Some integral equations are questionable. Unsure if this works with multiple fit_types.
 
-    - **--points_in_fit_curve <int> (Default: 200)**
-
-    Specify the number of points in each fit curve. If there is more than one region, each region's fit curve will have the specified number of points.
-
     - **--region_bound <bound> <bound> ...**
 
-    Specify the boundaries of each region by it's x value. Values may be int or float. The first and last boundary should not be specified because they are the first and last point of the data. The number of regions to create is calculated by the number of boundaries entered. 2 boundaries has 3 regions, 3 boundaries has 4, etc... For example, to create 3 regions with the first regions starting at the beginning of the data and ending at x=30, the second region starting at x=30 and ending at x=45, and the third region starting at x=45 and ending at the end of the data, you would enter --boundaries 30 45. Regions cannot overlap, so each boundary specifies the beginning of one region and the end of another.
+    Specify the boundaries of each region by it's x value. Values may be int or float. The first and last boundary should not be specified because they are the first and last point of the data. The number of regions to create is calculated by the number of boundaries entered. 2 boundaries has 3 regions, 3 boundaries has 4, etc... For example, to create 3 regions with the first regions starting at the beginning of the data and ending at x=30, the second region starting at x=30 and ending at x=45, and the third region starting at x=45 and ending at the end of the data, you would enter '--region_bound 30 45'. Regions cannot overlap, so each boundary specifies the beginning of one region and the end of another. This option is NOT able to be used in conjunction with the '--region_data_points' option.
+
+    - **--region_data_points <int>**
+
+    Specify that regions should automatically be made based upon how many data points each region should hold. Regions will be created with the given number of data points in each region, starting from the left/beginning of the data, until the end is reached. If there is a region at the end of the data without the sufficient number of data points, it will be combined with the previous region. For example, if the parameter '--region_data_points 40' is given when plotting a data file of 209 data points, region boundaries would be created between the 40th and 41st, 80th and 81st, 120th and 121st, and the 160th and 161st data points. A region boundary is not created between the 200th and 201st data points because this would leave only 9 points in the last region. This option is NOT able to be used in conjunction with the '--region_bound' option.
 
     - **--overlap <int> (Default: 2)**
 
@@ -464,11 +468,13 @@ Example Configuration File
 
 # do_integral
 
-# points_in_fit_curve: 200
+# points_per_decade: 220
 
 # points_in_user_curve: 50
 
 # region_bound [10, 20, 100]
+
+# region_data_points: 10
 
 # overlap 5
 
