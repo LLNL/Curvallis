@@ -38,6 +38,24 @@ def define_args(parser):
         help='Calculate and plot the integral of the fit function. '
              '[default: %(default)s]')
     parser.add_argument(
+        '--print_E2P',
+        action='store_true',
+        help='Assume that the y-axis is an energy curve and output '
+             'the corresponding pressure curve in \'E2P.dat\'. '
+             '[default: %(default)s]')
+    parser.add_argument(
+        '--print_P2B',
+        action='store_true',
+        help='Assume that the y-axis is a pressure curve and output '
+             'the corresponding bulk modulus curve in \'P2B.dat\'. '
+             '[default: %(default)s]')
+    parser.add_argument(
+        '--print_theta2gamma',
+        action='store_true',
+        help='Assume that the y-axis is a theta curve and output '
+             'the correspoding gamma curve (Gruneisen gamma) in '
+             '\'Theta2Gamma.dat\'. [default: %(default)s]')
+    parser.add_argument(
         '--points_per_decade', action='store', type=int,
         help='Calculate this many points per logarithmic decade in the fit curve '
              'when writing the curve to a file [default: %(default)s]', metavar='<count>')
@@ -97,6 +115,9 @@ def define_args(parser):
     parser.set_defaults(
         do_derivative=False,
         do_integral=False,
+        print_E2P=False,
+        print_P2B=False,
+        print_theta2gamma=False,
         points_per_decade=220,
         points_in_user_curve=100,
         polynomial_order=5,
@@ -1011,9 +1032,23 @@ class Regions(object):
             for i in range(1, len(fit_points)-2):
                 if fit_points[i][0] != fit_points[i-1][0]:
                     filtered_points.append(fit_points[i])
-                    
+
             io.write_point_file(self._args.curve_output_file_name,
                                 filtered_points)
+
+            if self._args.print_E2P:
+                #Write the file 'E2P.dat' with the pressure curve (this
+                #assumes that the data given is energy data
+                for point in filtered_points:
+                    #point = (point[0],
+                    pass 
+
+            if self._args.print_P2B:
+                pass
+
+            if self._args.print_theta2gamma:
+                pass
+
 
     def smooth_data(self, smooth_type, xmin, xmax, ymin, ymax):
         """
