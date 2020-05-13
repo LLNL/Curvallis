@@ -41,20 +41,20 @@ def define_args(parser):
         '--print_E2P',
         action='store_true',
         help='Assume that the y-axis is an energy curve and output '
-             'the corresponding pressure curve in \'E2P.dat\'. '
+             'the corresponding pressure curve in a file. '
              '[default: %(default)s]')
     parser.add_argument(
         '--print_P2B',
         action='store_true',
         help='Assume that the y-axis is a pressure curve and output '
-             'the corresponding bulk modulus curve in \'P2B.dat\'. '
+             'the corresponding bulk modulus curve in a file. '
              '[default: %(default)s]')
     parser.add_argument(
         '--print_theta2gamma',
         action='store_true',
         help='Assume that the y-axis is a theta curve and output '
              'the correspoding gamma curve (Gruneisen gamma) in '
-             '\'Theta2Gamma.dat\'. [default: %(default)s]')
+             'a file. [default: %(default)s]')
     parser.add_argument(
         '--points_per_decade', action='store', type=int,
         help='Calculate this many points per logarithmic decade in the fit curve '
@@ -1083,7 +1083,7 @@ class Regions(object):
                 pressure_points = []
                 for i in range(len(filtered_points)):
                     pressure_points.append((filtered_points[i][0], filtered_points[i][0]**2 * derivative_filtered[i][1]))
-                io.write_point_file("E2P.dat", pressure_points)
+                io.write_point_file(self._args.pressure_file_name, pressure_points)
 
             if self._args.print_P2B:
                 #Write the file 'P2B.dat' with the Bulk Modulus curve (this
@@ -1091,7 +1091,7 @@ class Regions(object):
                 bulk_mod_points = []
                 for i in range(len(filtered_points)):
                     bulk_mod_points.append((filtered_points[i][0], filtered_points[i][0] * derivative_filtered[i][1]))
-                io.write_point_file("P2B.dat", bulk_mod_points)
+                io.write_point_file(self._args.bulk_mod_file_name, bulk_mod_points)
 
             if self._args.print_theta2gamma:
                 #Write the file 'Theta2Gamma.dat' with the gamma curve (this
@@ -1099,7 +1099,7 @@ class Regions(object):
                 gamma_points = []
                 for i in range(len(filtered_points)):
                     gamma_points.append((filtered_points[i][0], filtered_points[i][0] * derivative_filtered[i][1]))
-                io.write_point_file("Theta2Gamma.dat", gamma_points)
+                io.write_point_file(self._args.gamma_file_name, gamma_points)
 
 
     def smooth_data(self, smooth_type, xmin, xmax, ymin, ymax):
