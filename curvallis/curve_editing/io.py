@@ -493,6 +493,12 @@ class Manager(object):
         check_output_file(self._args.output_file_name)
         if self._do_curves:
             check_output_file(self._args.curve_output_file_name)
+        if self._args.print_E2P:
+            check_output_file(self._args.pressure_file_name)
+        if self._args.print_P2B:
+            check_output_file(self._args.bulk_mod_file_name)
+        if self._args.print_theta2gamma:
+            check_output_file(self._args.gamma_file_name)
         self._input = None
         self._is_eos_data = self._args.in_eos_file_base is not None
         self._background = None
