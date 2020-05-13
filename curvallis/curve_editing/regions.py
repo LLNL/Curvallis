@@ -178,12 +178,15 @@ class _Line_Set_With_Fit(lines.Line_Set):
                 result.append(x)
         return result
 
-    def calc_fit_points_for_range(self, x_first, x_last, point_count):
+    def calc_fit_points_for_range(self, x_first, x_last, point_count, xvalues=None):
         """ For a given x range, interpolate x_count x values and calculate
         a y value for each, returning the calculated x and y values.
 
         """
-        x_values = self._calc_x_values(x_first, x_last, point_count)
+        if xvalues == None:
+            x_values = self._calc_x_values(x_first, x_last, point_count)
+        else:
+            x_values = xvalues
         y_values = []
 
         if (self._fitter2 == 'none'):
@@ -411,6 +414,22 @@ class _Line_Sets(object):
         :return: Line_Set
         """
         return self._sets.values()[0]
+
+    def get_fit_curve_points(self, Xvalues=None):
+        """ Return the line set's ONLY fit curve's points.
+        """
+        line_set = self._get_only_line_set()
+
+        #Find logarithmic decades covered by x-value range
+        decades_covered = log10(self._x_high_limit / self._x_low_limit)
+
+        # The current fit curve data is custom-generated for the current zoom's .
+        # x range. Calculate the curve for the the movable line's full x range:
+        return line_set.calc_fit_points_for_range(
+            x_first=self._x_low_limit,
+            x_last=self._x_high_limit,
+            point_count=int(self._args.points_per_decade * decades_covered),
+            xvalues=Xvalues)
 
     def get_info(self, indent=''):
         result  = indent + 'Line sets count: %s\n' % len(self._sets)
@@ -660,6 +679,11 @@ class _Region(object):
     def draw(self):
         self._line_sets.draw()
 
+    def get_fit_curve_points(self, xvalues=None):
+        """ Return the region's ONLY fit curve's points.
+        """
+        return self._line_sets.get_fit_curve_points(xvalues)
+
     def plot_curves(self):
         self._line_sets.plot_curves()
 
@@ -908,10 +932,10 @@ class Regions(object):
             region.draw()
 
     def _get_fit_curve_points(self):
-        """ Return a list of ONLY fit curve points on a logarithmic scale, concatenated across the entire data range.
+        """ Return a list of ONLY fit curve points on a logarithmic scale,
+            concatenated across the entire data range.
         """
         assert not self._is_eos_data
-
         x_first = log10(self._x_min)
         x_last = log10(self._x_max)
 
@@ -928,22 +952,15 @@ class Regions(object):
             x_values.append(pow(10,x))
 
         #Calculate y-values for each x-value
-        y_values = []
-        current_region_index = 0
-        only_line_set = self._regions[current_region_index]._line_sets._get_only_line_set()
+        result = []
+        for region in self._regions:
+            xvalues = [x for x in x_values if x >= region.get_x_low_limit() and x < region.get_x_high_limit()]
+            result.extend(region.get_fit_curve_points(xvalues))
 
-        for x in x_values:
-            #Check that we're in the right region for this x-value
-            if self._regions[current_region_index].get_x_high_limit() < x:
-                current_region_index += 1
-                only_line_set = self._regions[current_region_index]._line_sets._get_only_line_set()
-            #Change the y-value based on the presence of _fitter2
-            if (only_line_set._fitter2 == 'none'):
-                y_values.append(only_line_set._fitter.func(x))
-            else:
-                y_values.append(only_line_set._fitter.func(x) - only_line_set._fitter2.func(x))
+        #Add very last "fence post" x-value
+        result.extend(self._regions[-1].get_fit_curve_points([xvalues[-1]]))
 
-        return zip(x_values, y_values)
+        return result
 
     def _get_data_sets(self):
         """ Get the data sets from every region, glue them back together as if
