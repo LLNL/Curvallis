@@ -84,7 +84,21 @@ def define_args(parser):
         # opening it for writing later:
         help='Use this output file for the adjusted/moved data points '
              '[default: %(default)s]')
-
+    output_group.add_argument(
+        '--pressure_file_name', metavar='<path>',
+        # See '--output_file_name' comment
+        help='Use this output file for the pressure value at each point '
+             '[default: %(default)s]')
+    output_group.add_argument(
+        '--bulk_mod_file_name', metavar='<path>',
+        # See '--output_file_name' comment
+        help='Use this output file for the bulk modulus value at each point '
+             '[default: %(default)s]')
+    output_group.add_argument(
+        '--gamma_file_name', metavar='<path>',
+        # See '--output_file_name' comment
+        help='Use this output file for the gamma value at each point '
+             '[default: %(default)s]')
     shifts = parser.add_argument_group(
         title='Shifts, Limits, and Point Exclusion',
         description='These arguments limit, exclude or alter the input data.')
@@ -202,6 +216,9 @@ def define_args(parser):
         # Output group:
         out_eos_file_base=None,
         output_file_name='moved_points_out.dat',
+        pressure_file_name='E2P.dat',
+        bulk_mod_file_name='P2B.dat',
+        gamma_file_name='Theta2Gamma.dat',
 
         # Shifts group:
         decimate=_NO_DECIMATE,
