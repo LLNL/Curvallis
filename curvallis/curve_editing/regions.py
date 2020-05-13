@@ -30,12 +30,12 @@ def define_args(parser):
     parser.add_argument(
         '--do_derivative',
         action='store_true',
-        help='Calculate and plot the derivative of the fit function '
+        help='Calculate and plot the derivative of the fit function. '
              '[default: %(default)s]')
     parser.add_argument(
         '--do_integral',
         action='store_true',
-        help='Calculate and plot the integral of the fit function '
+        help='Calculate and plot the integral of the fit function. '
              '[default: %(default)s]')
     parser.add_argument(
         '--points_per_decade', action='store', type=int,
@@ -44,14 +44,20 @@ def define_args(parser):
     parser.add_argument(
         '--points_in_user_curve', action='store', type=int,
         help='Calculate this many points in the user inputted curves when writing the '
-             'curves to a file [default: %(default)s]', metavar='<count>')
+             'curves to a file. [default: %(default)s]', metavar='<count>')
     parser.add_argument(
         '--region_bound',
         action='append',
         nargs='+', type=float,
-        help='Select where region boundaries are supposed to go in sequential order'
-             '[default: Evenly Spaced]',
+        help='Select where region boundaries are supposed to go in sequential order '
+             'based on x-values. [default: Evenly Spaced]',
         metavar='<bound>')
+    parser.add_argument(
+        '--region_data_points',
+        type=int,
+        help='Select number of data points each region should have. '
+             '[default: %(default)s]',
+        metavar='<int>')
     parser.add_argument(
         '--overlap',
         type=int,
@@ -61,30 +67,30 @@ def define_args(parser):
     parser.add_argument(
         '--numpoints',
         type=int,
-        help='Select the number of points for the local average trilocal smoothing.'
+        help='Select the number of points for the local average trilocal smoothing. '
              '[default: %(default)s]',
         metavar='<int>')
     parser.add_argument(
         '--repeat',
         type=int,
-        help='Select the number of times to repeat trilocal smoothing.'
+        help='Select the number of times to repeat trilocal smoothing. '
              '[default: %(default)s]',
         metavar='<int>')
     parser.add_argument(
         '--matchpt',
         type=float,
-        help='Select the matchpoint for integral and tri-integral smoothing.'
+        help='Select the matchpoint for integral and tri-integral smoothing. '
              '[default: %(default)s]',
         metavar='<float>')
     parser.add_argument(
         '--interp',
-        help='Select the interpolator for integral and tri-integral smoothing.'
+        help='Select the interpolator for integral and tri-integral smoothing. '
              '[default: %(default)s]',
         metavar='<arg>')
     parser.add_argument(
         '--angle',
         type=int,
-        help='Select the angle for acute angle repair.'
+        help='Select the angle for acute angle repair. '
              '[default: %(default)s]',
         metavar='<int>')
 
@@ -835,20 +841,37 @@ class Regions(object):
             return result
 
         def input_x_boundaries():
-            # Check boundaries were entered in ascending order
-            assert ascending(self._args.region_bound[0]), "Region boundaries must be entered in ascending order."
+            #Check to see if user wants region boundaries by number of data points or by x-values
+            if self._args.region_data_points != None:
+                #Create as many regions as possible that contain the amount of data points as the user gave
+                # in the Command Line argument 'region_data_points'
+                data = next(self._data_sets.iteritems())[1]
 
-            result = [_INFINITY for unused in range(region_count + 1)]
-            result[0] = self._x_min
-            result[-1] = self._x_max
-            for i in range(1, region_count):
-                result[i] = float(self._args.region_bound[0][i-1])
-                assert self._x_min < result[i] < self._x_max, "Region boundaries are not in range of the data. (%E to %E)" % (self._x_min, self._x_max)
+                assert len(data) >= self._args.region_data_points, "%E points wanted per region but an insufficient number of data points, %E, has been given" % (self._args.region_data_points, len(data))
 
-            return result
+                reg_count = int(len(data)/self._args.region_data_points)
+                result = [_INFINITY for unused in range(reg_count+1)]
+                result[0] = self._x_min
+                result[-1] = self._x_max
+                #Make equal-sized regions that have 'self._args.region_data_points' many data points in them
+                for i in range(1, reg_count):
+                    if len(data) > int(i*self._args.region_data_points+1):
+                        result[i] = float((data[i*self._args.region_data_points][0]+data[i*self._args.region_data_points+1][0])/2)
+            else:
+                # Check boundaries were entered in ascending order
+                assert ascending(self._args.region_bound[0]), "Region boundaries must be entered in ascending order."
+                #Use the user-given numbers as the x-values for region boundaries
+                reg_count = region_count
+                result = [_INFINITY for unused in range(region_count + 1)]
+                result[0] = self._x_min
+                result[-1] = self._x_max
+                for i in range(1, region_count):
+                    result[i] = float(self._args.region_bound[0][i-1])
+                    assert self._x_min < result[i] < self._x_max, "Region boundaries are not in range of the data. (%E to %E)" % (self._x_min, self._x_max)
+            return result, reg_count
 
-        if self._args.region_bound != None:
-            x_boundaries = input_x_boundaries()
+        if self._args.region_bound != None or self._args.region_data_points != None:
+            x_boundaries, region_count = input_x_boundaries()
         else:
             x_boundaries = calculate_x_boundaries()
         self._plot_lowest_boundary_line(x_boundaries[0])
