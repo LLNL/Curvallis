@@ -1098,7 +1098,7 @@ class Regions(object):
                 #assumes that the data given is theta data)
                 gamma_points = []
                 for i in range(len(filtered_points)):
-                    gamma_points.append((filtered_points[i][0], filtered_points[i][0] * derivative_filtered[i][1]))
+                    gamma_points.append((filtered_points[i][0], filtered_points[i][0] * derivative_filtered[i][1] / filtered_points[i][1]))
                 io.write_point_file(self._args.gamma_file_name, gamma_points)
 
 
