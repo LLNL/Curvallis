@@ -52,6 +52,22 @@ Option Categories
 
     Specify the name of the fit curve output file. This file is written out by pressing 'w' while the program is running. This file will only output if --fit_type is specified as something other than 'None'. If the file already exists, it will be deleted and overwritten when the program is run.
 
+    - **--output_file_name <path> (Default: moved_points_out.dat)**
+
+    Use the file name <path> when writing out the moved data points for 1d data. This option doesn't have to be specified with 1d data because there is a default file name.
+
+    - **--pressure_file_name <path> (Default: E2P.dat)**
+
+    Use the file name <path> when writing out the calculated pressure curve for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the commandline argument '--print_E2P' is used.
+
+    - **--bulk_mod_file_name <path> (Default: P2B.dat)**
+
+    Use the file name <path> when writing out the calculated bulk modulus curve for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the commandline argument '--print_P2B' is used.
+
+    - **--gamma_file_name <path> (Default: Theta2Gamma.dat)**
+
+    Use the file name <path> when writing out the calculated gamma curve (Gruneisen gamma) for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the commandline argument '--print_theta2gamma' is used.
+
     - **--points_per_decade <int> (Default: 220)**
 
     Specify how many points per logarithmic decade should be given in the fit curve output file across the entire data set. If one wishes to increase the density of data points in the fit curve output file, simply increase the number given to this command line argument. NOTE: The data points in the fit curve output file are dispersed evenly on a logarithmic scale, not a linear scale.
@@ -71,6 +87,18 @@ Option Categories
     - **--do_integral**
 
     Plot the integral of the specified --fit_curve functions. Some integral equations are questionable. Unsure if this works with multiple fit_types.
+
+    - **--print_E2P**
+
+    Assume that the 1D data given is energy data and print out the corresponding pressure data into a file. This file name is set by the '--presure_file_name' commandline argument.
+
+    - **--print_P2B**
+
+    Assume that the 1D data given is pressure data and print out the corresponding bulk modulus data into a file. This file name is set by the '--bulk_mod_file_name' commandline argument.
+
+    - **--print_theta2gamma**
+
+    Assume that the 1D data given is Debye temperature data (theta data) and print out the corresponding Gruneisen gamma data into a file. This file name is set by the '--gamma_file_name' commandline argument.
 
     - **--region_bound <bound> <bound> ...**
 
@@ -127,10 +155,6 @@ Option Categories
     - **--out_eos_file_base <base path>**
 
     Use the file names <base path>.dat and <base path>.info when writing out the moved data points for 2d, eos data. Only create the <base path>.info file if --use_eos_info_file is set. This option must be set if --in_eos_file_base is set.
-
-    - **--output_file_name <path> (Default: moved_points_out.dat)**
-
-    Use the file name <path>.dat when writing out the moved data points for 1d data. This option doesn't have to be specified with 1d data because there is a default file name.
 
 **Shift, Limit, and Point Exclusion arguments** alter the appearance of Input data. None of these options are required to be set.
 
@@ -456,9 +480,21 @@ Example Configuration File
 
 [outputs]
 
-# out_eos_file_base: 2dDataOut.dat
+# print_E2P
 
-# output_file_name: 1dDataOut.dat
+# print_P2B
+
+# print_theta2gamma
+
+# out_eos_file_base: None
+
+# output_file_name: moved_points_out.dat
+
+# pressure_file_name: E2P.dat
+
+# bulk_mod_file_name: P2B.dat
+
+# gamma_file_name: Theta2Gamma.dat
 
  
 
