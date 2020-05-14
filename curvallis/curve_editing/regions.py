@@ -1074,7 +1074,7 @@ class Regions(object):
                 derivative_filtered = [derivative_points[0]]
                 for i in range(1, len(derivative_points)):
                     if derivative_points[i][0] != derivative_points[i-1][0]:
-                        derivative_filtered.append(fit_points[i])
+                        derivative_filtered.append(derivative_points[i])
                 assert len(derivative_filtered) == len(filtered_points)
 
             if self._args.print_E2P:
