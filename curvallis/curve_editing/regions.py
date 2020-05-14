@@ -52,7 +52,7 @@ def define_args(parser):
     parser.add_argument(
         '--print_theta2gamma',
         action='store_true',
-        help='Assume that the y-axis is a theta curve and output '
+        help='Assume that the y-axis is Debye temperature data and output '
              'the correspoding gamma curve (Gruneisen gamma) in '
              'a file. [default: %(default)s]')
     parser.add_argument(

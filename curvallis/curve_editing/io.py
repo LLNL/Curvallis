@@ -97,7 +97,7 @@ def define_args(parser):
     output_group.add_argument(
         '--gamma_file_name', metavar='<path>',
         # See '--output_file_name' comment
-        help='Use this output file for the gamma value at each point '
+        help='Use this output file for the Gruneisen gamma value at each point '
              '[default: %(default)s]')
     shifts = parser.add_argument_group(
         title='Shifts, Limits, and Point Exclusion',
