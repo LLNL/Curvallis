@@ -973,8 +973,7 @@ def check_output_file(file_name):
     :param file_name: string
     """
     if os.path.exists (file_name):
-        print ('File "%s" file already exists.' % file_name)
-        want_to = raw_input ('Do you want to overwrite it? ')
+        want_to = raw_input ('Do you want to overwrite the file "%s"? ' % file_name)
         if 'Y' in want_to or 'y' in want_to:
             os.remove(file_name)
         else:
