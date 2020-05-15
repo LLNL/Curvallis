@@ -161,10 +161,18 @@ class _Line_Set_With_Fit(lines.Line_Set):
         :param x_count:
         :return: list
         """
+
         if self._logscale == True or logarithmic:
             x_first = log10(x_first)
             x_last = log10(x_last)
             x_count = int((x_last - x_first) * self._args.points_per_decade)
+
+        #If only one point is asked for, return x_first to avoid
+        #a 'division by 0' error in the for loop below
+        if x_count == 1:
+            if self._logscale or logarithmic:
+                x_first = pow(10,x_first)
+            return [x_first]
 
         result = []
         x_range = x_last - x_first
@@ -182,8 +190,8 @@ class _Line_Set_With_Fit(lines.Line_Set):
     def calc_fit_points_for_range(self, x_first, x_last, point_count, logarithmic=False):
         """ For a given x range, interpolate x_count x values and calculate
         a y value for each, returning the calculated x and y values.
-
         """
+        assert x_first <= x_last, "Range for x-values given to calc_fit_points_for_range() has a higher start point than finish point."
 
         x_values = self._calc_x_values(x_first, x_last, point_count, logarithmic)
         y_values = []
@@ -278,6 +286,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
 
         Call after calling calculate_fit, and whenever xlim changes.
         """
+
         if not self._is_eos_data and self.get_movable_point_count() >=2 and self._fitter != 'none':
             # calculate new limits of view
             x_limit = self._ax.get_xlim()
@@ -285,20 +294,30 @@ class _Line_Set_With_Fit(lines.Line_Set):
             # Keep line drawn within region boundaries
             if self._x_low_limit < x_limit[0]:
                 self._x_view_low_limit = x_limit[0]
+            elif self._x_low_limit > x_limit[1]:
+                self._x_view_low_limit = x_limit[1]
             else:
                 self._x_view_low_limit = self._x_low_limit
-            if self._x_high_limit > x_limit[1]:
+            if self._x_high_limit < x_limit[0]:
+                self._x_view_high_limit = x_limit[0]
+            elif self._x_high_limit > x_limit[1]:
                 self._x_view_high_limit = x_limit[1]
             else:
                 self._x_view_high_limit = self._x_high_limit
 
-            #Find logarithmic decades covered by new x-scale in view
-            decades_covered = log10(self._x_view_high_limit / self._x_view_low_limit)
+            if self._x_view_high_limit == self._x_view_low_limit:
+                return
+
+            #Find logarithmic decades covered by new x-scale in view multiplied by points per decade
+            total_points = int(log10(self._x_view_high_limit / self._x_view_low_limit) * self._args.points_per_decade)
+
+            if total_points == 0:
+                return
 
             fit_points = self.calc_fit_points_for_range(
                 x_first=self._x_view_low_limit,
                 x_last=self._x_view_high_limit,
-                point_count=int(decades_covered * self._args.points_per_decade))
+                point_count=total_points)
 
             # Need animated = True for curve plots to get the last curve to go away:
             if self.fit_curve._id == None:
@@ -310,14 +329,14 @@ class _Line_Set_With_Fit(lines.Line_Set):
                 derivative_points = self._calc_derivative_points_for_range(
                     x_first=self._x_low_limit,
                     x_last=self._x_high_limit,
-                    point_count=int(decades_covered * self._args.points_per_decade))
+                    point_count=total_points)
                 self.derivative_curve.plot_xy_data(derivative_points,
                                                    animated=True)
             if self._args.do_integral:
                 integral_points = self._calc_integral_points_for_range(
                     x_first=self._x_low_limit,
                     x_last=self._x_high_limit,
-                    point_count=int(decades_covered * self._args.points_per_decade))
+                    point_count=total_points)
                 self.integral_curve.plot_xy_data(integral_points,
                                                  animated=True)
 
@@ -419,15 +438,19 @@ class _Line_Sets(object):
         """
         line_set = self._get_only_line_set()
 
-        #Find logarithmic decades covered by x-value range
-        decades_covered = log10(self._x_high_limit / self._x_low_limit)
+        #Find total amount of points needed through multiplying the
+        #logarithmic decades covered by x-value range by the points per decade
+        total_points = int(log10(self._x_high_limit / self._x_low_limit) * self._args.points_per_decade)
+
+        if total_points == 0:
+            return
 
         # The current fit curve data is custom-generated for the current zoom's .
         # x range. Calculate the curve for the the movable line's full x range:
         return line_set.calc_fit_points_for_range(
             x_first=self._x_low_limit,
             x_last=self._x_high_limit,
-            point_count=int(self._args.points_per_decade * decades_covered),
+            point_count=total_points,
             logarithmic=Logarithmic)
 
     def get_derivative_curve_points(self, Logarithmic=False):
