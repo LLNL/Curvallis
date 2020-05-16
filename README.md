@@ -52,6 +52,26 @@ Option Categories
 
     Specify the name of the fit curve output file. This file is written out by pressing 'w' while the program is running. This file will only output if --fit_type is specified as something other than 'None'. If the file already exists, it will be deleted and overwritten when the program is run.
 
+    - **--output_file_name <path> (Default: moved_points_out.dat)**
+
+    Use the file name <path> when writing out the moved data points for 1d data. This option doesn't have to be specified with 1d data because there is a default file name.
+
+    - **--pressure_file_name <path> (Default: E2P.dat)**
+
+    Use the file name <path> when writing out the calculated pressure curve for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the commandline argument '--print_E2P' is used.
+
+    - **--bulk_mod_file_name <path> (Default: P2B.dat)**
+
+    Use the file name <path> when writing out the calculated bulk modulus curve for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the commandline argument '--print_P2B' is used.
+
+    - **--gamma_file_name <path> (Default: Theta2Gamma.dat)**
+
+    Use the file name <path> when writing out the calculated gamma curve (Gruneisen gamma) for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the commandline argument '--print_theta2gamma' is used.
+
+    - **--points_per_decade <int> (Default: 220)**
+
+    Specify how many points per logarithmic decade should be given in the fit curve output file across the entire data set. If one wishes to increase the density of data points in the fit curve output file, simply increase the number given to this command line argument. NOTE: The data points in the fit curve output file are dispersed evenly on a logarithmic scale, not a linear scale.
+
     - **--eos_function (Default: all)**
 
     Allows the user to only plot a portion of a data file. 2d data files are separated into different sections. Each section is a different eos function, which the user can specify with this argument. Usual eos function names are Ec, Pc, Cs, etc. By default, all sections are displayed.
@@ -68,13 +88,25 @@ Option Categories
 
     Plot the integral of the specified --fit_curve functions. Some integral equations are questionable. Unsure if this works with multiple fit_types.
 
-    - **--points_in_fit_curve <int> (Default: 200)**
+    - **--print_E2P**
 
-    Specify the number of points in each fit curve. If there is more than one region, each region's fit curve will have the specified number of points.
+    Assume that the 1D data given is energy data and print out the corresponding pressure data into a file. This file name is set by the '--presure_file_name' commandline argument.
+
+    - **--print_P2B**
+
+    Assume that the 1D data given is pressure data and print out the corresponding bulk modulus data into a file. This file name is set by the '--bulk_mod_file_name' commandline argument.
+
+    - **--print_theta2gamma**
+
+    Assume that the 1D data given is Debye temperature data (theta data) and print out the corresponding Gruneisen gamma data into a file. This file name is set by the '--gamma_file_name' commandline argument.
 
     - **--region_bound <bound> <bound> ...**
 
-    Specify the boundaries of each region by it's x value. Values may be int or float. The first and last boundary should not be specified because they are the first and last point of the data. The number of regions to create is calculated by the number of boundaries entered. 2 boundaries has 3 regions, 3 boundaries has 4, etc... For example, to create 3 regions with the first regions starting at the beginning of the data and ending at x=30, the second region starting at x=30 and ending at x=45, and the third region starting at x=45 and ending at the end of the data, you would enter --boundaries 30 45. Regions cannot overlap, so each boundary specifies the beginning of one region and the end of another.
+    Specify the boundaries of each region by it's x value. Values may be int or float. The first and last boundary should not be specified because they are the first and last point of the data. The number of regions to create is calculated by the number of boundaries entered. 2 boundaries has 3 regions, 3 boundaries has 4, etc... For example, to create 3 regions with the first regions starting at the beginning of the data and ending at x=30, the second region starting at x=30 and ending at x=45, and the third region starting at x=45 and ending at the end of the data, you would enter '--region_bound 30 45'. Regions cannot overlap, so each boundary specifies the beginning of one region and the end of another. This option is NOT able to be used in conjunction with the '--region_data_points' option.
+
+    - **--region_data_points <int>**
+
+    Specify that regions should automatically be made based upon how many data points each region should hold. Regions will be created with the given number of data points in each region, starting from the left/beginning of the data, until the end is reached. If there is a region at the end of the data without the sufficient number of data points, it will be combined with the previous region. For example, if the parameter '--region_data_points 40' is given when plotting a data file of 209 data points, region boundaries would be created between the 40th and 41st, 80th and 81st, 120th and 121st, and the 160th and 161st data points. A region boundary is not created between the 200th and 201st data points because this would leave only 9 points in the last region. This option is NOT able to be used in conjunction with the '--region_bound' option.
 
     - **--overlap <int> (Default: 2)**
 
@@ -123,10 +155,6 @@ Option Categories
     - **--out_eos_file_base <base path>**
 
     Use the file names <base path>.dat and <base path>.info when writing out the moved data points for 2d, eos data. Only create the <base path>.info file if --use_eos_info_file is set. This option must be set if --in_eos_file_base is set.
-
-    - **--output_file_name <path> (Default: moved_points_out.dat)**
-
-    Use the file name <path>.dat when writing out the moved data points for 1d data. This option doesn't have to be specified with 1d data because there is a default file name.
 
 **Shift, Limit, and Point Exclusion arguments** alter the appearance of Input data. None of these options are required to be set.
 
@@ -196,7 +224,7 @@ Option Categories
     - **--fit_type <fit> <fit> ... (Default: poly5)**
 
     Select an equation to fit to the data points for each region. For example, if you have three regions, --fit_type none poly5 birch3 would set no equation for the first region, poly5 for the second region, and birch3 for the third region. Regions are ordered from smallest to greatest x value. If a fit_type is not specified for any region, then the default poly5 equation will be used. This means if there are five regions, but only three fit types, the the last two regions will be set to poly5. The available equations are:
-    anton, ap1, ap2, bardeen, birch2, birch3, birch4, ebirch3, ebirch4, emurnaghan, evinet, johnson, kumari, log, log2, murnaghan, none, poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11, poly12, shank, vinet, highp.
+    anton, ap1, ap2, bardeen, birch2, birch3, birch4, ebirch3, ebirch4, emurnaghan, evinet, johnson, kumari, log, log2, murnaghan, none, poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11, poly12, sandiapc, shank, vinet, highp.
     Options starting with an 'e' are energy equations, poly<n> are nth degree polynomials, and the rest are pressure. Only some of these equations have been thoroughly tested to check if they work properly. These are:
     birch2, birch3, birch4, ebirch3, ebirch4, emurnaghan, evinet, murnaghan, none, all polys, vinet.
     When inputting this argument in a configuration file, make sure to enclose all options in brackets.
@@ -228,7 +256,7 @@ Option Categories
 
     - **--rho0_guess <positive float>**
 
-    Set an initial guess for equilibrium density (rho0).
+    Set an initial guess for equilibrium density (rho0) or fixed guess if using the fitter 'sandiapc'.
 
     - **--scale_derivative_by <float> (Default: 1000)**
 
@@ -327,6 +355,14 @@ Interactive commands can be inputted while the plotter is running. When using th
     - **u**
 
     Undo the last data manipulation. This include moving an moving points, rotating points, adding points, and removing points. This does not undo screen changes, like zooming or panning. This will only undo the last change, no more previous changes are stored.
+
+    - **<shift> H**
+
+    Increase the size of the background markers. These background markers are placed when a file is given as an input to the "background_file" optional arguement.
+
+    - **<shift> J**
+
+    Decrease the size of the background markers. These background markers are placed when a file is given as an input to the "background_file" optional arguement.
 
     - **<shift> Q**
 
@@ -444,9 +480,21 @@ Example Configuration File
 
 [outputs]
 
-# out_eos_file_base: 2dDataOut.dat
+# print_E2P
 
-# output_file_name: 1dDataOut.dat
+# print_P2B
+
+# print_theta2gamma
+
+# out_eos_file_base: None
+
+# output_file_name: moved_points_out.dat
+
+# pressure_file_name: E2P.dat
+
+# bulk_mod_file_name: P2B.dat
+
+# gamma_file_name: Theta2Gamma.dat
 
  
 
@@ -456,11 +504,13 @@ Example Configuration File
 
 # do_integral
 
-# points_in_fit_curve: 200
+# points_per_decade: 220
 
 # points_in_user_curve: 50
 
 # region_bound [10, 20, 100]
+
+# region_data_points: 10
 
 # overlap 5
 

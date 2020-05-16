@@ -20,7 +20,7 @@ import smoothers
 from pylab import polyfit
 import numpy as np
 from operator import itemgetter
-from math import log
+from math import log10
 
 _INFINITY = float ('inf')
 
@@ -30,28 +30,52 @@ def define_args(parser):
     parser.add_argument(
         '--do_derivative',
         action='store_true',
-        help='Calculate and plot the derivative of the fit function '
+        help='Calculate and plot the derivative of the fit function. '
              '[default: %(default)s]')
     parser.add_argument(
         '--do_integral',
         action='store_true',
-        help='Calculate and plot the integral of the fit function '
+        help='Calculate and plot the integral of the fit function. '
              '[default: %(default)s]')
     parser.add_argument(
-        '--points_in_fit_curve', action='store', type=int,
-        help='Calculate this many points in the fit curve when writing the '
-             'curve to a file [default: %(default)s]', metavar='<count>')
+        '--print_E2P',
+        action='store_true',
+        help='Assume that the y-axis is an energy curve and output '
+             'the corresponding pressure curve in a file. '
+             '[default: %(default)s]')
+    parser.add_argument(
+        '--print_P2B',
+        action='store_true',
+        help='Assume that the y-axis is a pressure curve and output '
+             'the corresponding bulk modulus curve in a file. '
+             '[default: %(default)s]')
+    parser.add_argument(
+        '--print_theta2gamma',
+        action='store_true',
+        help='Assume that the y-axis is Debye temperature data and output '
+             'the correspoding gamma curve (Gruneisen gamma) in '
+             'a file. [default: %(default)s]')
+    parser.add_argument(
+        '--points_per_decade', action='store', type=int,
+        help='Calculate this many points per logarithmic decade in the fit curve '
+             'when writing the curve to a file [default: %(default)s]', metavar='<count>')
     parser.add_argument(
         '--points_in_user_curve', action='store', type=int,
         help='Calculate this many points in the user inputted curves when writing the '
-             'curves to a file [default: %(default)s]', metavar='<count>')
+             'curves to a file. [default: %(default)s]', metavar='<count>')
     parser.add_argument(
         '--region_bound',
         action='append',
         nargs='+', type=float,
-        help='Select where region boundaries are supposed to go in sequential order'
-             '[default: Evenly Spaced]',
+        help='Select where region boundaries are supposed to go in sequential order '
+             'based on x-values. [default: Evenly Spaced]',
         metavar='<bound>')
+    parser.add_argument(
+        '--region_data_points',
+        type=int,
+        help='Select number of data points each region should have. '
+             '[default: %(default)s]',
+        metavar='<int>')
     parser.add_argument(
         '--overlap',
         type=int,
@@ -61,37 +85,40 @@ def define_args(parser):
     parser.add_argument(
         '--numpoints',
         type=int,
-        help='Select the number of points for the local average trilocal smoothing.'
+        help='Select the number of points for the local average trilocal smoothing. '
              '[default: %(default)s]',
         metavar='<int>')
     parser.add_argument(
         '--repeat',
         type=int,
-        help='Select the number of times to repeat trilocal smoothing.'
+        help='Select the number of times to repeat trilocal smoothing. '
              '[default: %(default)s]',
         metavar='<int>')
     parser.add_argument(
         '--matchpt',
         type=float,
-        help='Select the matchpoint for integral and tri-integral smoothing.'
+        help='Select the matchpoint for integral and tri-integral smoothing. '
              '[default: %(default)s]',
         metavar='<float>')
     parser.add_argument(
         '--interp',
-        help='Select the interpolator for integral and tri-integral smoothing.'
+        help='Select the interpolator for integral and tri-integral smoothing. '
              '[default: %(default)s]',
         metavar='<arg>')
     parser.add_argument(
         '--angle',
         type=int,
-        help='Select the angle for acute angle repair.'
+        help='Select the angle for acute angle repair. '
              '[default: %(default)s]',
         metavar='<int>')
 
     parser.set_defaults(
         do_derivative=False,
         do_integral=False,
-        points_in_fit_curve=100,
+        print_E2P=False,
+        print_P2B=False,
+        print_theta2gamma=False,
+        points_per_decade=220,
         points_in_user_curve=100,
         polynomial_order=5,
         overlap=2,
@@ -125,7 +152,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
             self.derivative_curve = lines.Line(ax, lines.line_attributes['derivative'])
             self.integral_curve = lines.Line(ax, lines.line_attributes['integral'])
 
-    def _calc_x_values(self, x_first, x_last, x_count):
+    def _calc_x_values(self, x_first, x_last, x_count, logarithmic=False):
         """ For a given x range, interpolate x_count x values (without any
           cumulative rounding errors) and return them.
 
@@ -134,9 +161,18 @@ class _Line_Set_With_Fit(lines.Line_Set):
         :param x_count:
         :return: list
         """
-        if self._logscale == True:
-            x_first = log(x_first,10)
-            x_last = log(x_last,10)
+
+        if self._logscale == True or logarithmic:
+            x_first = log10(x_first)
+            x_last = log10(x_last)
+            x_count = int((x_last - x_first) * self._args.points_per_decade)
+
+        #If only one point is asked for, return x_first to avoid
+        #a 'division by 0' error in the for loop below
+        if x_count == 1:
+            if self._logscale or logarithmic:
+                x_first = pow(10,x_first)
+            return [x_first]
 
         result = []
         x_range = x_last - x_first
@@ -145,18 +181,19 @@ class _Line_Set_With_Fit(lines.Line_Set):
             portion = float(i) / float(x_count-1)
             x = x_first + (portion * x_range)
 
-            if self._logscale == True:
+            if self._logscale == True or logarithmic:
                 result.append(pow(10,x))
             else:
                 result.append(x)
         return result
 
-    def calc_fit_points_for_range(self, x_first, x_last, point_count):
+    def calc_fit_points_for_range(self, x_first, x_last, point_count, logarithmic=False):
         """ For a given x range, interpolate x_count x values and calculate
         a y value for each, returning the calculated x and y values.
-
         """
-        x_values = self._calc_x_values(x_first, x_last, point_count)
+        assert x_first <= x_last, "Range for x-values given to calc_fit_points_for_range() has a higher start point than finish point."
+
+        x_values = self._calc_x_values(x_first, x_last, point_count, logarithmic)
         y_values = []
 
         if (self._fitter2 == 'none'):
@@ -168,12 +205,12 @@ class _Line_Set_With_Fit(lines.Line_Set):
 
         return zip(x_values, y_values)
 
-    def _calc_derivative_points_for_range(self, x_first, x_last, point_count):
+    def _calc_derivative_points_for_range(self, x_first, x_last, point_count, logarithmic=False):
         """ For a given x range, interpolate x_count x values and calculate
         a y value for each, returning the calculated x and y values.
 
         """
-        x_values = self._calc_x_values(x_first, x_last, point_count)
+        x_values = self._calc_x_values(x_first, x_last, point_count, logarithmic)
         y_values = []
 
         if (self._fitter2 == 'none'):
@@ -249,6 +286,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
 
         Call after calling calculate_fit, and whenever xlim changes.
         """
+
         if not self._is_eos_data and self.get_movable_point_count() >=2 and self._fitter != 'none':
             # calculate new limits of view
             x_limit = self._ax.get_xlim()
@@ -256,17 +294,30 @@ class _Line_Set_With_Fit(lines.Line_Set):
             # Keep line drawn within region boundaries
             if self._x_low_limit < x_limit[0]:
                 self._x_view_low_limit = x_limit[0]
+            elif self._x_low_limit > x_limit[1]:
+                self._x_view_low_limit = x_limit[1]
             else:
                 self._x_view_low_limit = self._x_low_limit
-            if self._x_high_limit > x_limit[1]:
+            if self._x_high_limit < x_limit[0]:
+                self._x_view_high_limit = x_limit[0]
+            elif self._x_high_limit > x_limit[1]:
                 self._x_view_high_limit = x_limit[1]
             else:
                 self._x_view_high_limit = self._x_high_limit
 
+            if self._x_view_high_limit == self._x_view_low_limit:
+                return
+
+            #Find logarithmic decades covered by new x-scale in view multiplied by points per decade
+            total_points = int(log10(self._x_view_high_limit / self._x_view_low_limit) * self._args.points_per_decade)
+
+            if total_points == 0:
+                return
+
             fit_points = self.calc_fit_points_for_range(
                 x_first=self._x_view_low_limit,
                 x_last=self._x_view_high_limit,
-                point_count=self._args.points_in_fit_curve)
+                point_count=total_points)
 
             # Need animated = True for curve plots to get the last curve to go away:
             if self.fit_curve._id == None:
@@ -278,14 +329,14 @@ class _Line_Set_With_Fit(lines.Line_Set):
                 derivative_points = self._calc_derivative_points_for_range(
                     x_first=self._x_low_limit,
                     x_last=self._x_high_limit,
-                    point_count=self._args.points_in_fit_curve)
+                    point_count=total_points)
                 self.derivative_curve.plot_xy_data(derivative_points,
                                                    animated=True)
             if self._args.do_integral:
                 integral_points = self._calc_integral_points_for_range(
                     x_first=self._x_low_limit,
                     x_last=self._x_high_limit,
-                    point_count=self._args.points_in_fit_curve)
+                    point_count=total_points)
                 self.integral_curve.plot_xy_data(integral_points,
                                                  animated=True)
 
@@ -382,16 +433,41 @@ class _Line_Sets(object):
         """
         return self._sets.values()[0]
 
-    def get_fit_curve_points(self):
+    def get_fit_curve_points(self, Logarithmic=False):
         """ Return the line set's ONLY fit curve's points.
         """
         line_set = self._get_only_line_set()
+
+        #Find total amount of points needed through multiplying the
+        #logarithmic decades covered by x-value range by the points per decade
+        total_points = int(log10(self._x_high_limit / self._x_low_limit) * self._args.points_per_decade)
+
+        if total_points == 0:
+            return
+
         # The current fit curve data is custom-generated for the current zoom's .
         # x range. Calculate the curve for the the movable line's full x range:
         return line_set.calc_fit_points_for_range(
             x_first=self._x_low_limit,
             x_last=self._x_high_limit,
-            point_count=self._args.points_in_fit_curve)
+            point_count=total_points,
+            logarithmic=Logarithmic)
+
+    def get_derivative_curve_points(self, Logarithmic=False):
+        """ Return the line set's ONLY fit curve's derivatives at points.
+        """
+        line_set = self._get_only_line_set()
+
+        #Find logarithmic decades covered by x-value range
+        decades_covered = log10(self._x_high_limit / self._x_low_limit)
+
+        # The current fit curve data is custom-generated for the current zoom's .
+        # x range. Calculate the curve for the the movable line's full x range:
+        return line_set._calc_derivative_points_for_range(
+            x_first=self._x_low_limit,
+            x_last=self._x_high_limit,
+            point_count=int(self._args.points_per_decade * decades_covered),
+            logarithmic=Logarithmic)
 
     def get_info(self, indent=''):
         result  = indent + 'Line sets count: %s\n' % len(self._sets)
@@ -641,10 +717,15 @@ class _Region(object):
     def draw(self):
         self._line_sets.draw()
 
-    def get_fit_curve_points(self):
+    def get_fit_curve_points(self, logarithmic=False):
         """ Return the region's ONLY fit curve's points.
         """
-        return self._line_sets.get_fit_curve_points()
+        return self._line_sets.get_fit_curve_points(logarithmic)
+
+    def get_derivative_curve_points(self, logarithmic=False):
+        """ Return the region's ONLY fit curve derivative's points.
+        """
+        return self._line_sets.get_derivative_curve_points(logarithmic)
 
     def plot_curves(self):
         self._line_sets.plot_curves()
@@ -824,20 +905,37 @@ class Regions(object):
             return result
 
         def input_x_boundaries():
-            # Check boundaries were entered in ascending order
-            assert ascending(self._args.region_bound[0]), "Region boundaries must be entered in ascending order."
+            #Check to see if user wants region boundaries by number of data points or by x-values
+            if self._args.region_data_points != None:
+                #Create as many regions as possible that contain the amount of data points as the user gave
+                # in the Command Line argument 'region_data_points'
+                data = next(self._data_sets.iteritems())[1]
 
-            result = [_INFINITY for unused in range(region_count + 1)]
-            result[0] = self._x_min
-            result[-1] = self._x_max
-            for i in range(1, region_count):
-                result[i] = float(self._args.region_bound[0][i-1])
-                assert self._x_min < result[i] < self._x_max, "Region boundaries are not in range of the data. (%E to %E)" % (self._x_min, self._x_max)
+                assert len(data) >= self._args.region_data_points, "%E points wanted per region but an insufficient number of data points, %E, has been given" % (self._args.region_data_points, len(data))
 
-            return result
+                reg_count = int(len(data)/self._args.region_data_points)
+                result = [_INFINITY for unused in range(reg_count+1)]
+                result[0] = self._x_min
+                result[-1] = self._x_max
+                #Make equal-sized regions that have 'self._args.region_data_points' many data points in them
+                for i in range(1, reg_count):
+                    if len(data) > int(i*self._args.region_data_points+1):
+                        result[i] = float((data[i*self._args.region_data_points][0]+data[i*self._args.region_data_points+1][0])/2)
+            else:
+                # Check boundaries were entered in ascending order
+                assert ascending(self._args.region_bound[0]), "Region boundaries must be entered in ascending order."
+                #Use the user-given numbers as the x-values for region boundaries
+                reg_count = region_count
+                result = [_INFINITY for unused in range(region_count + 1)]
+                result[0] = self._x_min
+                result[-1] = self._x_max
+                for i in range(1, region_count):
+                    result[i] = float(self._args.region_bound[0][i-1])
+                    assert self._x_min < result[i] < self._x_max, "Region boundaries are not in range of the data. (%E to %E)" % (self._x_min, self._x_max)
+            return result, reg_count
 
-        if self._args.region_bound != None:
-            x_boundaries = input_x_boundaries()
+        if self._args.region_bound != None or self._args.region_data_points != None:
+            x_boundaries, region_count = input_x_boundaries()
         else:
             x_boundaries = calculate_x_boundaries()
         self._plot_lowest_boundary_line(x_boundaries[0])
@@ -877,14 +975,30 @@ class Regions(object):
             region.draw()
 
     def _get_fit_curve_points(self):
-        """ Return a list of all the regions' ONLY fit curve points, concatenated.
+        """ Return a list of ONLY fit curve points on a logarithmic scale,
+            concatenated across the entire data range.
         """
         assert not self._is_eos_data
-        points=[]
-        for region in self._regions:
-            points.extend(region.get_fit_curve_points())
 
-        return points
+        #Get fit curve points logarithmically by region
+        result = []
+        for region in self._regions:
+            result.extend(region.get_fit_curve_points(True))
+
+        return result
+
+    def _get_derivative_curve_points(self):
+        """ Return a list of ONLY fit curve derivative points on a logarithmic scale,
+            concatenated across the entire data range.
+        """
+        assert not self._is_eos_data
+
+        #Get fit curve derivative points logarithmically by region
+        result = []
+        for region in self._regions:
+            result.extend(region.get_derivative_curve_points(True))
+
+        return result
 
     def _get_data_sets(self):
         """ Get the data sets from every region, glue them back together as if
@@ -970,12 +1084,46 @@ class Regions(object):
             filtered_points = [fit_points[0]] #don't miss the 1st point
 
             # Remove any duplicate fit points at region boundaries
-            for i in range(1, len(fit_points)-2):
+            for i in range(1, len(fit_points)):
                 if fit_points[i][0] != fit_points[i-1][0]:
                     filtered_points.append(fit_points[i])
-                    
+
             io.write_point_file(self._args.curve_output_file_name,
                                 filtered_points)
+
+            if self._args.print_E2P or self._args.print_P2B or self._args.print_theta2gamma:
+                derivative_points = self._get_derivative_curve_points()
+                # Remove any duplicate fit points at region boundaries
+                derivative_filtered = [derivative_points[0]]
+                for i in range(1, len(derivative_points)):
+                    if derivative_points[i][0] != derivative_points[i-1][0]:
+                        derivative_filtered.append(derivative_points[i])
+                assert len(derivative_filtered) == len(filtered_points)
+
+            if self._args.print_E2P:
+                #Write the file 'E2P.dat' with the pressure curve (this
+                #assumes that the data given is energy data)
+                pressure_points = []
+                for i in range(len(filtered_points)):
+                    pressure_points.append((filtered_points[i][0], filtered_points[i][0]**2 * derivative_filtered[i][1]))
+                io.write_point_file(self._args.pressure_file_name, pressure_points)
+
+            if self._args.print_P2B:
+                #Write the file 'P2B.dat' with the Bulk Modulus curve (this
+                #assumes that the data given is pressure data)
+                bulk_mod_points = []
+                for i in range(len(filtered_points)):
+                    bulk_mod_points.append((filtered_points[i][0], filtered_points[i][0] * derivative_filtered[i][1]))
+                io.write_point_file(self._args.bulk_mod_file_name, bulk_mod_points)
+
+            if self._args.print_theta2gamma:
+                #Write the file 'Theta2Gamma.dat' with the gamma curve (this
+                #assumes that the data given is theta data)
+                gamma_points = []
+                for i in range(len(filtered_points)):
+                    gamma_points.append((filtered_points[i][0], filtered_points[i][0] * derivative_filtered[i][1] / filtered_points[i][1]))
+                io.write_point_file(self._args.gamma_file_name, gamma_points)
+
 
     def smooth_data(self, smooth_type, xmin, xmax, ymin, ymax):
         """
