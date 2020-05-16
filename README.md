@@ -295,11 +295,11 @@ Interactive Commands
 
    Toggle full screen mode.
 
-   - **h, r, _home_**
+   - **h, r, c, _home_**
 
    Reset the screen to the default limits. This is usually how the screen starts originally, but if log scale has been toggled, the screen will default back to how it first looked after toggling log scale. Also triggered by the leftmost button on the bottom left of the screen.
 
-   - **_left_, c, _backspace_**
+   - **_left_, _backspace_**
 
    Set the screen back to the previous view. The view can be changed by zooming or panning. Also triggered by the second to leftmost button on the bottom left of the screen.
 
@@ -353,7 +353,7 @@ Interactive Commands
 
    - **u**
 
-   Undo the last data manipulation. This include moving an moving points, rotating points, adding points, and removing points. This does not undo screen changes, like zooming or panning. This will only undo the last change, no more previous changes are stored.
+   Undo the last data manipulation. This includes moving points, rotating points, adding points, and removing points. This does not undo screen changes, like zooming or panning. This will only undo the last change, no more previous changes are stored.
 
    - **_shift_ H**
 
