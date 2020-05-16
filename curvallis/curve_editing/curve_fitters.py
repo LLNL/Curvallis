@@ -1504,6 +1504,8 @@ class Poly_Original(object):
         # Create a polynomial function using the coefficients, to be used to
         # calculate a new curve:
         self._f =  np.poly1d(coeffs)
+        self._der = np.polyder(self._f)
+        self._int = np.polyint(self._f)
 
     def guess_coefficients(self, points): 
         pass
@@ -1512,12 +1514,10 @@ class Poly_Original(object):
         return self._f(x)
 
     def derivative(self, x):
-        """ Dummy """
-        return x
+        return self._der(x)
 
     def integral(self, x):
-        """ Dummy """
-        return x
+        return self._int(x)
 
 factory.register ('poly', Poly_Original)
 
