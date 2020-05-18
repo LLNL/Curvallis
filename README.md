@@ -281,6 +281,14 @@ Options can be entered by either command line or initialization file. All option
 
    Set an inital guess for energy (E0).
 
+   - **--theta0_guess _float_**
+
+   Set an inital guess for theta (theta0).
+
+   - **--gamma0_guess _float_**
+
+   Set an inital guess for gamma (gamma0).
+
 Interactive Commands
 ====================
 
