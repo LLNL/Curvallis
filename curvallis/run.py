@@ -452,7 +452,7 @@ class CurveInteractor(object):
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")
-            elif event.key == 'k' or event.key == 'L':
+            elif event.key == 'k':
                 # Set graph x scale
                 if self._ax.get_xscale() == 'linear':
                     self._ax.set_xscale('log')
