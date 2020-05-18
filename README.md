@@ -379,6 +379,10 @@ Interactive Commands
 
    Smooth data using tri-local smoothing. The user must select a region to smooth by pressing 'e' and selecting a rectangular region.
 
+   - **_shift_ C**
+
+   Smooth data using tri-integral smoothing. The user must select a region to smooth by pressing 'e' and selecting a rectangular region.
+
    - **_shift_ X**
 
    Smooth data using integral smoothing. This smoother is unreliable unless the user specifies a good matchpoint with the --matchpt option. Otherwise, the smoother outputs error messages. The user must select a region to smooth by pressing 'e' and selecting a rectangular region.
