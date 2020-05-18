@@ -452,164 +452,52 @@ Ec 1 5
 
 6.7 3.44
 
-Example Configuration File
-==========================
-
-\# curve_editor settings:
-
-\# All options are currently commented out. Remove the '#' to uncomment that option.
-
-
- 
-[general]
-
-\# background_file: background.dat
-\# curve_output_file_name: filename.dat
-\# use_eos_info_file: True
-\# eos_function: Ec
-
- 
-
-[inputs]
-
-\# in_eos_file_base: 2dData.dat
-\# input_file: 1dData.dat
-\# parabola_in
-\# predefined_in
-
- 
-
-[outputs]
-
-\# print_E2P
-\# print_P2B
-\# print_theta2gamma
-\# out_eos_file_base: None
-\# output_file_name: moved_points_out.dat
-\# pressure_file_name: E2P.dat
-\# bulk_mod_file_name: P2B.dat
-\# gamma_file_name: Theta2Gamma.dat
-
-
-
-[regions]
-
-\# do_derivative
-\# do_integral
-\# points_per_decade: 220
-\# region_bound [10, 20, 100]
-\# region_data_points: 10
-\# overlap 5
-
- 
-
-[Shifts, Limits, and Point Exclusion]
-
-\# decimate: 20
-\# step: 3
-\# x_include: [1, 30]
-\# x_scale: [2, 0, 100]
-\# x_shift: [50, 0, 100]
-\# y_include: [0, 300]
-\# y_scale: [2, 0, 100]
-\# y_shift: [50, 0, 100]
-\# t_include: [0, 20000]
-\# v_axis
-
- 
-
-[view]
-
-\#x_max: 100
-\#x_min: 10
-\#y_max: 200
-\#y_min: 0
-
- 
-
-[fitter]
-
-\# fit_type: [none, poly3, vinet]
-\# refine_fit: [none, none, poly5]
-\# scale_derivative_by: 100
-\# scale_integral_by: .001
-\# xref: 6.7
-\# y_axis: E
-\# yref: 5.4
-
- 
-
-\# rho0_guess: 3.4
-\# delta_p_guess: 3.6
-\# k0_guess: 3.6
-\# k0_prime_guess: 4.0
-\# k0_prime_prime_guess: 1.1
-\# lam_guess: 3.4
-\# e0_guess: 30.6
-
- 
-
-[automatic smoothing]
-
-\# numpoints: 4
-\# repeat: 5
-\# matchpt: 1.0
-\# interp: cubic
-\# angle 50
-
-
-
 Configuration File Syntax
--------------------------
+=========================
+
 Some format details:
 
+- \# in any column starts a comment
 
-\# in any column starts a comment
+- ; in any column also starts a comment (.ini style)
 
-; in any column also starts a comment (.ini style)
+- --- in the FIRST column starts a comment (.yaml style)
 
---- in the FIRST column starts a comment (.yaml style)
+These all set "name" to value. "name" is the command-line option, without the leading "--". The key is case sensitive: "Name" is not "name". Examples:
 
+- name value
 
-These all set 'name' to value. 'name' is the command-line option, without the leading '--'.  The key is case sensitive: "Name" is not "name". Examples:
+- name = value   # (.ini style)  (white space is ignored, so name = value same as name=value)
 
+- name: value    # (yaml style)
 
-name value
+- --name value   # (argparse style)
 
-name = value   # (.ini style)  (white space is ignored, so name = value same as name=value)
+These all set name to "True". "=", ":", and "--" work similarly:
 
-name: value    # (yaml style)
+- --name
 
---name value   # (argparse style)
+- name
 
+- name True
 
-These all set name to True. '=', ':', and '--' work similarly:
+- name true
 
+To specify an argument with multiple values or with a type of "list":
 
---name
+- fruit = [apple, orange, lemon]
 
-name    
+- fruit: [apple, orange, lemon]
 
-name True
+- indexes = [1, 12, 35 , 40]
 
-name true
-
-
-To specify an argument with multiple values:
-
-
-NOT!
-
-
-To specify an argument with a type of 'list':
-
-
-fruit = [apple, orange, lemon]
-
-indexes = [1, 12, 35 , 40]
-
+- indexes: [1, 12, 35 , 40]
 
 .ini-style section names are treated as comments:
 
+- [section]
 
-[section]
+Example Configuration File
+--------------------------
+
+See 'examples/config-complete-list.ini' for an example configuration file.
