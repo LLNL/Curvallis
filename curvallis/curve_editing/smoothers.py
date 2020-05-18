@@ -334,21 +334,20 @@ class BSplineSmoother(object):
     def __init__(self):
         pass
     def applySmooth(self, datax, datay, unknown1, unknown2, detail=0):
-        l = len(datax)  #Sets l to the number of data points
+        #l= number of input data points
+        l = len(datax)
         t = numpy.linspace(0,1,l-2,endpoint=True)
         t = numpy.append([0,0,0],t)
         t = numpy.append(t, [1,1,1])
-        #
+        #t= knots, c= coefficients, k= degree of spline
         tck = [t,[datax,datay],3]
-        #
-        #if(detail < (l*2)):
-            #detail = l*2
+        #The detail of the curve. Higher values give greater accuracy but slower opperation. The reverse is also true.
         detail = l*5
+        #The linespace that will be used to compute the spline
         u3 = numpy.linspace(0,1,detail,endpoint=True)
-        #
         out = scipy.interpolate.splev(u3,tck)
+        #Moves the input points to their place on the curve.
         newy = []
-        #newy.append(out[1][0])
         for i in range(l):
             x = datax[i]
             for i in range(len(out[0])):
@@ -356,21 +355,16 @@ class BSplineSmoother(object):
                     newy.append(out[1][i])
                     break
                 elif(i < len(out[0])-1 and out[0][i] > x):
+                    # y = m*x+b
                     x1, y1 = out[0][i], out[1][i]
                     x2, y2 = out[0][i+1], out[1][i+1]
                     m = (y2-y1)/(x2-x1)
                     b = -1*((m*x1)-y1)
                     y = (m*x)+b
                     newy.append(y)
-                    #newy.append(out[1][i])
                     break
                 elif(out[0][i] > x):
                     newy.append(out[1][i])
                     break
-        #newy.append(out[1][len(out[1])-1])
-        #for i in range(1,len(out[0])-1):
-            #newx.append(out[0][i])
-        #newy.append(out[1][len(out[1])-1])
-        print(str(len(datax)) + ", " + str(len(newy)))
         return (datax,newy)
 
