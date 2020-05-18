@@ -56,15 +56,15 @@ Options can be entered by either command line or initialization file. All option
 
    - **--pressure_file_name _path_ (Default: E2P.dat)**
 
-   Use the file name _path_ when writing out the calculated pressure curve for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the commandline argument '--print_E2P' is used.
+   Use the file name _path_ when writing out the calculated pressure curve for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the command line argument '--print_E2P' is used.
 
    - **--bulk_mod_file_name _path_ (Default: P2B.dat)**
 
-   Use the file name _path_ when writing out the calculated bulk modulus curve for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the commandline argument '--print_P2B' is used.
+   Use the file name _path_ when writing out the calculated bulk modulus curve for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the command line argument '--print_P2B' is used.
 
    - **--gamma_file_name _path_ (Default: Theta2Gamma.dat)**
 
-   Use the file name _path_ when writing out the calculated gamma curve (Gruneisen gamma) for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the commandline argument '--print_theta2gamma' is used.
+   Use the file name _path_ when writing out the calculated gamma curve (Gruneisen gamma) for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the command line argument '--print_theta2gamma' is used.
 
    - **--points_per_decade _int_ (Default: 220)**
 
@@ -88,15 +88,15 @@ Options can be entered by either command line or initialization file. All option
 
    - **--print_E2P**
 
-   Assume that the 1D data given is energy data and print out the corresponding pressure data into a file. This file name is set by the '--presure_file_name' commandline argument.
+   Assume that the 1D data given is energy data and print out the corresponding pressure data into a file. This file name is set by the '--presure_file_name' command line argument.
 
    - **--print_P2B**
 
-   Assume that the 1D data given is pressure data and print out the corresponding bulk modulus data into a file. This file name is set by the '--bulk_mod_file_name' commandline argument.
+   Assume that the 1D data given is pressure data and print out the corresponding bulk modulus data into a file. This file name is set by the '--bulk_mod_file_name' command line argument.
 
    - **--print_theta2gamma**
 
-   Assume that the 1D data given is Debye temperature data (theta data) and print out the corresponding Gruneisen gamma data into a file. This file name is set by the '--gamma_file_name' commandline argument.
+   Assume that the 1D data given is Debye temperature data (theta data) and print out the corresponding Gruneisen gamma data into a file. This file name is set by the '--gamma_file_name' command line argument.
 
    - **--region_bound _bound_ _bound_ ...**
 
@@ -230,7 +230,7 @@ Options can be entered by either command line or initialization file. All option
 
    - **--refine_fit _fit_ _fit_ ... (Default: none)**
 
-   Refine_fit fits a second equation to the existing fit type in order to more closely fit the data. It accomplishes this by taking the error between the data points and the fit type, and fitting another equation to the error. This new equation is then added to the original fit type. This argument works the same as --fit_type. An equation must be selected for each region. This means if the region the user wants to add a refine_fit to isn't the first region, a refine fit must be specified for all regions before it. For example, if the user wants to add a refine fit to the third region, but no other regions, they would type: --refine_fit none none poly5. If there are more than three regions, the rest of the regions will be specified none by default. Available equations are:
+   Refine_fit fits a second equation to the existing fit type in order to more closely fit the data. It accomplishes this by taking the error between the data points and the fit type, and fitting another equation to the error. This new equation is then added to the original fit type. This argument works the same as "--fit_type". An equation must be selected for each region. This means if the region the user wants to add a refine_fit to isn't the first region, a refine fit must be specified for all regions before it. For example, if the user wants to add a refine fit to the third region, but no other regions, they would type: --refine_fit none none poly5. If there are more than three regions, the rest of the regions will be specified "none" by default. Available equations are:
     poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11, poly12, eseries4, eseries5, eseries6, eseries7, eseries8, eseries9, eseries10, eseries11, eseries12, eseries (same as eseries7), none, highp.
 
    - **--delta_p_guess _float_**
@@ -279,15 +279,15 @@ Options can be entered by either command line or initialization file. All option
 
    - **--e0_guess _float_**
 
-   Set an inital guess for energy (E0).
+   Set an initial guess for energy (E0).
 
    - **--theta0_guess _float_**
 
-   Set an inital guess for theta (theta0).
+   Set an initial guess for theta (theta0).
 
    - **--gamma0_guess _float_**
 
-   Set an inital guess for gamma (gamma0).
+   Set an initial guess for gamma (gamma0).
 
 Interactive Commands
 ====================
@@ -362,13 +362,17 @@ Interactive Commands
 
    Undo the last data manipulation. This includes moving points, rotating points, adding points, and removing points. This does not undo screen changes, like zooming or panning. This will only undo the last change, no more previous changes are stored.
 
+   - **m**
+
+   Prints a list of all the interactive commands, as well as a quick description of what each does.
+
    - **_shift_ H**
 
-   Increase the size of the background markers. These background markers are placed when a file is given as an input to the "background_file" optional arguement.
+   Increase the size of the background markers. These background markers are placed when a file is given as an input to the "background_file" optional argument.
 
    - **_shift_ J**
 
-   Decrease the size of the background markers. These background markers are placed when a file is given as an input to the "background_file" optional arguement.
+   Decrease the size of the background markers. These background markers are placed when a file is given as an input to the "background_file" optional argument.
 
    - **_shift_ Q**
 
@@ -390,10 +394,6 @@ Interactive Commands
 
    Smooth data using acute repair smoothing. The user must select a region to smooth by pressing 'e' and selecting a rectangular region.
 
-   - **m**
-
-   Prints a list of all the interactive commands, as well as a quick description of what each does.
-
 Input Files
 ===========
 
@@ -403,7 +403,7 @@ There are two different types of input files accepted. One type only plots a sin
 -------
 1d data files plot a single line. Single line data can include a fit type, which is an equation fitted to the data and displayed by a red line. The default fit type is a fifth degree polynomial, but the argument "--fit_type none" will specify no equation. 1d data also allows the user to add and remove points from the line. Use the "--input_file" argument to read in 1d data. 1d data and 2d data can't be read in at the same time since only one input file can be read. To specify the name of the output file of moved points, use the argument "--output_file_name". The default name is "moved_points_out.dat". 1d data files are very simple to write because they are only two columns of data. The data can be integers or floating point values. The space between the columns can be any length. Lines can be ignored for comments by typing a "#" before the data. Here are some examples of correct data:
  
-    This is a comment
+    #This is a comment
 
     5 5
 
@@ -476,7 +476,7 @@ These all set "name" to value. "name" is the command-line option, without the le
 
 - --name value   # (argparse style)
 
-These all set name to "True". "=", ":", and "--" work similarly:
+These all set "name" to "True". "=", ":", and "--" work similarly:
 
 - --name
 
