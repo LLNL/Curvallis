@@ -1007,10 +1007,6 @@ class Regions(object):
                     smoother = smoothers.TriLocalSmoother(self._args.numpoints, self._args.repeat)
                 elif (smooth_type == "integral"):
                     smoother = smoothers.IntegralSmoother(self._args.matchpt, None, self._args.interp)
-                # Tri-integral smoothing disabled because it never worked correctly.
-#                elif (smooth_type == "triintegral"):
-#                    trismoother = smoothers.TriLocalSmoother(self._args.numpoints, self._args.repeat)
-#                    smoother = smoothers.IntegralSmoother(self._args.matchpt, trismoother, self._args.interp)
                 elif (smooth_type == "acute"):
                     smoother = smoothers.AcuteAngleRepair(self._args.angle, 1)
                 elif (smooth_type == "bspline"):

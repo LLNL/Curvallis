@@ -367,7 +367,7 @@ class CurveInteractor(object):
                 print ('Quitting.')             #quit
                 exit(0)
             else:                               #Else:
-                self._quit_pending = False      #cancle quit pending
+                self._quit_pending = False      #cancel quit pending
                 print ('Quit cancelled.')
         elif event.key == 'q':                  #If 'q' pressed
                                                 #Display pending quit
@@ -438,13 +438,6 @@ class CurveInteractor(object):
             elif event.key == 'X':              #If 'X' pressed
                 if self._move_set == True:      #Run Integral Smoothing
                     self._regions.smooth_data("integral", self._xmin, self._xmax, 
-                                              self._ymin, self._ymax)
-                    self._canvas.draw()
-                else:
-                    print ("Select a region to smooth by pressing 'e'.")
-            elif event.key == 'C':              #If 'C' pressed         (not in key mapping)
-                if self._move_set == True:      #Run TriIntegral Smoothing (No longer exists)
-                    self._regions.smooth_data("triintegral", self._xmin, self._xmax, 
                                               self._ymin, self._ymax)
                     self._canvas.draw()
                 else:
