@@ -1,7 +1,7 @@
 Curvallis
 =========
 
-Curvallis is a plotting program written in Python using MatPlotLib to visualize and modify experimental equation of state data. It does this by plotting individual isotherms as lines. Data can be either 1d or 2d, meaning there can be 1 or many isotherms plotted at once. Data points on these lines can be moved around, and new points can be added or removed. 1d data can have different equations fitted to them, which best fit the data. These equations are currently only Nth degree polynomials and Equations of State, but any equation can be added. Manipulating data points causes this fitted line to be recalculated and redisplayed. The manipulated data points, as well as the fitted line, can be written to a file.
+Curvallis is a plotting program written in Python using MatPlotLib to visualize and modify experimental equation of state data. It does this by plotting individual isotherms as lines. Data can be either 1d or 2d, meaning there can be 1 or many isotherms plotted at once. Data points on these lines can be moved around, and new points can be added or removed. 1d data can have different equations fitted to them, which best fit the data. Some popular equations are currently Nth degree polynomials and Equations of State, but more exist and any equation can be added. Manipulating data points causes this fitted line to be recalculated and redisplayed. The manipulated data points, the fitted line, and calculated derivatives can be written to a file.
 
 Installation
 ------------
@@ -11,20 +11,20 @@ matplotlib, Tkinter, numpy, scipy, argparse
 
 Scipy can be difficult to install, so it may have to be installed manually if the installer fails. This installer has been tested using Python v 2.7.10.
 
-To install this program, type "python setup.py install" into a terminal in the directory containing setup.py.
+To install this program, type "python setup.py install" into a terminal in the directory containing "setup.py".
 
 Running
 -------
 Once installed, typing "curvallis" into a terminal should run the program at any location. The program can also be run if it's not installed. Just run curvallis.py. If you run the program this way, make sure you have manually installed all dependencies. 
 
-To get started, the examples directory contains example configuration files and example data files. To test the configuration files, go to the examples directory and type "curvallis --config_file _config file name_". Each config file has an explanation of what it's commands are doing.
+To get started, the examples directory contains example configuration files and example data files. To test the configuration files, go to the examples directory and type "curvallis --config_file _config-file-name_". Each config file has an explanation of what its commands are doing.
 
 Options
 =======
 
-Options can be entered by either command line or initialization file. All options can be entered either way. The default initialization file is named curve_editor.ini, so the program will automatically read all arguments out of this file if it is in the same directory as the program is being run from. To read a different ini file, use the --config_file option. Command line arguments and ini files can be used simultaneously. If there are conflicting arguments, the command line arguments get priority. To input an option by command line, put --_name_ _value_ _value_ ... For example to use the fit_type option type: --fit_type poly5 poly4. To input options using the ini file, don't include the dashes. If there are multiple values for the option, enclose them in brackets as well. You can also put = or : instead of a space between _name_ and _value_. An example configuration file is included in the 'Example Configuration File' section, which describes how to input different options into the config file.
+Options can be entered by either command line or initialization file. All options can be entered either way. The default initialization file is named curve_editor.ini, so the program will automatically read all arguments out of this file if it is in the same directory as the program is being run from. To read a different ini file, use the --config_file option. Command line arguments and ini files can be used simultaneously. If there are conflicting arguments, the command line arguments get priority. To input an option by command line, put --_name_ _value_ _value_ .... For example to use the fit_type option type: --fit_type poly5 poly4. To input options using the ini file, don't include the dashes. If there are multiple values for the option, enclose them in brackets as well. You can also put "=" or ":" instead of a space between _name_ and _value_. More details about how configuration files work can be found in the "Configuration File Syntax" section in this document.
 
-**Optional arguments** are options which aren't required to be specified in order to run the program. This is either because there are default values, or that option doesn't need to be specified at all. Options outside of this group may be optional as well, but these are the miscellaneous options which didn't fit into another group. Here is a list of all options in this category:
+**Optional arguments** are options which aren't required to be given in order to run the program. This is either because there are default values or that option doesn't need to be specified at all. Options outside of this group may be optional as well, but these are the miscellaneous options which don't fit into another group. Here is a list of all options in this category:
 
    - **-h, --help**
 
@@ -200,7 +200,7 @@ Options can be entered by either command line or initialization file. All option
 
    Use v as the x axis instead of rho. When using this option fit curves will not fit the data correctly. This essentially makes x = 1/x for each input point.
 
-**View arguments** determine what starts out displayed on the screen. For example, x_max could be set to 200 when the data extends to 2000 and the default view will be from the minimum data point to 200. If only some of these options are set, the others are determined by the minimum and maximum x and y values of the data.
+**View arguments** determine what starts out displayed on the screen. For example, "x_max" could be set to 200 when the data extends to 2000 and the default view will be from the minimum data point to 200. If only some of these options are set, the others are determined by the minimum and maximum x and y values of the data.
 
    - **--x_max _num_**
 
@@ -218,7 +218,7 @@ Options can be entered by either command line or initialization file. All option
 
    Set the minimum y value for the window.
 
-**Curve fitter arguments** select and parameter the curve fitter formulas. The main options here are fit_type and refine_fit which specify which equations are fitted to the data. Most other options are coefficient guesses for the equations. Sometimes, the algorithm which attempts to fit equations to the data fails because it can't find a good fit. If the user has an estimate as to what the value a certain coefficient in the equation should equal, the guess options will allow them to enter that, and the algorithm will have a better chance of finding a good fit. Guess arguments take floating point numbers.
+**Curve fitter arguments** select and parameter the curve fitter formulas. The main options here are "fit_type" and "refine_fit", which specify which equations are fitted to the data. Most other options are coefficient guesses for the equations. Sometimes, the algorithm which attempts to fit equations to the data fails because it can't find a good fit. If the user has an estimate as to what the value a certain coefficient in the equation should equal, the guess options will allow them to enter that, and the algorithm will have a better chance of finding a good fit. Guess arguments take floating point numbers.
 
    - **--fit_type _fit_ _fit_ ... (Default: poly5)**
 
@@ -292,8 +292,7 @@ Options can be entered by either command line or initialization file. All option
 Interactive Commands
 ====================
 
-**Interactive commands** can be inputted while the plotter is running. When using these commands make sure the display's focus is on the plotting window and not the terminal. If these commands are entered while focus is on the terminal, nothing will happen. Also make sure the cursor is in the plotting window. If it isn't, nothing will happen. Some of these commands can also be triggered by the buttons on the bottom left of the screen.
-
+**Interactive commands** can be inputted while the plotter is running. When using these commands, make sure the display's focus is on the plotting window and not the terminal. If these commands are entered while focus is on the terminal, nothing will happen. Also make sure the cursor is in the plotting window. If it isn't, nothing will happen. Some of these commands can also be triggered by the buttons on the bottom left of the plotting window screen.
 
    - **q, _ctrl_ w**
 
@@ -398,63 +397,63 @@ Interactive Commands
 Input Files
 ===========
 
-There are two different types of input files accepted. One type only plots a single line (1d data), while the other plots multiple lines of data(2d data). Different arguments must be used to read the different types of input data, and the format of the data is different between the two types. Here, I will explain create and use each type, and how they are different.
+There are two different types of input files accepted. One type only plots a single line (1d data), while the other type plots multiple lines of data (2d data). Different arguments must be used to read the different types of input data, and the format of the data is different between the two types. The types' styles, formats, and differences are explained below.
 
 1d Data
 -------
-1d data files plot a single line. Single line data can include a fit type, which is an equation fitted to the data and displayed by a red line. The default fit type is a fifth degree polynomial, but the argument --fit_type none will specify no equation. 1d data also allows the user to add and remove points from the line. Use the --input_file argument to read in 1d data. 1d data and 2d data can't be read in at the same time, only one input file can be read. To specify the name of the output file of moved points, use the argument --output_file_name. The default name is moved_points_out.dat. 1d data files are very simple to write, they are just two columns of data. The data can be integers, or floating point values. The space between the columns can be any length. Lines can be ignored for comments by typing a "#". Here are some examples of correct data:
+1d data files plot a single line. Single line data can include a fit type, which is an equation fitted to the data and displayed by a red line. The default fit type is a fifth degree polynomial, but the argument "--fit_type none" will specify no equation. 1d data also allows the user to add and remove points from the line. Use the "--input_file" argument to read in 1d data. 1d data and 2d data can't be read in at the same time since only one input file can be read. To specify the name of the output file of moved points, use the argument "--output_file_name". The default name is "moved_points_out.dat". 1d data files are very simple to write because they are only two columns of data. The data can be integers or floating point values. The space between the columns can be any length. Lines can be ignored for comments by typing a "#" before the data. Here are some examples of correct data:
  
-#This is a comment
+    This is a comment
 
-5 5
+    5 5
 
-5.3455         7.678
+    5.3455         7.678
 
-#Scientific notation can be used as well
+    #Scientific notation can be used as well
 
-2.874444E+02  5.67E-03
+    2.874444E+02  5.67E-03
 
 2d Data
 -------
-2d data files plot multiple lines. They are more specific in format than 1d data. 2d data doesn't allow fit_types, or the ability to add or remove points. Only existing points can be modified. Use the --in_eos_file_base option, followed by the name of the input file, to read in an input file. The user is required to specify an output file name for moved points as well. To do this, use the --out_eos_file_base option. There is no default name, which is why this option must be specified when reading in 2d data. To start a 2d data file, you must specify an eos function (section name), the number of isotherms in that eos function(number of lines in this section), and the number of data points in each isotherm/line, which looks something like this: 
+2d data files plot multiple lines. They are more specific in format than 1d data. 2d data doesn't allow the argument "fit_types" nor the ability to add or remove points. Only existing points can be modified. Use the "--in_eos_file_base" option, followed by the name of the input file, to read in an input file. The user is required to specify an output file name for moved points as well. To do this, use the "--out_eos_file_base option". There is no default name, which is why this option must be specified when reading in 2d data. To start a 2d data file, you must specify an eos function (section name), the number of isotherms in that eos function (number of lines in the section), and the number of data points in each isotherm/line, which looks something like this: 
 
 Pc 100 95 
 
 This example line means the section name is "Pc", there are 100 isotherms in this section, and there are 95 data points in each isotherm. The amount of spacing between the elements on this line doesn't matter. A line like this will always be the first line of the file. There will be a line like this at the start of every new section of the file as well. All isotherms in a section must have the same number of data points. Here is some example data: 
 
-Pc 2 2
+    Pc 2 2
 
-1 3.4 7.77
+    1 3.4 7.77
 
-1 4.4 6.23
+    1 4.4 6.23
 
-2 3.4 13.6
+    2 3.4 13.6
 
-2 4.4 15.9
+    2 4.4 15.9
 
-Ec 2 2
+    Ec 2 2
 
-1.34 3.4 67.8
+    1.34 3.4 67.8
 
-1.34 4.4 69.007
+    1.34 4.4 69.007
 
-3.45 3.4 4.44
+    3.45 3.4 4.44
 
-3.45 3.4 -12.4
+    3.45 3.4 -12.4
 
-In this example, there are two sections, Pc, and Ec. Both sections have 2 isotherms, and each isotherm in the section has two data points. Each data point has three values. All three values can be represented just like 1d data (integer, floating point, scientific notation,...). The first value is the value of the isotherm/line. This value isn't plotted, and is used instead to differentiate between isotherms in a section. In the example above in the Pc section, the first isotherm value was 1, and the second was 2. These values don't have to be integers, or in order. Isotherms can have any value, as long as it is different from any other isotherms in that section. In the Ec section, the first isotherm is 1.34, and the second is 3.45. The other two values on the line are the x and y values of that data point. Just like 1d data, the amount of spacing doesn't matter between values on a line. One reason to divide data into sections is to be able to plot only one section of it. To do this, use the option --eos_function followed by the section name (also known as the eos function name). If some sections of your data file are 1d data, that will work as well. Then, there will only be two columns of data. The 1d data must be in it's own section, though, and include a proper section line. A correct 1d section within a 2d data file looks something like this:
+In this example, there are two sections: "Pc" and "Ec". Both sections have 2 isotherms, and each isotherm in the section has two data points. Each data point has three values. All three values can be represented just like 1d data (integer, floating point, scientific notation, etc.). The first value is the value of the isotherm/line. This value isn't plotted, and is used instead to differentiate between isotherms in the section. In the example above in the "Pc" section, the first isotherm value is "1", and the second is "2". These values don't have to be integers or in order. Isotherms can have any value, as long as it is different from any other isotherms in that section. In the "Ec" section, the first isotherm is "1.34", and the second is "3.45". The other two values on the line are the x and y values of that data point. Just like 1d data, the amount of spacing doesn't matter between values on a line. One reason to divide data into sections is to be able to plot only one section of it. To do this, use the option "--eos_function" followed by the section name (also known as the "eos function name"). If some sections of your data file are 1d data, it will work as well. Afterwards there will only be two columns of data. The 1d data must be in its own section, however, and include a proper section line. A correct 1d section within a 2d data file looks something like this:
  
-Ec 1 5
+    Ec 1 5
 
-1 3.4
+    1 3.4
 
-2.3 4.5
+    2.3 4.5
 
-3.3 7.65
+    3.3 7.65
 
-4.4 2.11
+    4.4 2.11
 
-6.7 3.44
+    6.7 3.44
 
 Configuration File Syntax
 =========================
