@@ -120,11 +120,11 @@ Options can be entered by either command line or initialization file. All option
 
    - **--matchpt _float_ (Default: -1)**
 
-   Specify the matchpoint for integral and tri-integral smoothing. 
+   Specify the matchpoint for integral smoothing. 
 
    - **--interp _arg_ (Default: cubic)**
 
-   Specify the interpolator for integral and tri-integral smoothing.
+   Specify the interpolator for integral smoothing.
 
    - **--angle _int_ (Default: 90)**
 
@@ -381,10 +381,6 @@ Interactive Commands
    - **_shift_ Z**
 
    Smooth data using tri-local smoothing. The user must select a region to smooth by pressing 'e' and selecting a rectangular region.
-
-   - **_shift_ C**
-
-   Smooth data using tri-integral smoothing. The user must select a region to smooth by pressing 'e' and selecting a rectangular region.
 
    - **_shift_ X**
 
