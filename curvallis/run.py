@@ -376,11 +376,7 @@ class CurveInteractor(object):
         elif event.key == 'm':
             self._print_keymap()
         elif event.inaxes:
-            if event.key == 'c':
-                self._regions.plot_curves()
-                self._set_xlim_ylim()
-                self._canvas.draw()
-            elif event.key == 't':
+            if event.key == 't':
                 self._regions.toggle_original_line_visibility()
                 self._canvas.draw()
             elif event.key == 'b':
@@ -438,13 +434,6 @@ class CurveInteractor(object):
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")
-            elif event.key == 'C':
-                if self._move_set == True:
-                    self._regions.smooth_data("triintegral", self._xmin, self._xmax, 
-                                              self._ymin, self._ymax)
-                    self._canvas.draw()
-                else:
-                    print ("Select a region to smooth by pressing 'e'.")
             elif event.key == 'V':
                 if self._move_set == True:
                     self._regions.smooth_data("acute", self._xmin, self._xmax, 
@@ -452,7 +441,7 @@ class CurveInteractor(object):
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")
-            elif event.key == 'k':
+            elif event.key == 'k' or event.key == 'L':
                 # Set graph x scale
                 if self._ax.get_xscale() == 'linear':
                     self._ax.set_xscale('log')
