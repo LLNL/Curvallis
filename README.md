@@ -292,45 +292,49 @@ Options can be entered by either command line or initialization file. All option
 Interactive Commands
 ====================
 
-**Interactive commands** can be inputted while the plotter is running. When using these commands, make sure the display's focus is on the plotting window and not the terminal. If these commands are entered while focus is on the terminal, nothing will happen. Also make sure the cursor is in the plotting window. If it isn't, nothing will happen. Some of these commands can also be triggered by the buttons on the bottom left of the plotting window screen.
+**Interactive commands** can be inputted while the plotter is running. When using these commands, make sure the display's focus is on the plotting window and not the terminal. If these commands are entered while focus is on the terminal, nothing will happen. Also make sure the cursor is in the plotting window. If it isn't, nothing will happen. Some of these commands can also be triggered by the buttons on the bottom left of the plotting window screen. Commands with an asterisk next to them are defaults from the "matplotlib" library and their functionality could change depending on the version of "matplotlib" installed. See the [matplotlib documentation](https://matplotlib.org/3.2.1/users/navigation_toolbar.html#navigation-keyboard-shortcuts) for more information on these default commands.
 
-   - **q, _ctrl_ w**
+   - **q, _ctrl_ w\***
 
    Quit the program. Press q once and the program will ask the user to confirm. Press q a second time to quit, or any other key to cancel quit.
 
-   - **f, _ctrl_ f**
+   - **f\*, _ctrl_ f\***
 
    Toggle full screen mode.
 
-   - **h, r, c, _home_**
+   - **h, r, _home_**
 
    Reset the screen to the default limits. This is usually how the screen starts originally, but if log scale has been toggled, the screen will default back to how it first looked after toggling log scale. Also triggered by the leftmost button on the bottom left of the screen.
 
-   - **_left_, _backspace_**
+   - **c\*, _left_\*, _backspace_\***
 
    Set the screen back to the previous view. The view can be changed by zooming or panning. Also triggered by the second to leftmost button on the bottom left of the screen.
 
-   - **_right_, v**
+   - **_right_\*, v\***
 
    Set the screen to the next view. This only works if the user had set the screen to the previous view before this. Also triggered by the third to leftmost button on the bottom left of the screen.
 
-   - **p**
+   - **p\***
 
    Toggle panning the screen. When in pan mode, the mouse cursor changes to a hand, and the user can move the screen by clicking and dragging. Also triggered by the fourth to leftmost button on the bottom left of the screen.
 
-   - **o**
+   - **o\***
 
    Toggle zoom mode. When in zoom mode, the mouse cursor changes to a cross, and the user can zoom on a rectangular region by clicking on one corner, and dragging the mouse to the opposite corner of that region. Also triggered by the fifth to leftmost button on the bottom left of the screen.
 
-   - **s, _ctrl_ s**
+   - **g\***
+
+   Toggle minor grids.
+
+   - **s, _ctrl_ s\***
 
    Save the current figure as a png image. This feature does not work correctly. It will display all manipulations the user made to the data. Also triggered by the rightmost button on the bottom left of the screen.
 
-   - **k**
+   - **k\*, L\***
 
    Toggle x log scale on the graph.
 
-   - **l**
+   - **l\***
 
    Toggle y log scale on the graph.
 
