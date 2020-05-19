@@ -29,6 +29,7 @@ from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 from matplotlib.widgets import RectangleSelector
 from curve_editing import curve_fitters, io, lines, regions, configargparse
 from Tkinter import Tk, Label, Button, Entry
+from math import log10
 
 VERSION_STRING = '2015-12-01 11:02AM'
 
@@ -376,11 +377,7 @@ class CurveInteractor(object):
         elif event.key == 'm':                  #If 'm' pressed
             self._print_keymap()                #Display key mapping
         elif event.inaxes:
-            if event.key == 'c':                #If 'c' pressed         (not in key mapping)
-                self._regions.plot_curves()     #???
-                self._set_xlim_ylim()
-                self._canvas.draw()
-            elif event.key == 't':              #If 't' pressed
+            if event.key == 't':              #If 't' pressed
                                                 #Toggle viewing of original line
                 self._regions.toggle_original_line_visibility()
                 self._canvas.draw()
@@ -733,17 +730,40 @@ class CurveInteractor(object):
         """
         xlimit = self._ax.get_xlim()
         xdata = []
-        for i in range(0, self._args.points_in_user_curve):
-            # Calculate N evenly spaced x values between screen limits
-            xdata.append(xlimit[0]+(((abs(xlimit[1] - xlimit[0]))/
-                                     (self._args.points_in_user_curve-1)) * i))
+
+        region_list = self._regions.get_regions()
+        if xlimit[0] < region_list[0].get_x_low_limit():
+            x_first = log10(region_list[0].get_x_low_limit())
+        else:
+            x_first = log10(xlimit[0])
+        if xlimit[1] > region_list[-1].get_x_high_limit():
+            x_last = log10(region_list[-1].get_x_high_limit())
+        else:
+            x_last = log10(xlimit[1])
+
+        x_count = int((x_last - x_first) * self._args.points_per_decade)
+
+        #If only one point is asked for, return x_first to avoid
+        #a 'division by 0' error in the for loop in the else statement
+        if x_count == 1:
+            if self._logscale or logarithmic:
+                x_first = pow(10,x_first)
+            xdata = [x_first]
+        else:
+            x_range = x_last - x_first
+            for i in range(x_count):
+                # Calculate each x without any cumulative errors:
+                portion = float(i) / float(x_count-1)
+                x = x_first + (portion * x_range)
+                xdata.append(pow(10,x))
+
         for eq, plot in self._iplot.items():
             # Plot every user inputted equation
             ydata=[]
             # Make eval relatively safe by restricting namespace
             ns = vars(math).copy()
             ns['__builtins__'] = None
-            for i in range(0, self._args.points_in_user_curve):
+            for i in range(len(xdata)):
                 # Evaluate the function for each x value
                 x = xdata[i]
                 ns['x'] = x
@@ -765,9 +785,7 @@ class CurveInteractor(object):
             print(action + ': %s' % keys_for(action))
         print('show_all_axes: %s' % keys_for('all_axes'))
         print()
-        print('Drag points to update line')
-        print('Press k to toggle x log scale')
-        print('Press l to toggle y log scale') 
+        print('Drag points to update line') 
         print('Press q then q again to quit')
         print('Press t to toggle original line on and off [default: off]')
         print('Press b to toggle points on and off [default: on]')
@@ -781,9 +799,11 @@ class CurveInteractor(object):
         print('Press <shift> Q to enter an equation to plot')
         print('Press <shift> Z for trilocal smoothing')
         print('Press <shift> X for integral smoothing')
-#        print('Press <shift> C for trintegral smoothing')
-        print('Press <shift> V for acute repair smoothing')
         print('Press <shift> B for B-spline smoothing')
+        print('Press <shift> V for acute repair smoothing')
+        print()
+        print('More key mappings can be found at:')
+        print('https://github.com/LLNL/Curvallis#interactive-commands')
         print()
         print('===============================================================')
         print('Make sure focus is on the plotting window and the cursor is')
