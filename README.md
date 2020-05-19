@@ -390,11 +390,12 @@ Interactive Commands
 
    Smooth data using integral smoothing. This smoother is unreliable unless the user specifies a good matchpoint with the "--matchpt" option. Otherwise, the smoother outputs error messages. The user must select a region to smooth by pressing "e" and selecting a rectangular region.
 
-  - **_shift_ B**
- 
-   Smooth data using B-spline smoothing. The user must select a region to smooth by pressing 'e' and selecting a rectangular region.
+   - **_shift_ B**
 
- - **_shift_ V**
+   Smooth data using B-spline smoothing. The user must select a region to smooth by pressing "e" and selecting a rectangular region.
+
+   - **_shift_ V**
+
    Smooth data using acute repair smoothing. The user must select a region to smooth by pressing "e" and selecting a rectangular region.
 
 Input Files
