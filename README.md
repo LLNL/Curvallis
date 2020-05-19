@@ -36,11 +36,11 @@ Options can be entered by either command line or initialization file. All option
 
    - **--config_file _path_ (Default: curve_editor.ini)**
 
-   Specify the configuration file path in _path_. The default value is curve_editor.ini, so if that file exists in the same directory as the program, it will be read.
+   Specify the configuration file path in "_path_". The default value is "curve_editor.ini", so if that file exists in the same directory as the program, it will be read.
 
    - **--no_config_file**
 
-   Use this argument to ignore all config files. This is useful the default config file is in the same directory as the program, but the user doesn't want to use it.
+   Use this argument to ignore all config files. This is useful if the default config file is in the same directory as the program, but the user doesn't want to use it.
 
    - **--background_file _path_ (Default: None)**
 
@@ -48,23 +48,23 @@ Options can be entered by either command line or initialization file. All option
 
    - **--curve_output_file_name _path_ (Default: fit_curve_out.dat)**
 
-   Specify the name of the fit curve output file. This file is written out by pressing 'w' while the program is running. This file will only output if --fit_type is specified as something other than 'None'. If the file already exists, it will be deleted and overwritten when the program is run.
+   Specify the name of the fit curve output file. This file is written out by pressing "w" while the program is running. This file will only be written if "--fit_type" is specified as something other than "None". If the file already exists, it will be deleted and overwritten when the program is run.
 
    - **--output_file_name _path_ (Default: moved_points_out.dat)**
 
-   Use the file name _path_ when writing out the moved data points for 1d data. This option doesn't have to be specified with 1d data because there is a default file name.
+   Use the file name "_path_" when writing out the moved data points for 1d data. This option doesn't have to be specified with 1d data because there is a default file name.
 
    - **--pressure_file_name _path_ (Default: E2P.dat)**
 
-   Use the file name _path_ when writing out the calculated pressure curve for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the command line argument '--print_E2P' is used.
+   Use the file name "_path_" when writing out the calculated pressure curve for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the command line argument "--print_E2P" is used.
 
    - **--bulk_mod_file_name _path_ (Default: P2B.dat)**
 
-   Use the file name _path_ when writing out the calculated bulk modulus curve for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the command line argument '--print_P2B' is used.
+   Use the file name "_path_" when writing out the calculated bulk modulus curve for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the command line argument "--print_P2B" is used.
 
    - **--gamma_file_name _path_ (Default: Theta2Gamma.dat)**
 
-   Use the file name _path_ when writing out the calculated gamma curve (Gruneisen gamma) for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the command line argument '--print_theta2gamma' is used.
+   Use the file name "_path_" when writing out the calculated gamma curve (Gruneisen gamma) for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the command line argument "--print_theta2gamma" is used.
 
    - **--points_per_decade _int_ (Default: 220)**
 
@@ -72,39 +72,39 @@ Options can be entered by either command line or initialization file. All option
 
    - **--eos_function (Default: all)**
 
-   Allows the user to only plot a portion of a data file. 2d data files are separated into different sections. Each section is a different eos function, which the user can specify with this argument. Usual eos function names are Ec, Pc, Cs, etc. By default, all sections are displayed.
+   Allows the user to only plot a portion of a data file. 2d data files are separated into different sections. Each section is a different eos function, which the user can specify with this argument. Usual eos function names are "Ec", "Pc", "Cs", etc. By default, all sections are displayed.
 
    - **--use_eos_info_file**
 
-   Uses the .info file associated with the eos data. The .info file must have the same name as the eos data. A new .info file will be written along with a new eos data file. If this option isn't specified, any .info files will be ignored, and a new .info file will not be created if data is written out.
+   Uses the ".info" file associated with the eos data. The ".info" file must have the same name as the eos data. A new ".info" file will be written along with a new eos data file. If this option isn't specified, any ".info" files will be ignored, and a new ".info" file will not be created if data is written out.
 
    - **--do_derivative**
 
-   Plot the derivative of the specified --fit_curve functions. Some derivative equations are questionable, so results may not be accurate. Unsure if this works with multiple fit_types.
+   Plot the derivative of the specified "--fit_curve" functions. Some derivative equations are questionable, so results may not be accurate. Unsure if this works with multiple fit types.
 
    - **--do_integral**
 
-   Plot the integral of the specified --fit_curve functions. Some integral equations are questionable. Unsure if this works with multiple fit_types.
+   Plot the integral of the specified "--fit_curve" functions. Some integral equations are questionable. Unsure if this works with multiple fit types.
 
    - **--print_E2P**
 
-   Assume that the 1D data given is energy data and print out the corresponding pressure data into a file. This file name is set by the '--presure_file_name' command line argument.
+   Assume that the 1d data given is energy data and print out the corresponding pressure data into a file. This file name is set by the "--presure_file_name" command line argument.
 
    - **--print_P2B**
 
-   Assume that the 1D data given is pressure data and print out the corresponding bulk modulus data into a file. This file name is set by the '--bulk_mod_file_name' command line argument.
+   Assume that the 1d data given is pressure data and print out the corresponding bulk modulus data into a file. This file name is set by the "--bulk_mod_file_name" command line argument.
 
    - **--print_theta2gamma**
 
-   Assume that the 1D data given is Debye temperature data (theta data) and print out the corresponding Gruneisen gamma data into a file. This file name is set by the '--gamma_file_name' command line argument.
+   Assume that the 1d data given is Debye temperature data (theta data) and print out the corresponding Gruneisen gamma data into a file. This file name is set by the "--gamma_file_name" command line argument.
 
    - **--region_bound _bound_ _bound_ ...**
 
-   Specify the boundaries of each region by it's x value. Values may be int or float. The first and last boundary should not be specified because they are the first and last point of the data. The number of regions to create is calculated by the number of boundaries entered. 2 boundaries has 3 regions, 3 boundaries has 4, etc... For example, to create 3 regions with the first regions starting at the beginning of the data and ending at x=30, the second region starting at x=30 and ending at x=45, and the third region starting at x=45 and ending at the end of the data, you would enter '--region_bound 30 45'. Regions cannot overlap, so each boundary specifies the beginning of one region and the end of another. This option is NOT able to be used in conjunction with the '--region_data_points' option.
+   Specify the boundaries of each region by its x value. Values may be int or float. The first and last boundary should not be specified because they are the first and last point of the data. The number of regions to create is calculated by the number of boundaries entered. 2 boundaries has 3 regions, 3 boundaries has 4, etc... For example, to create 3 regions with the first regions starting at the beginning of the data and ending at x=30, the second region starting at x=30 and ending at x=45, and the third region starting at x=45 and ending at the end of the data, you would enter "--region_bound 30 45". Regions cannot overlap, so each boundary specifies the beginning of one region and the end of another. This option is NOT able to be used in conjunction with the "--region_data_points" option.
 
    - **--region_data_points _int_**
 
-   Specify that regions should automatically be made based upon how many data points each region should hold. Regions will be created with the given number of data points in each region, starting from the left/beginning of the data, until the end is reached. If there is a region at the end of the data without the sufficient number of data points, it will be combined with the previous region. For example, if the parameter '--region_data_points 40' is given when plotting a data file of 209 data points, region boundaries would be created between the 40th and 41st, 80th and 81st, 120th and 121st, and the 160th and 161st data points. A region boundary is not created between the 200th and 201st data points because this would leave only 9 points in the last region. This option is NOT able to be used in conjunction with the '--region_bound' option.
+   Specify that regions should automatically be made based upon how many data points each region should hold. Regions will be created with the given number of data points in each region, starting from the left/beginning of the data, until the end is reached. If there is a region at the end of the data without the sufficient number of data points, it will be combined with the previous region. For example, if the parameter "--region_data_points 40" is given when plotting a data file of 209 data points, region boundaries would be created between the 40th and 41st, 80th and 81st, 120th and 121st, and the 160th and 161st data points. A region boundary is not created between the 200th and 201st data points because this would leave only 9 points in the last region. This option is NOT able to be used in conjunction with the "--region_bound" option.
 
    - **--overlap _int_ (Default: 2)**
 
@@ -112,11 +112,11 @@ Options can be entered by either command line or initialization file. All option
 
    - **--numpoints _int_ (Default: 5)**
 
-   Specify the number of points to use to find averages for tri-local smoothing. Press _shift_ Z while running the program to smooth the data.
+   Specify the number of points to use to find averages for tri-local smoothing. Press "_shift_ Z" while running the program to smooth the data.
 
    - **--repeat _int_ (Default: 10)**
 
-   Specify how many times to repeat tri-local smoothing each time _shift_ Z is pressed while the program is running.
+   Specify how many times to repeat tri-local smoothing each time "_shift_ Z" is pressed while the program is running.
 
    - **--matchpt _float_ (Default: -1)**
 
@@ -134,11 +134,11 @@ Options can be entered by either command line or initialization file. All option
 
    - **--in_eos_file_base _base path_**
 
-   Read in source data points specified by _base path_ from 2d, 3 column EOS data (contains more than one isotherm). Do not include the file extension in the name. If --use_eos_info_file is set, a .info file with the same name as the data must be read in as well. If this option is set, --out_eos_file_base must be set as well.
+   Read in source data points specified by "_base path_" from 2d, 3 column eos data (contains more than one isotherm). Do not include the file extension in the name. If "--use_eos_info_file" is set, a ".info" file with the same name as the data must be read in as well. If this option is set, "--out_eos_file_base" must be set as well.
 
    - **--input_file _path_**
 
-   Read in the input file specified by _path_ for source data points. Use this only for 1d, 2 column data.
+   Read in the input file specified by "_path_" for source data points. Use this only for 1d, 2 column data.
  
    - **--parabola_in**
 
@@ -152,53 +152,53 @@ Options can be entered by either command line or initialization file. All option
 
    - **--out_eos_file_base _base path_**
 
-   Use the file names _base path_.dat and _base path_.info when writing out the moved data points for 2d, eos data. Only create the _base path_.info file if --use_eos_info_file is set. This option must be set if --in_eos_file_base is set.
+   Use the file names "_base path_.dat" and "_base path_.info" when writing out the moved data points for 2d, eos data. Only create the "_base path_.info" file if "--use_eos_info_file" is set. This option must be set if "--in_eos_file_base" is set.
 
-**Shift, Limit, and Point Exclusion arguments** alter the appearance of Input data. None of these options are required to be set.
+**Shift, Limit, and Point Exclusion arguments** alter the appearance of input data. None of these options are required to be set.
 
    - **--decimate _count_**
 
-   Only displays _count_ points of the inputted data. If the data is 1d, there will be _count_ total data points. If the data is 2d, each line will have _count_ number of points. The points will be equally distributed across the span of the original data, so the result is nearly the same as using the --step option, which is described below.
+   Only displays "_count_" points of the inputted data. If the data is 1d, there will be "_count_" total data points. If the data is 2d, each line will have "_count_" number of points. The points will be equally distributed across the span of the original data, so the result is nearly the same as using the "--step" option, which is described below.
 
    - **--step _step_**
 
-   Only use every _step_th point. For example, --step 3 uses every third point. When writing out points with --step set, the points not shown are still included in the written file.
+   Only use every "_step_th" point. For example, "--step 3" uses every third point. When writing out points with "--step" set, the points not shown are still included in the written file.
 
    - **--t_step _step_**
 
-   Only use every _step_th isotherm. Each isotherm is it's own line, so every _step_th line in the input file is skipped. The skipped isotherms are still included if the moved points are written out.
+   Only use every "_step_th" isotherm. Each isotherm is its own line, so every "_step_th" line in the input file is skipped. The skipped isotherms are still included if the moved points are written out.
 
    - **--x_include _low_ _high_, --xinclude _low_ _high_**
 
-   Only display input points between the x values _low_ and _high_. Other points aren't plotted, but will be included when writing out the moved points.
+   Only display input points between the x values "_low_" and "_high_". Other points aren't plotted, but will be included when writing out the moved points.
 
    - **--x_scale _scale_ _low_ _high_, --xscale _scale_ _low_ _high_**
 
-   Multiply the x value of each input point by _scale_ if _low_ < x < _high_. 
+   Multiply the x value of each input point by "_scale_" if "_low_" < x < "_high_". 
 
    - **--x_shift _shift_ _low_ _high_, --xshift _shift_ _low_ _high_**
 
-   Add _shift_ to the x value of each input point where _low_ < x < _high_.
+   Add "_shift_" to the x value of each input point where "_low_" < x < "_high_".
 
    - **--y_include _low_ _high_, --yinclude _low_ _high_**
 
-   Only display input points between y values _low_ and _high_. Other points aren't plotted, but will be included when writing out the moved points.
+   Only display input points between y values "_low_" and "_high_". Other points aren't plotted, but will be included when writing out the moved points.
 
    - **--y_scale _scale_ _low_ _high_, --yscale _scale_ _low_ _high_**
 
-   Multiply the y value of each input point by _scale_ if _low_ < x < _high_.
+   Multiply the y value of each input point by "_scale_" if "_low_" < x < "_high_".
 
    - **--y_shift _shift_ _low_ _high_, --yshift _shift_ _low_ _high_**
 
-   Add _shift_ to the y value of each input point where _low_ < x < _high_.
+   Add "_shift_" to the y value of each input point where "_low_" < x < "_high_".
 
    - **--t_include _low_ _high_, --tinclude _low_ _high_**
 
-   Only display input points in isotherms with values between _low_ and _high_.
+   Only display input points in isotherms with values between "_low_" and "_high_".
 
    - **--v_axis**
 
-   Use v as the x axis instead of rho. When using this option fit curves will not fit the data correctly. This essentially makes x = 1/x for each input point.
+   Use "v" as the x axis instead of "rho". When using this option fit curves will not fit the data correctly. This essentially makes x = 1/x for each input point.
 
 **View arguments** determine what starts out displayed on the screen. For example, "x_max" could be set to 200 when the data extends to 2000 and the default view will be from the minimum data point to 200. If only some of these options are set, the others are determined by the minimum and maximum x and y values of the data.
 
@@ -222,24 +222,24 @@ Options can be entered by either command line or initialization file. All option
 
    - **--fit_type _fit_ _fit_ ... (Default: poly5)**
 
-   Select an equation to fit to the data points for each region. For example, if you have three regions, --fit_type none poly5 birch3 would set no equation for the first region, poly5 for the second region, and birch3 for the third region. Regions are ordered from smallest to greatest x value. If a fit_type is not specified for any region, then the default poly5 equation will be used. This means if there are five regions, but only three fit types, the the last two regions will be set to poly5. The available equations are:
+   Select an equation to fit to the data points for each region. For example, if you have three regions, "--fit_type none poly5 birch3" would set no equation for the first region, "poly5" for the second region, and "birch3" for the third region. Regions are ordered from smallest to greatest x value. If a fit type is not specified for any region, then the default "poly5" equation will be used. This means if there are five regions, but only three fit types, the the last two regions will be set to "poly5". The available equations are:
     anton, ap1, ap2, bardeen, birch2, birch3, birch4, ebirch3, ebirch4, emurnaghan, evinet, johnson, kumari, log, log2, murnaghan, none, poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11, poly12, sandiapc, shank, vinet, highp.
-    Options starting with an 'e' are energy equations, poly_n_ are nth degree polynomials, and the rest are pressure. Only some of these equations have been thoroughly tested to check if they work properly. These are:
+    Options starting with an "e" are energy equations, "poly_n_" are nth degree polynomials, and the rest are pressure. Only some of these equations have been thoroughly tested to check if they work properly. These are:
     birch2, birch3, birch4, ebirch3, ebirch4, emurnaghan, evinet, murnaghan, none, all polys, vinet.
     When inputting this argument in a configuration file, make sure to enclose all options in brackets.
 
    - **--refine_fit _fit_ _fit_ ... (Default: none)**
 
-   Refine_fit fits a second equation to the existing fit type in order to more closely fit the data. It accomplishes this by taking the error between the data points and the fit type, and fitting another equation to the error. This new equation is then added to the original fit type. This argument works the same as "--fit_type". An equation must be selected for each region. This means if the region the user wants to add a refine_fit to isn't the first region, a refine fit must be specified for all regions before it. For example, if the user wants to add a refine fit to the third region, but no other regions, they would type: --refine_fit none none poly5. If there are more than three regions, the rest of the regions will be specified "none" by default. Available equations are:
+   Fits a second equation to the existing fit type in order to more closely fit the data. It accomplishes this by taking the error between the data points and the fit type, and fitting another equation to the error. This new equation is then added to the original fit type. This argument works the same as "--fit_type". An equation must be selected for each region. This means if the region the user wants to add a refine fit to a region that isn't the first region, a refine fit must be specified for all regions before it. For example, if the user wants to add a refine fit to the third region, but no other regions, they would type: "--refine_fit none none poly5". If there are more than three regions, the rest of the regions will be specified "none" by default. Available equations are:
     poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11, poly12, eseries4, eseries5, eseries6, eseries7, eseries8, eseries9, eseries10, eseries11, eseries12, eseries (same as eseries7), none, highp.
 
    - **--delta_p_guess _float_**
 
-   Set an initial guess for the bulk modulus. This is another name for --k0_guess. They both do the same thing.
+   Set an initial guess for the bulk modulus. This is another name for "--k0_guess". They both do the same thing.
 
    - **--k0_guess _float_**
 
-   Set an initial guess for the bulk modulus. This is another name for --delta_p_guess. They both do the same thing.
+   Set an initial guess for the bulk modulus. This is another name for "--delta_p_guess". They both do the same thing.
 
    - **--k0_prime_guess _float_**
 
@@ -251,11 +251,11 @@ Options can be entered by either command line or initialization file. All option
 
    - **--lam_guess _float_**
 
-   Set an initial guess for lambda
+   Set an initial guess for lambda.
 
    - **--rho0_guess _positive float_**
 
-   Set an initial guess for equilibrium density (rho0) or fixed guess if using the fitter 'sandiapc'.
+   Set an initial guess for equilibrium density (rho0) or fixed guess if using the fitter "sandiapc".
 
    - **--scale_derivative_by _float_ (Default: 1000)**
 
@@ -296,13 +296,13 @@ Interactive Commands
 
    - **q, _ctrl_ w\***
 
-   Quit the program. Press q once and the program will ask the user to confirm. Press q a second time to quit, or any other key to cancel quit.
+   Quit the program. Press "q" once and the program will ask the user to confirm. Press "q" a second time to quit, or any other key to cancel quit.
 
    - **f\*, _ctrl_ f\***
 
    Toggle full screen mode.
 
-   - **h, r, _home_**
+   - **h\*, r\*, _home_\***
 
    Reset the screen to the default limits. This is usually how the screen starts originally, but if log scale has been toggled, the screen will default back to how it first looked after toggling log scale. Also triggered by the leftmost button on the bottom left of the screen.
 
@@ -328,7 +328,7 @@ Interactive Commands
 
    - **s, _ctrl_ s\***
 
-   Save the current figure as a png image. This feature does not work correctly. It will display all manipulations the user made to the data. Also triggered by the rightmost button on the bottom left of the screen.
+   Save the current figure as a ".png" image. This feature does not work correctly. It will display all manipulations the user made to the data. Also triggered by the rightmost button on the bottom left of the screen.
 
    - **k\*, L\***
 
@@ -348,7 +348,7 @@ Interactive Commands
 
    - **w**
 
-   Writes the changed data points to a file named FIXME.dat. If the data is using a fitted curve, another file will be written out containing the points of the fitted curve named FIXME2.dat. Using command line options, which limit the amount of data displayed such as step or include will not affect which points are written out. These files need to be moved or renamed before running the program again or they will be overwritten.
+   Writes the changed data points to a file whose name is set by the "--output_file_name" option. If the data is using a fitted curve, another file will be written out containing the points of the fitted curve with a name set by the "--curve_output_file_name" option. Using command line options which limit the amount of data displayed, such as "step" or "include", will not affect which points are written out. These files need to be moved or renamed before running the program again or they will be overwritten.
 
    - **y**
 
@@ -380,19 +380,19 @@ Interactive Commands
 
    - **_shift_ Q**
 
-   Pop a window to enter an equation to plot. Equations must be entered using Python syntax. For example, x^2 doesn't work, you have to use either x\**2 or pow(x,2). Check the Python Math library to see a list of available math related functions to use. To plot the entered equation, press the plot button. To remove the plotted equation, press the delete button. If the user wants to plot multiple equations, pressing _shift_ Q will continue to open new windows to plot more equations. After closing a window, the equation plotted from that window is deleted. After plotting an equation, the user can write the points to a file by specifying a file name in the "Filename" Entry and clicking "Write". The equation must be plotted and a file name must be specified before any points will be written.
+   Pop up a window to enter an equation to plot. Equations must be entered using Python syntax. For example, "x^2" doesn't work, you have to use either "x\**2" or "pow(x,2)". Check the [Python Math library](https://docs.python.org/2/library/math.html) to see a list of available math related functions to use. To plot the entered equation, press the "Plot" button. To remove the plotted equation, press the "Delete" button. If the user wants to plot multiple equations, pressing "_shift_ Q" will continue to open new windows to plot more equations. After closing a window, the equation plotted from that window is deleted. After plotting an equation, the user can write the points to a file by specifying a file name in the "Filename" Entry and clicking "Write". The equation must be plotted and a file name must be specified before any points will be written.
 
    - **_shift_ Z**
 
-   Smooth data using tri-local smoothing. The user must select a region to smooth by pressing 'e' and selecting a rectangular region.
+   Smooth data using tri-local smoothing. The user must select a region to smooth by pressing "e" and selecting a rectangular region.
 
    - **_shift_ X**
 
-   Smooth data using integral smoothing. This smoother is unreliable unless the user specifies a good matchpoint with the --matchpt option. Otherwise, the smoother outputs error messages. The user must select a region to smooth by pressing 'e' and selecting a rectangular region.
+   Smooth data using integral smoothing. This smoother is unreliable unless the user specifies a good matchpoint with the "--matchpt" option. Otherwise, the smoother outputs error messages. The user must select a region to smooth by pressing "e" and selecting a rectangular region.
 
    - **_shift_ V**
 
-   Smooth data using acute repair smoothing. The user must select a region to smooth by pressing 'e' and selecting a rectangular region.
+   Smooth data using acute repair smoothing. The user must select a region to smooth by pressing "e" and selecting a rectangular region.
 
 Input Files
 ===========
@@ -503,4 +503,4 @@ To specify an argument with multiple values or with a type of "list":
 Example Configuration File
 --------------------------
 
-See 'examples/config-complete-list.ini' for an example configuration file.
+See "[examples/config-complete-list.ini](https://github.com/LLNL/Curvallis/blob/master/examples/config-complete-list.ini)" for an example configuration file.
