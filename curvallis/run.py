@@ -377,11 +377,7 @@ class CurveInteractor(object):
         elif event.key == 'm':                  #If 'm' pressed
             self._print_keymap()                #Display key mapping
         elif event.inaxes:
-            if event.key == 'c':                #If 'c' pressed         (not in key mapping)
-                self._regions.plot_curves()     #???
-                self._set_xlim_ylim()
-                self._canvas.draw()
-            elif event.key == 't':              #If 't' pressed
+            if event.key == 't':              #If 't' pressed
                                                 #Toggle viewing of original line
                 self._regions.toggle_original_line_visibility()
                 self._canvas.draw()
@@ -443,7 +439,6 @@ class CurveInteractor(object):
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")
-
             elif event.key == 'V':              #If 'V' pressed
                 if self._move_set == True:      #Run Acute Repair Smoothing
                     self._regions.smooth_data("acute", self._xmin, self._xmax, 
@@ -804,8 +799,8 @@ class CurveInteractor(object):
         print('Press <shift> Q to enter an equation to plot')
         print('Press <shift> Z for trilocal smoothing')
         print('Press <shift> X for integral smoothing')
-        print('Press <shift> V for acute repair smoothing')
         print('Press <shift> B for B-spline smoothing')
+        print('Press <shift> V for acute repair smoothing')
         print()
         print('More key mappings can be found at:')
         print('https://github.com/LLNL/Curvallis#interactive-commands')
