@@ -380,6 +380,10 @@ Interactive commands can be inputted while the plotter is running. When using th
 
     Smooth data using acute repair smoothing. The user must select a region to smooth by pressing 'e' and selecting a rectangular region.
 
+    - **<shift> B**
+
+    Smooth data using B-spline smoothing. The user must select a region to smooth by pressing 'e' and selecting a rectangular region.
+
     - **m**
 
     Prints a list of all the interactive commands, as well as a quick description of what each does.
