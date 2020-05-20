@@ -142,6 +142,7 @@ class CurveInteractor(object):
 
         The movable line and the curve lines are in the regions.
         """
+        rcParams["keymap.quit"] = ["ctrl+w", "cmd+w"] # Changes matplotlib's default quit keys
         self._process_args()
         self._io_manager = io.Manager(self._args)
         # Read the data sets outside of Regions so we can discover the x, y
@@ -359,8 +360,7 @@ class CurveInteractor(object):
             self._finish_move_point()
 
     def key_press_callback(self, event):
-        """ Whenever a key is pressed
-        """
+        """ Whenever a key is pressed"""
         print ('Pressed %s' % event.key) #Display name of pressed key
         if self._quit_pending:                  #If a quit is pending
             if event.key == 'q':                #and 'q' is pressed
@@ -468,8 +468,7 @@ class CurveInteractor(object):
                 self._canvas.draw()
             elif event.key == 'B':                  #If "B" pressed
                 if self._move_set == True:          #Run B-Spline Smoothing
-                    self._regions.smooth_data("bspline", self._xmin, self._xmax, 
-                                              self._ymin, self._ymax)
+                    self._regions.smooth_data("bspline", self._xmin, self._xmax, self._ymin, self._ymax)
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")

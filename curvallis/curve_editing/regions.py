@@ -1162,6 +1162,8 @@ class Regions(object):
                 else:
                     print ("Invalid smooth type")
                     return
+                if(len(line[0]) < 1):       #When regions are being used,
+                    break                   #if a region does not contain any points, skip it.
                 smooth_line = smoother.applySmooth(list(line[0]), list(line[1]), line[0][0], line[0][-1])
                 #Add points outside of smoothed region
                 for i in range(len(orig_line[0])):
