@@ -60,10 +60,6 @@ def define_args(parser):
         help='Calculate this many points per logarithmic decade in the fit curve '
              'when writing the curve to a file [default: %(default)s]', metavar='<count>')
     parser.add_argument(
-        '--points_in_user_curve', action='store', type=int,
-        help='Calculate this many points in the user inputted curves when writing the '
-             'curves to a file. [default: %(default)s]', metavar='<count>')
-    parser.add_argument(
         '--region_bound',
         action='append',
         nargs='+', type=float,
@@ -119,7 +115,6 @@ def define_args(parser):
         print_P2B=False,
         print_theta2gamma=False,
         points_per_decade=220,
-        points_in_user_curve=100,
         polynomial_order=5,
         overlap=2,
         numpoints=5,
@@ -308,7 +303,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
             if self._x_view_high_limit == self._x_view_low_limit:
                 return
 
-            #Find logarithmic decades covered by new x-scale in view multiplied by points per decade
+            #Find logarithmic decades covered by new x-scale multiplied by points per decade
             total_points = int(log10(self._x_view_high_limit / self._x_view_low_limit) * self._args.points_per_decade)
 
             if total_points == 0:
@@ -1032,6 +1027,9 @@ class Regions(object):
             return 0
         else:
             return len(self._regions) - 1
+
+    def get_regions(self):
+        return self._regions
 
     def plot_curves(self):
         """ Plots a fit curve for each region. Called by xlim_callback
