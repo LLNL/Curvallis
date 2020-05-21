@@ -336,6 +336,9 @@ class BSplineSmoother(object):
     def applySmooth(self, datax, datay, unknown1, unknown2, detail=0):
         #l= number of input data points
         l = len(datax)
+        if(l < 4):
+            print("Error: Must have at least 4 points selected")
+            return (datax,datay)
         t = numpy.linspace(0,1,l-2,endpoint=True)
         t = numpy.append([0,0,0],t)
         t = numpy.append(t, [1,1,1])
@@ -367,4 +370,3 @@ class BSplineSmoother(object):
                     newy.append(out[1][i])
                     break
         return (datax,newy)
-
