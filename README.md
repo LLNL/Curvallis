@@ -62,6 +62,10 @@ Options can be entered by either command line or initialization file. All option
 
    Use the file name "_path_" when writing out the calculated bulk modulus curve for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the command line argument "--print_P2B" is used.
 
+   - **--bulk_mod_prime_file_name _path_ (Default: P2Bprime.dat)**
+
+   Use the file name "_path_" when writing out the calculated bulk modulus prime curve for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the command line argument "--print_P2Bprime" is used.
+
    - **--gamma_file_name _path_ (Default: Theta2Gamma.dat)**
 
    Use the file name "_path_" when writing out the calculated gamma curve (Gruneisen gamma) for the inputted 1d data. This option doesn't have to be specified with 1d data because there is a default file name and is only used if the command line argument "--print_theta2gamma" is used.
@@ -93,6 +97,10 @@ Options can be entered by either command line or initialization file. All option
    - **--print_P2B**
 
    Assume that the 1d data given is pressure data and print out the corresponding bulk modulus data into a file. This file name is set by the "--bulk_mod_file_name" command line argument.
+
+   - **--print_P2Bprime**
+
+   Assume that the 1d data given is pressure data and print out the corresponding bulk modulus prime data into a file. This file name is set by the "--bulk_mod_prime_file_name" command line argument.
 
    - **--print_theta2gamma**
 
@@ -260,6 +268,10 @@ Options can be entered by either command line or initialization file. All option
    - **--scale_derivative_by _float_ (Default: 1000)**
 
    Scaling factor for derivative plot.
+
+   - **--scale_second_derivative_by _float_ (Default: 1000)**
+
+   Scaling factor for second derivative plot.
 
    - **--scale_integral_by _float_ (Default: 0.001)**
 
