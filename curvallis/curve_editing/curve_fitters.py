@@ -1570,8 +1570,8 @@ class Poly_Original(object):
         self._int = np.polyint(self._f)
         self._scnd_der = np.polyder(self._der)
 
-    def guess_coefficients(self, points): 
-        raise RuntimeError("NOT YET IMPLEMENTED")
+    def guess_coefficients(self, points):
+        pass
 
     def func(self, x):
         return self._f(x)
