@@ -80,6 +80,10 @@ def define_args(parser):
         type=float, metavar='<float>',
         help='Scaling factor for derivative plot [default: %(default)s]')
     fitter_args.add_argument(
+        '--scale_second_derivative_by', dest='second_derivative_scale',
+        type=float, metavar='<float>',
+        help='Scaling factor for second derivative plot [default: %(default)s]')
+    fitter_args.add_argument(
         '--scale_integral_by', dest='integral_scale',
         type=float, metavar='<float>',
         help='Scaling factor for integral plot [default: %(default)s]')
@@ -116,6 +120,7 @@ def define_args(parser):
         fit_type=['poly5'],
         refine_fit=['none'],
         derivative_scale=1000,
+        second_derivative_scale=1000,
         integral_scale=.001,
         polynomial_order=5,
         x_integral_ref=0,
@@ -266,6 +271,7 @@ class Base_Fit_Class(object):
         # can be passed into opt.curve_fit:
         super(Base_Fit_Class, self).__init__()
         self.derivative_scale = args.derivative_scale
+        self.second_derivative_scale = args.second_derivative_scale
         self.integral_scale = args.integral_scale
         self.maxfev = 50000
         self.use_energy_integral = args.y_axis == 'E'
@@ -346,10 +352,21 @@ class Base_Fit_Class(object):
         """
 
     def derivative(self, x):
-        """ Return the scaled derivative of f(x).  Call this to plot each point
-        on the curve.
+        """ Return the scaled derivative of f(x). Call this to plot each point
+            on the curve.
         """
         return self.derivative_scale * self._derivative(x)
+
+    @abstractmethod
+    def _second_derivative(self, x):
+        """ Return the second derivative of f(x).
+        """
+
+    def second_derivative(self, x):
+        """ Return the scaled second derivative of f(x). Call this to plot each point
+            on the curve.
+        """
+        return self.second_derivative_scale * self._second_derivative(x)
 
     @abstractmethod
     def _energy_integral(self, x):
@@ -569,6 +586,9 @@ class Birch_Murnaghan3(Pressure_Fit_Class):
                  5.0 * (xi - 1.0) +
                  9.0 * xi * _eta6(x, self.rho0)))
 
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
     def _energy_integral(self, x):
         xi = .75 * (4.0 - self.k0_prime)
         return (3.0 * self.k0 * self.rho0 / 80.0) * \
@@ -644,6 +664,9 @@ class Birch_Murnaghan4(Pressure_Fit_Class):
                  11.0 * zeta * _eta8(x, self.rho0) +
                  7.0 * (1.0 - 2.0 * xi + 3.0 * zeta) * _eta4(x, self.rho0)))
 
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
     def _energy_integral(self, x):
         xi = .75 * (4.0 - self.k0_prime)
         zeta = (3.0 / 8.0) * \
@@ -712,6 +735,9 @@ class Vinet(Pressure_Fit_Class):
                  (-1.5 + 1.5 * self.k0_prime) * _eta2(x, self.rho0))) / \
                (_eta5(x, self.rho0) * self.rho0)
 
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
     def _energy_integral(self, x):
         return 2.0 * \
                np.exp(-1.5 * (-1.0 + self.k0_prime) * (-1.0 + _eta(x, self.rho0))) * \
@@ -774,6 +800,9 @@ class Murnaghan(Pressure_Fit_Class):
         # noinspection PyTypeChecker
         return ((self.k0 / self.rho0) *
                 np.power(_rno_norm(x, self.rho0), (self.k0_prime - 1.0)))
+
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
 
     def _energy_integral(self, x):
         return (self.k0 *
@@ -853,9 +882,12 @@ class SandiaPC(Pressure_Fit_Class):
                4 * self.k4 * y**3 + \
                5 * self.k5 * y**4
 
-    def _energy_integral(self, x): pass#Needed to implement the abstract method, even though it's not of use for this fitter
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
 
-    def _pressure_integral(self, x): pass#Needed to implement the abstract method, even though it's not of use for this fitter
+    def _energy_integral(self, x): raise RuntimeError("NOT YET IMPLEMENTED")#Needed to implement the abstract method, even though it's not of use for this fitter
+
+    def _pressure_integral(self, x): raise RuntimeError("NOT YET IMPLEMENTED")#Needed to implement the abstract method, even though it's not of use for this fitter
 
 factory.register ('sandiapc', SandiaPC)
 
@@ -908,6 +940,9 @@ class Anton_Schmidt(Pressure_Fit_Class):
         return (self.k0 / self.rho0) * \
                (np.power(_rno_norm(x, self.rho0), -n - 1.0) *
                 (1.0 - n * np.log(_rno_norm(x, self.rho0))))
+
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
 
     def _energy_integral(self, x):
         n = -.5 * self.k0_prime
@@ -967,6 +1002,9 @@ class Bardeen(Pressure_Fit_Class):
                  (15.0 * self.k0_prime - 50.0) * _eta2(x, self.rho0) +
                  (22.0 - 6.0 * self.k0_prime) * _eta(x, self.rho0)))
 
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
     def _energy_integral(self, x):
         return (3.0 * self.k0 * self.rho0 * _eta7(x, self.rho0) / 56.0) * \
                (-132.0 +
@@ -1015,6 +1053,9 @@ class Birch_Murnaghan2(Pressure_Fit_Class):
     def _derivative(self, x):
         return ((self.k0 * _eta2(x, self.rho0) / (2.0 * self.rho0)) *
                 (7.0 * _eta2(x, self.rho0) - 5.0))
+
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
 
     def _energy_integral(self, x):
         return (9.0 * self.k0 * self.rho0 / 80.0) * \
@@ -1069,6 +1110,9 @@ class Johnson_Holmquist(Pressure_Fit_Class):
                      2 * self.k2 * _mu(x, self.rho0) +
                      3 * self.k3 * _mu2(x, self.rho0)) /
                     self.rho0)
+
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
 
     def _energy_integral(self, x):
         return (self.rho0 / 12.0) * \
@@ -1131,6 +1175,9 @@ class Kumari_Dass(Pressure_Fit_Class):
                 np.power(_rno_norm(x, self.rho0), (self.lam * self.k0 - self.k0_prime - 1.0)) /
                 (self.k0_prime + self.k0 * self.lam))
 
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
     def _energy_integral(self, x):
         # noinspection PyTypeChecker
         return ((self.k0 *
@@ -1184,6 +1231,9 @@ class Logarithmic2(Pressure_Fit_Class):
         return (self.k0/self.rho0) * \
                (1.0 + np.log(_rno_norm(x, self.rho0)))
 
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
     def _energy_integral(self, x):
         return .25 * self.k0 * \
                np.square(_rno_norm(x, self.rho0)) * \
@@ -1233,6 +1283,9 @@ class Logarithmic3(Pressure_Fit_Class):
                 2.0 * (-1.0 + self.k0_prime) * np.log(_rno_norm(x, self.rho0)) +
                 (-2.0 + self.k0_prime) * np.square(np.log(_rno_norm(x, self.rho0)))) / \
                (2.0 * self.rho0)
+
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
 
     def _energy_integral(self, x):
         return (self.k0 * np.square(_rno_norm(x, self.rho0)) * self.rho0 / 8.0) * \
@@ -1284,6 +1337,9 @@ class Shankar(Pressure_Fit_Class):
                       self.k0_prime +
                       (3.0 + self.k0_prime) * np.square(_rno_norm(x, self.rho0)))) / \
                (2.0 * np.square(_rno_norm(x, self.rho0)) * self.rho0)
+
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
 
     def _energy_integral(self, x):
         return .25 * \
@@ -1353,6 +1409,9 @@ class Ap1(Pressure_Fit_Class):
                 4.0 * _eta(x, self.rho0)) / \
                (_eta8(x, self.rho0) * self.rho0)
 
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
     def _energy_integral(self, x):
         raise RuntimeError("Not implemented")
 
@@ -1407,6 +1466,9 @@ class Ap2(Pressure_Fit_Class):
 
     def _derivative(self, x):
         # very complicated
+        raise RuntimeError("Not implemented")
+
+    def _second_derivative(self, x):
         raise RuntimeError("Not implemented")
 
     def _energy_integral(self, x):
@@ -1506,15 +1568,19 @@ class Poly_Original(object):
         self._f =  np.poly1d(coeffs)
         self._der = np.polyder(self._f)
         self._int = np.polyint(self._f)
+        self._scnd_der = np.polyder(self._der)
 
     def guess_coefficients(self, points): 
-        pass
+        raise RuntimeError("NOT YET IMPLEMENTED")
 
     def func(self, x):
         return self._f(x)
 
     def derivative(self, x):
         return self._der(x)
+
+    def second_derivative(self, x):
+        return self._scnd_der(x)
 
     def integral(self, x):
         return self._int(x)
@@ -1563,6 +1629,9 @@ class EBirch_Murnaghan3(Energy_Fit_Class):
         return fcold
 
     def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _second_derivative(self, x):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
     def _energy_integral(self, x):
@@ -1618,6 +1687,9 @@ class EBirch_Murnaghan4(Energy_Fit_Class):
     def _derivative(self, x):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
     def _energy_integral(self, x):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
@@ -1655,6 +1727,9 @@ class EMurnaghan(Energy_Fit_Class):
         return fcold
 
     def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _second_derivative(self, x):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
     def _energy_integral(self, x):
@@ -1718,6 +1793,9 @@ class ESeries(Energy_Fit_Class):
     def _derivative(self, x):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
     def _energy_integral(self, x):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
@@ -1777,6 +1855,9 @@ class EVinet(Energy_Fit_Class):
     def _derivative(self, x):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
     def _energy_integral(self, x):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
@@ -1823,6 +1904,9 @@ class EHighP(Energy_Fit_Class):
         return answer
 
     def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _second_derivative(self, x):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
     def _energy_integral(self, x):
@@ -1886,6 +1970,9 @@ class ThetaBP(Base_Fit_Class):
         term2 = self.c2 / pow(x, self.q)
         return 0.5 + term1 + term2
 
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
     def _energy_integral(self, x):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
@@ -1944,6 +2031,9 @@ class GammaRho(Base_Fit_Class):
 
 
     def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _second_derivative(self, x):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
     def _energy_integral(self, x):
@@ -2006,6 +2096,9 @@ class GammaV(Base_Fit_Class):
 
 
     def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _second_derivative(self, x):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
     def _energy_integral(self, x):
