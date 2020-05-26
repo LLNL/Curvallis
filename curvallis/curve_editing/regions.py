@@ -1146,7 +1146,7 @@ class Regions(object):
             io.write_point_file(self._args.curve_output_file_name,
                                 filtered_points)
 
-            if self._args.print_E2P or self._args.print_P2B or self._args.print_theta2gamma:
+            if self._args.print_E2P or self._args.print_P2B or self._args.print_theta2gamma or self._args.print_P2Bprime:
                 derivative_points = self._get_derivative_curve_points()
                 # Remove any duplicate points at region boundaries
                 derivative_filtered = [derivative_points[0]]
@@ -1185,7 +1185,7 @@ class Regions(object):
                 #assumes that the data given is pressure data)
                 bulk_mod_prime_points = []
                 for i in range(len(filtered_points)):
-                    bulk_mod_prime_points.append((filtered_points[i][0], scnd_derivative_filtered[i][1]))
+                    bulk_mod_prime_points.append((filtered_points[i][0], 1 + (filtered_points[i][0] * scnd_derivative_filtered[i][1])/derivative_filtered[i][1]))
                 io.write_point_file(self._args.bulk_mod_prime_file_name, bulk_mod_prime_points)
 
             if self._args.print_theta2gamma:
