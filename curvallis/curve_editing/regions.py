@@ -1230,7 +1230,7 @@ class Regions(object):
                 elif (smooth_type == "acute"):
                     smoother = smoothers.AcuteAngleRepair(self._args.angle, 1)
                 elif (smooth_type == "bspline"):
-                    smoother = smoothers.BSplineSmoother()
+                    smoother = smoothers.BSplineSmoother(5)
                 else:
                     print ("Invalid smooth type")
                     return
