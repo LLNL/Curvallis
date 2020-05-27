@@ -50,6 +50,12 @@ def define_args(parser):
              'the corresponding bulk modulus curve in a file. '
              '[default: %(default)s]')
     parser.add_argument(
+        '--print_P2Bprime',
+        action='store_true',
+        help='Assume that the y-axis is a pressure curve and output '
+             'the corresponding bulk modulus prime curve in a file. '
+             '[default: %(default)s]')
+    parser.add_argument(
         '--print_theta2gamma',
         action='store_true',
         help='Assume that the y-axis is Debye temperature data and output '
@@ -113,6 +119,7 @@ def define_args(parser):
         do_integral=False,
         print_E2P=False,
         print_P2B=False,
+        print_P2Bprime=False,
         print_theta2gamma=False,
         points_per_decade=220,
         polynomial_order=5,
@@ -202,8 +209,8 @@ class _Line_Set_With_Fit(lines.Line_Set):
 
     def _calc_derivative_points_for_range(self, x_first, x_last, point_count, logarithmic=False):
         """ For a given x range, interpolate x_count x values and calculate
-        a y value for each, returning the calculated x and y values.
-
+            a derivative value for each, returning the calculated x and
+            derivative values.
         """
         x_values = self._calc_x_values(x_first, x_last, point_count, logarithmic)
         y_values = []
@@ -214,6 +221,22 @@ class _Line_Set_With_Fit(lines.Line_Set):
         else:
             for x in x_values:
                 y_values.append(self._fitter.derivative(x) - self._fitter2.derivative(x))
+
+        return zip(x_values, y_values)
+
+    def _calc_second_derivative_points_for_range(self, x_first, x_last, point_count, logarithmic=False):
+        """ For a given x range, interpolate x_count x values and calculate
+            a second derivative value for each, returning the calculated x
+            and second derivative values.
+        """
+        x_values = self._calc_x_values(x_first, x_last, point_count, logarithmic)
+        y_values = []
+        if (self._fitter2 == 'none'):
+            for x in x_values:
+                y_values.append(self._fitter.second_derivative(x))
+        else:
+            for x in x_values:
+                y_values.append(self._fitter.second_derivative(x) - self._fitter2.second_derivative(x))
 
         return zip(x_values, y_values)
 
@@ -459,6 +482,22 @@ class _Line_Sets(object):
         # The current fit curve data is custom-generated for the current zoom's .
         # x range. Calculate the curve for the the movable line's full x range:
         return line_set._calc_derivative_points_for_range(
+            x_first=self._x_low_limit,
+            x_last=self._x_high_limit,
+            point_count=int(self._args.points_per_decade * decades_covered),
+            logarithmic=Logarithmic)
+
+    def get_second_derivative_curve_points(self, Logarithmic=False):
+        """ Return the line set's ONLY fit curve's second derivatives at points.
+        """
+        line_set = self._get_only_line_set()
+
+        #Find logarithmic decades covered by x-value range
+        decades_covered = log10(self._x_high_limit / self._x_low_limit)
+
+        # The current fit curve data is custom-generated for the current zoom's .
+        # x range. Calculate the curve for the the movable line's full x range:
+        return line_set._calc_second_derivative_points_for_range(
             x_first=self._x_low_limit,
             x_last=self._x_high_limit,
             point_count=int(self._args.points_per_decade * decades_covered),
@@ -721,6 +760,11 @@ class _Region(object):
         """ Return the region's ONLY fit curve derivative's points.
         """
         return self._line_sets.get_derivative_curve_points(logarithmic)
+
+    def get_second_derivative_curve_points(self, logarithmic=False):
+        """ Return the region's ONLY fit curve second derivative's points.
+        """
+        return self._line_sets.get_second_derivative_curve_points(logarithmic)
 
     def plot_curves(self):
         self._line_sets.plot_curves()
@@ -995,6 +1039,19 @@ class Regions(object):
 
         return result
 
+    def _get_second_derivative_curve_points(self):
+        """ Return a list of ONLY fit curve second derivative points on a logarithmic
+            scale, concatenated across the entire data range.
+        """
+        assert not self._is_eos_data
+
+        #Get fit curve second derivative points logarithmically by region
+        result = []
+        for region in self._regions:
+            result.extend(region.get_second_derivative_curve_points(True))
+
+        return result
+
     def _get_data_sets(self):
         """ Get the data sets from every region, glue them back together as if
         there were only one region, and return that.
@@ -1089,14 +1146,23 @@ class Regions(object):
             io.write_point_file(self._args.curve_output_file_name,
                                 filtered_points)
 
-            if self._args.print_E2P or self._args.print_P2B or self._args.print_theta2gamma:
+            if self._args.print_E2P or self._args.print_P2B or self._args.print_theta2gamma or self._args.print_P2Bprime:
                 derivative_points = self._get_derivative_curve_points()
-                # Remove any duplicate fit points at region boundaries
+                # Remove any duplicate points at region boundaries
                 derivative_filtered = [derivative_points[0]]
                 for i in range(1, len(derivative_points)):
                     if derivative_points[i][0] != derivative_points[i-1][0]:
                         derivative_filtered.append(derivative_points[i])
                 assert len(derivative_filtered) == len(filtered_points)
+
+            if self._args.print_P2Bprime:
+                scnd_derivative_points = self._get_second_derivative_curve_points()
+                # Remove any duplicate points at region boundaries
+                scnd_derivative_filtered = [scnd_derivative_points[0]]
+                for i in range(1, len(scnd_derivative_points)):
+                    if scnd_derivative_points[i][0] != scnd_derivative_points[i-1][0]:
+                        scnd_derivative_filtered.append(scnd_derivative_points[i])
+                assert len(scnd_derivative_filtered) == len(filtered_points)
 
             if self._args.print_E2P:
                 #Write the file 'E2P.dat' with the pressure curve (this
@@ -1113,6 +1179,14 @@ class Regions(object):
                 for i in range(len(filtered_points)):
                     bulk_mod_points.append((filtered_points[i][0], filtered_points[i][0] * derivative_filtered[i][1]))
                 io.write_point_file(self._args.bulk_mod_file_name, bulk_mod_points)
+
+            if self._args.print_P2Bprime:
+                #Write the file 'P2Bprime.dat' with the Bulk Modulus prime curve (this
+                #assumes that the data given is pressure data)
+                bulk_mod_prime_points = []
+                for i in range(len(filtered_points)):
+                    bulk_mod_prime_points.append((filtered_points[i][0], 1 + (filtered_points[i][0] * scnd_derivative_filtered[i][1])/derivative_filtered[i][1]))
+                io.write_point_file(self._args.bulk_mod_prime_file_name, bulk_mod_prime_points)
 
             if self._args.print_theta2gamma:
                 #Write the file 'Theta2Gamma.dat' with the gamma curve (this

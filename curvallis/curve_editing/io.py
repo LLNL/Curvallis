@@ -95,6 +95,11 @@ def define_args(parser):
         help='Use this output file for the bulk modulus value at each point '
              '[default: %(default)s]')
     output_group.add_argument(
+        '--bulk_mod_prime_file_name', metavar='<path>',
+        # See '--output_file_name' comment
+        help='Use this output file for the bulk modulus prime value at each point '
+             '[default: %(default)s]')
+    output_group.add_argument(
         '--gamma_file_name', metavar='<path>',
         # See '--output_file_name' comment
         help='Use this output file for the Gruneisen gamma value at each point '
@@ -218,6 +223,7 @@ def define_args(parser):
         output_file_name='moved_points_out.dat',
         pressure_file_name='E2P.dat',
         bulk_mod_file_name='P2B.dat',
+        bulk_mod_prime_file_name='P2Bprime.dat',
         gamma_file_name='Theta2Gamma.dat',
 
         # Shifts group:
