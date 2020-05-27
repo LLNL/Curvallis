@@ -503,6 +503,8 @@ class Manager(object):
             check_output_file(self._args.pressure_file_name)
         if self._args.print_P2B:
             check_output_file(self._args.bulk_mod_file_name)
+        if self._args.print_P2Bprime:
+            check_output_file(self._args.bulk_mod_prime_file_name)
         if self._args.print_theta2gamma:
             check_output_file(self._args.gamma_file_name)
         self._input = None
