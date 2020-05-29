@@ -227,7 +227,7 @@ class Factory(object):
         self._classes[name] = classs
 
     def get_sorted_fit_names(self):
-        names = self._classes.keys()
+        names = list(self._classes)
 
         #Only allows polynomials up to 12 to avoid crashing
         for i in range(0, 12):

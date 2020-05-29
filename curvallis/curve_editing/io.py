@@ -17,8 +17,8 @@ from operator import itemgetter
 import numpy as np
 import pprint
 
-import eos_data_io
-import configargparse
+import curve_editing.eos_data_io as eos_data_io
+import curve_editing.configargparse as configargparse
 
 """ Supports getting point data into and out of the curve_editor.  Can read from
 a file, generate, or provide predefined points.  Can write to file(s).
@@ -386,11 +386,11 @@ class Data_Sets(object):
         self._expand_limits_using(points)
 
     def decimate(self, args):
-        for name, data_set in self._sets.iteritems():
+        for name, data_set in self._sets.items():
             self._sets[name] = _decimate(data_set, name, args)
 
     def do_include_scale_and_shift(self, args):
-        for name, data_set in self._sets.iteritems():
+        for name, data_set in self._sets.items():
             self._sets[name] = _do_include_scale_and_shift(data_set, name, args)
 
     def _expand_limits_using(self, points):
@@ -400,7 +400,7 @@ class Data_Sets(object):
         return copy.deepcopy(self)
 
     def get_name_set_iterator(self):
-        return self._sets.iteritems()
+        return self._sets.items()
 
     def get_names(self):
         return self._sets.keys()
@@ -425,7 +425,7 @@ class Data_Sets(object):
 
     def get_only_set(self):
         assert self.num_sets() == 1
-        return self._sets.values()[0]
+        return list(self._sets.values())[0]
 
     def get_set(self, name):
         return self._sets[name]
@@ -440,7 +440,7 @@ class Data_Sets(object):
         :return: Data_Sets with all points having x_low <= x <= x_high
         """
         result = Data_Sets()
-        for name, points in self._sets.iteritems():
+        for name, points in self._sets.items():
             sliced_points = []
             for point in points:
                 if x_low <= point[0] <= x_high:
@@ -455,7 +455,7 @@ class Data_Sets(object):
         :return: Data_Sets with all points having y_low <= y <= y_high
         """
         result = Data_Sets()
-        for name, points in self._sets.iteritems():
+        for name, points in self._sets.items():
             sliced_points = []
             for point in points:
                 if y_low <= point[1] <= y_high:
@@ -475,17 +475,17 @@ class Data_Sets(object):
 #        return self._all_sets_xy_limits
 
     def iteritems(self):
-        return self._sets.iteritems()
+        return self._sets.items()
 
     def num_sets(self):
         return len(self._sets)
 
     def print_stats(self, prefix):
-        for name, data_set in self._sets.iteritems():
+        for name, data_set in self._sets.items():
             print_data_stats(data_set, '%s: %s' % (prefix, name))
 
     def sort_by_x(self):
-        for name, data_set in self._sets.iteritems():
+        for name, data_set in self._sets.items():
             data_set.sort(key=itemgetter(0))
             self._sets[name] = data_set
 

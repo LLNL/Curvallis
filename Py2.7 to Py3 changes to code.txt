@@ -1,0 +1,30 @@
+in run.py:
+* changed Tkinter to tkinter
+* changed if self._background_data_sets.num_sets > 0: to if self._background_data_sets.num_sets() > 0:
+
+in curve_filters.py:
+* changed names = self._classes.keys() to names = list(self._classes)
+
+in io.py:
+* changed all instances of self._sets.iteritems() to self._sets.items()
+* changed return self._sets.values()[0] to return list(self._sets.values())[0]
+
+in configargparse.py:
+* simplified the sys.version_info check for importing StringIO to from io import StringIO
+
+in lines.py:
+* changed assert len(x_data_y_data) == 2, "No points in region." to assert len(list(x_data_y_data)) == 2, "No points in region."
+* changed x_data_y_data[0], x_data_y_data[1] to list(x_data_y_data)[0], list(x_data_y_data)[1]
+* added x_data_y_data = list(x_data_y_data) before assert len(list(x_data_y_data)) == 2, "No points in region."
+* added old_points = list(old_points) and x_data_y_data = list(x_data_y_data) before for i in range(0, min(len(old_points[0]), len(x_data_y_data[0]))):
+
+in regions.py:
+* changed all (except 2) instances of self._sets.iteritems() to self._sets.items()
+* changed all instances of self._sets.itervalues() to self._sets.values()
+* updated imports for items in curve_editing
+* added orig_line = list(orig_line) before for i in range(0, len(orig_line[0])):
+* changed return self._sets.values()[0] to return list(self._sets.values())[0]
+
+in smoothers.py:
+* changed distance_xdata = map(lambda x: math.fabs(x - xdata[midpoint]), xdata) to distance_xdata = map(lambda x: math.fabs(x - xdata[int(midpoint)]), xdata)
+

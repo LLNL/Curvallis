@@ -16,11 +16,7 @@ import os
 import re
 import sys
 import types
-
-if sys.version_info >= (3, 0):
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from io import StringIO
 
 __version__ = "0.9.3"
 

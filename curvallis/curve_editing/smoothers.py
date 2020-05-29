@@ -34,7 +34,7 @@ class TriLocalSmoother(object):
     def makeTriLocalCoefficents(self, xdata):
         midpoint = len(xdata) / 2
 
-        distance_xdata = map(lambda x: math.fabs(x - xdata[midpoint]), xdata)
+        distance_xdata = map(lambda x: math.fabs(x - xdata[int(midpoint)]), xdata)
         sumtot = sum(distance_xdata)
         avg_xdata = map(lambda x: 1 - (x / sumtot), distance_xdata)  # We want farther away points to have less importance, so avg - 1
 
@@ -79,7 +79,12 @@ class TriLocalSmoother(object):
                 coeff = self.makeTriLocalCoefficents(xpts)
 
             sumtot = 0
+            # VVV Currently Broken # Needs Fixing VVV
             for xx in range(0, len(xpts)):
+                if(not(type(coeff) == 'list')):
+                    coeff = list(coeff)
+                if(not(type(ypts) == 'list')):
+                    ypts = list(ypts)
                 sumtot += coeff[xx] * ypts[xx]
 
             avgYdata.append(sumtot)
