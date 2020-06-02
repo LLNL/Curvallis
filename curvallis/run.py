@@ -31,7 +31,7 @@ from curvallis.curve_editing import curve_fitters, io, lines, regions, configarg
 from tkinter import Tk, Label, Button, Entry
 from math import log10
 
-VERSION_STRING = '2015-12-01 11:02AM'
+VERSION_STRING = '2020-06-02 03:13PM'
 
 # Overwrite Panning and Zooming Functions
 PAN_ENABLED = False
