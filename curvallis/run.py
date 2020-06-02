@@ -27,7 +27,7 @@ import math
 from matplotlib import pyplot, rcParams
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 from matplotlib.widgets import RectangleSelector
-from curve_editing import curve_fitters, io, lines, regions, configargparse
+from curvallis.curve_editing import curve_fitters, io, lines, regions, configargparse
 from tkinter import Tk, Label, Button, Entry
 from math import log10
 

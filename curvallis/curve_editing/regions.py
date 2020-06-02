@@ -13,10 +13,10 @@
 from __future__ import print_function
 import copy
 
-import curve_editing.curve_fitters as curve_fitters
-import curve_editing.io as io
-import curve_editing.lines as lines
-import curve_editing.smoothers as smoothers
+import curvallis.curve_editing.curve_fitters as curve_fitters
+import curvallis.curve_editing.io as io
+import curvallis.curve_editing.lines as lines
+import curvallis.curve_editing.smoothers as smoothers
 from pylab import polyfit
 import numpy as np
 from operator import itemgetter
