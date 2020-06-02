@@ -34,7 +34,7 @@ class TriLocalSmoother(object):
     def makeTriLocalCoefficents(self, xdata):
         midpoint = len(xdata) / 2
 
-        distance_xdata = map(lambda x: math.fabs(x - xdata[midpoint]), xdata)
+        distance_xdata = map(lambda x: math.fabs(x - xdata[int(midpoint)]), xdata)
         sumtot = sum(distance_xdata)
         avg_xdata = map(lambda x: 1 - (x / sumtot), distance_xdata)  # We want farther away points to have less importance, so avg - 1
 
@@ -79,7 +79,12 @@ class TriLocalSmoother(object):
                 coeff = self.makeTriLocalCoefficents(xpts)
 
             sumtot = 0
+            # VVV Currently Broken # Needs Fixing VVV
             for xx in range(0, len(xpts)):
+                if(not(type(coeff) == 'list')):
+                    coeff = list(coeff)
+                if(not(type(ypts) == 'list')):
+                    ypts = list(ypts)
                 sumtot += coeff[xx] * ypts[xx]
 
             avgYdata.append(sumtot)
@@ -331,10 +336,12 @@ class IntegralSmoother(object):
 
 class BSplineSmoother(object):
     """BSplineSmoother creates an object for smoothing 1D data via B-Spline smoothing"""
-    def __init__(self):
-        pass
-    def applySmooth(self, datax, datay, unknown1, unknown2, detail=0):
-        #l= number of input data points
+    def __init__(self, detail=0):
+        # The detail of the curve. Higher values give greater accuracy but slower operation. The reverse is also true.
+        # It is recommended to keep detail
+        self.detail = detail
+    def applySmooth(self, datax, datay, unknown1, unknown2):
+        # l= number of input data points
         l = len(datax)
         if(l < 4):
             print("Error: Must have at least 4 points selected")
@@ -342,14 +349,12 @@ class BSplineSmoother(object):
         t = numpy.linspace(0,1,l-2,endpoint=True)
         t = numpy.append([0,0,0],t)
         t = numpy.append(t, [1,1,1])
-        #t= knots, c= coefficients, k= degree of spline
+        # t= knots, c= coefficients, k= degree of spline
         tck = [t,[datax,datay],3]
-        #The detail of the curve. Higher values give greater accuracy but slower opperation. The reverse is also true.
-        detail = l*5
-        #The linespace that will be used to compute the spline
-        u3 = numpy.linspace(0,1,detail,endpoint=True)
+        # The linspace that will be used to compute the spline
+        u3 = numpy.linspace(0,1,l*self.detail,endpoint=True)
         out = scipy.interpolate.splev(u3,tck)
-        #Moves the input points to their place on the curve.
+        # Moves the input points to their place on the curve.
         newy = []
         for i in range(l):
             x = datax[i]

@@ -1,4 +1,4 @@
-Curvallis
+Curvallis for Python 3
 =========
 
 Curvallis is a plotting program written in Python using MatPlotLib to visualize and modify experimental equation of state data. It does this by plotting individual isotherms as lines. Data can be either 1d or 2d, meaning there can be 1 or many isotherms plotted at once. Data points on these lines can be moved around, and new points can be added or removed. 1d data can have different equations fitted to them, which best fit the data. Some popular equations are currently Nth degree polynomials and Equations of State, but more exist and any equation can be added. Manipulating data points causes this fitted line to be recalculated and redisplayed. The manipulated data points, the fitted line, and calculated derivatives can be written to a file.
@@ -392,7 +392,7 @@ Interactive Commands
 
    - **_shift_ Q**
 
-   Pop up a window to enter an equation to plot. Equations must be entered using Python syntax. For example, "x^2" doesn't work, you have to use either "x\**2" or "pow(x,2)". Check the [Python Math library](https://docs.python.org/2/library/math.html) to see a list of available math related functions to use. To plot the entered equation, press the "Plot" button. To remove the plotted equation, press the "Delete" button. If the user wants to plot multiple equations, pressing "_shift_ Q" will continue to open new windows to plot more equations. After closing a window, the equation plotted from that window is deleted. After plotting an equation, the user can write the points to a file by specifying a file name in the "Filename" Entry and clicking "Write". The equation must be plotted and a file name must be specified before any points will be written.
+   Pop up a window to enter an equation to plot. Equations must be entered using Python syntax. For example, "x^2" doesn't work, you have to use either "x\**2" or "pow(x,2)". Check the [Python Math library](https://docs.python.org/3/library/math.html) to see a list of available math related functions to use. To plot the entered equation, press the "Plot" button. To remove the plotted equation, press the "Delete" button. If the user wants to plot multiple equations, pressing "_shift_ Q" will continue to open new windows to plot more equations. After closing a window, the equation plotted from that window is deleted. After plotting an equation, the user can write the points to a file by specifying a file name in the "Filename" Entry and clicking "Write". The equation must be plotted and a file name must be specified before any points will be written.
 
    - **_shift_ Z**
 

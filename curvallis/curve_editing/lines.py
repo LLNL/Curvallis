@@ -114,11 +114,12 @@ class Line(object):
         :param x_data_y_data:  [[x1, x2, x3...],[y1, y2, y3...]]
         :param visible:  boolean
         """
-        assert len(x_data_y_data) == 2, "No points in region."
+        x_data_y_data = list(x_data_y_data)
+        assert len(list(x_data_y_data)) == 2, "No points in region."
 
         #Actual Line
         self._id = self._ax.plot(
-            x_data_y_data[0], x_data_y_data[1],
+            list(x_data_y_data)[0], list(x_data_y_data)[1],
             visible=visible,
             animated=animated,
             **self._attributes)[0]
@@ -206,6 +207,8 @@ class Line(object):
         newpoints.append([])
 
         #Check for differences in new and old data
+        old_points = list(old_points)
+        x_data_y_data = list(x_data_y_data)
         for i in range(0, min(len(old_points[0]), len(x_data_y_data[0]))):
             if (old_points[0][i] != x_data_y_data[0][i] or
                 old_points[1][i] != x_data_y_data[1][i]):

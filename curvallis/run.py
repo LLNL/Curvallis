@@ -28,7 +28,7 @@ from matplotlib import pyplot, rcParams
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 from matplotlib.widgets import RectangleSelector
 from curve_editing import curve_fitters, io, lines, regions, configargparse
-from Tkinter import Tk, Label, Button, Entry
+from tkinter import Tk, Label, Button, Entry
 from math import log10
 
 VERSION_STRING = '2015-12-01 11:02AM'
@@ -273,7 +273,7 @@ class CurveInteractor(object):
         self._ax.set_ylim(ymin_data, ymax_data)
 
     def _plot_background_data(self):
-        if self._background_data_sets.num_sets > 0:
+        if self._background_data_sets.num_sets() > 0:
             # Plot each background data line
             for back_set in self._background_data_sets.get_set_iterator():
                 if len(back_set) > 0:
