@@ -125,7 +125,7 @@ class _Section(_EqIfFieldsEq):
         """
         file_out.writelines('\n')
         file_out.writelines(self.name + '\n')
-        for name in self.fields.iterkeys():
+        for name in self.fields.keys():
             self._write_info_field(file_out, name, self.fields[name])
 
     def _write_data(self, file_out):
@@ -133,7 +133,7 @@ class _Section(_EqIfFieldsEq):
         """
         file_out.writelines('%s    %s   %s\n' %
             (self.name, self.num_isotherms, self.isotherm_num_points))
-        for isotherm in self.isotherms.itervalues():
+        for isotherm in self.isotherms.values():
             isotherm.write(file_out)
         file_out.writelines('\n')
 
@@ -465,7 +465,7 @@ class _Writer(_Reader_Writer_Base):
     def _write_func_sections(self, sections):
         """ Write each function section, in the same order they were added
         """
-        for name in sections.iterkeys():
+        for name in sections.keys():
             if name != self._INFO_SECTION_NAME:
                 sections[name].write(info_file=self._info_file,
                                      data_file=self._data_file,

@@ -399,7 +399,7 @@ class Data_Sets(object):
     def get_copy(self):
         return copy.deepcopy(self)
 
-    def get_name_set_iterator(self):
+    def get_name_set_items(self):
         return self._sets.items()
 
     def get_names(self):
@@ -430,8 +430,8 @@ class Data_Sets(object):
     def get_set(self, name):
         return self._sets[name]
 
-    def get_set_iterator(self):
-        return self._sets.itervalues()
+    def get_set_values(self):
+        return self._sets.values()
 
     def get_x_slice(self, x_low, x_high):
         """
@@ -473,9 +473,6 @@ class Data_Sets(object):
 
         return result._all_sets_xy_limits
 #        return self._all_sets_xy_limits
-
-    def iteritems(self):
-        return self._sets.items()
 
     def num_sets(self):
         return len(self._sets)
@@ -710,7 +707,7 @@ class EOS_Files_Adapter(IO_Adapter):
         :param data_sets: Data_Sets
         """
         assert self._eos_data is not None
-        for name, points in data_sets.get_name_set_iterator():
+        for name, points in data_sets.get_name_set_items():
             section_name, isotherm_temp = self._to_section_name_isotherm_temp(name)
             isotherm = eos_data_io._Isotherm(temperature=isotherm_temp,
                                           num_points=len(points))
@@ -981,7 +978,7 @@ def check_output_file(file_name):
     :param file_name: string
     """
     if os.path.exists (file_name):
-        want_to = raw_input ('Do you want to overwrite the file "%s"? ' % file_name)
+        want_to = input('Do you want to overwrite the file "%s"? ' % file_name)
         if 'Y' in want_to or 'y' in want_to:
             os.remove(file_name)
         else:

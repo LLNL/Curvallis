@@ -516,7 +516,7 @@ class _Line_Sets(object):
         :return: list of (x,y) points
         """
         assert len(self._sets) == 1
-        return self._sets.values()[0]
+        return list(self._sets.values())[0]
 
     def len(self):
         return len(self._sets)
@@ -531,11 +531,11 @@ class _Line_Sets(object):
             line_set.plot_curves()
 
     def plot_movable_xy_data(self, data_sets, visible=True, animated=True):
-        for name, data_set in data_sets.iteritems():
+        for name, data_set in data_sets.get_name_set_items():
             self._sets[name].movable.plot_xy_data(data_set, visible, animated)
 
     def plot_original_xy_data(self, data_sets, visible=False, animated=True):
-        for name, data_set in data_sets.iteritems():
+        for name, data_set in data_sets.get_name_set_items():
             self._sets[name].original.plot_xy_data(data_set, visible, animated)
 
     def set_allow_xy_move(self, allow):
@@ -793,7 +793,7 @@ class _Region(object):
         #Set edges to keep points in region
         xmin, xmax = self._line_sets.find_set_span()
         if (xmin != None and xmax != None):
-            line_set = self._line_sets._sets.values().next()
+            line_set = list(self._line_sets._sets.values())[0]
             xmin_disp = line_set.movable.points_to_display_space([[xmin, 0]])[0][0]
             xmax_disp = line_set.movable.points_to_display_space([[xmax, 0]])[0][0]
 
@@ -812,7 +812,7 @@ class _Region(object):
         """ Move set of points in the data and replot
         """
         def keep_x_in_region():
-            line_set = self._line_sets._sets.values().next()
+            line_set = list(self._line_sets._sets.values())[0]
 
             lowest = event.x - self._moving_set_min
             highest = event.x + self._moving_set_max
@@ -948,7 +948,7 @@ class Regions(object):
             if self._args.region_data_points != None:
                 #Create as many regions as possible that contain the amount of data points as the user gave
                 # in the Command Line argument 'region_data_points'
-                data = next(self._data_sets.items())[1]
+                data = list(self._data_sets.items())[1]
 
                 assert len(data) >= self._args.region_data_points, "%E points wanted per region but an insufficient number of data points, %E, has been given" % (self._args.region_data_points, len(data))
 
@@ -1061,7 +1061,7 @@ class Regions(object):
         result = io.Data_Sets()
         for region in self._regions:
             region_data_sets = region.get_data_sets()
-            for name, region_data_set in region_data_sets.items():
+            for name, region_data_set in region_data_sets.get_name_set_items():
                 result.add_or_append_to_set(name, region_data_set)
         return result
 
