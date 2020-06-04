@@ -1559,7 +1559,7 @@ class Poly_Original(object):
 
         # Find the x (coeffs) that minimizes the norm of Ax-y
         # _vars are unused
-        coeffs, _residuals, _rank, _sing_vals = np.linalg.lstsq(A, y_values)
+        coeffs, _residuals, _rank, _sing_vals = np.linalg.lstsq(A, y_values, rcond=-1)
 
         _print_polynomial(coeffs)
 
