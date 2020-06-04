@@ -948,7 +948,7 @@ class Regions(object):
             if self._args.region_data_points != None:
                 #Create as many regions as possible that contain the amount of data points as the user gave
                 # in the Command Line argument 'region_data_points'
-                data = list(self._data_sets.items())[1]
+                data = list(self._data_sets.get_name_set_items())[0][1]
 
                 assert len(data) >= self._args.region_data_points, "%E points wanted per region but an insufficient number of data points, %E, has been given" % (self._args.region_data_points, len(data))
 

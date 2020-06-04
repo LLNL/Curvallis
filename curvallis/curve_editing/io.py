@@ -310,6 +310,14 @@ def process_args (parser, args):
             parser.error('Either "--region_bound" or "--region_data_points" '
                          'is used to define regions, not both at the same time.')
 
+    def check_numpoints():
+        """ Prevent the user from giving the numpoint argument an even number,
+            which causes problems later in the program.
+        """
+        if args.numpoints % 2 == 0:
+            parser.error('"--numpoints" must be an odd number, not "%s".' %
+                          args.numpoints)
+
     check_no_config_file()
     check_decimate_and_step()
     check_input_arg()
@@ -317,6 +325,7 @@ def process_args (parser, args):
     check_eos_args()
     check_sandiapc_rho0()
     check_region_divisions()
+    check_numpoints()
 
 class XY_Limits(object):
     """ Contains an x range and a y range.

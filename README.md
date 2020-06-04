@@ -120,7 +120,7 @@ Options can be entered by either command line or initialization file. All option
 
    - **--numpoints _int_ (Default: 5)**
 
-   Specify the number of points to use to find averages for tri-local smoothing. Press "_shift_ Z" while running the program to smooth the data.
+   Specify the number of points to use to find averages for tri-local smoothing. This number must be odd, not even. Press "_shift_ Z" while running the program to smooth the data.
 
    - **--repeat _int_ (Default: 10)**
 

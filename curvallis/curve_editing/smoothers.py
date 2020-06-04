@@ -29,7 +29,7 @@ class TriLocalSmoother(object):
         self.maxNumPts = in_numPts
         self.repeat = in_repeat
         if(self.maxNumPts % 2 != 1):
-            raise ValueError("TriLocalSmoother: maxNumPoints must be odd, %d is not odd" % self.maxNumPts)
+            raise ValueError("TriLocalSmoother: numpoints must be odd, %d is not odd" % self.maxNumPts)
 
     def makeTriLocalCoefficents(self, xdata):
         midpoint = len(xdata) / 2
