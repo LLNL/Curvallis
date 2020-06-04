@@ -321,7 +321,8 @@ class Base_Fit_Class(object):
         data.  Call this whenever the data changes.  Args to _f are provided via
         the p0 parameter.
         """
-        x_values, y_values = zip(*points)
+        x_values = [point[0] for point in points]
+        y_values = [point[1] for point in points]
         new_coefficients, unused = opt.curve_fit(
             f=self._f,
             xdata=x_values,
@@ -436,7 +437,8 @@ class Pressure_Fit_Class(Base_Fit_Class):
         #Use the points around the zero point to fit a parabola to guess
         #coefficients. This only makes sense for a pressure curve
         if len(parabola_points) > 0:
-            xcoords, ycoords = zip(*parabola_points)
+            xcoords = [point[0] for point in parabola_points]
+            ycoords = [point[1] for point in parabola_points]
             a,b,c = polyfit(xcoords,ycoords,2)
             rho0 = zero_point[0]
             k0 = ((2.0 * a * rho0) + b) * rho0
@@ -485,7 +487,8 @@ class Energy_Fit_Class(Base_Fit_Class):
                     min_point = points[idx]
                     min_point_index = idx
         else: #a rho0 guess exists, so try to find it in the data
-            xcoords, ycoords = zip(*points)
+            xcoords = [point[0] for point in points]
+            ycoords = [point[1] for point in points]
             min_point_index = bisect.bisect(xcoords, self.rho0)-1 #bisect seems to find the index after the target for some reason.
             min_point = points[min_point_index]
 
@@ -512,7 +515,8 @@ class Energy_Fit_Class(Base_Fit_Class):
         #Use the points around rho0 to fit a parabola to guess
         #coefficients. This only makes sense for an energy curve
         if len(parabola_points) > 0:
-            xcoords_tup, ycoords = zip(*parabola_points)
+            xcoords_tup = [point[0] for point in parabola_points]
+            ycoords = [point[1] for point in parabola_points]
             xcoords = map(lambda rho: rho-self.rho0, xcoords_tup) #Shift the rho axis so rho0 is 0 (otherwise the parabolo fit doesn't work)
             a,b,c = polyfit(xcoords,ycoords,2)
             
@@ -1549,7 +1553,8 @@ class Poly_Original(object):
                          within the given x_values range
         """
 
-        x_values, y_values = zip(*points)
+        x_values = [point[0] for point in points]
+        y_values = [point[1] for point in points]
         # Form the Vandermonde matrix:
         # (x[0]^0, x[0]^1, ... x[0]^order)
         # (x[1]^0, x[1]^1, ... x[1]^order)
@@ -2012,7 +2017,8 @@ class GammaRho(Base_Fit_Class):
             self.rho0 = points[0][0]
             self.gamma0 = points[0][1]
         elif(self.gamma0 == None): #If we have rho0 but no gamma, find gamma0 at that point
-            x_values, y_values = zip(*points)
+            x_values = [point[0] for point in points]
+            y_values = [point[1] for point in points]
             interpFunc = interp.interp1d(x_values, y_values);
             self.gamma0 = interpFunc(rh0)
         elif(self.rho0 == None):
@@ -2076,7 +2082,8 @@ class GammaV(Base_Fit_Class):
             self.rho0 = points[0][0]
             self.gamma0 = points[0][1]
         elif(self.gamma0 == None): #If we have rho0 but no gamma, find gamma0 at that point
-            x_values, y_values = zip(*points)
+            x_values = [point[0] for point in points]
+            y_values = [point[1] for point in points]
             interpFunc = interp.interp1d(x_values, y_values);
             self.gamma0 = interpFunc(rh0)
         elif(self.rho0 == None):

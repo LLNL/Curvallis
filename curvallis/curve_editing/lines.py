@@ -72,7 +72,8 @@ class Line(object):
         """
         :return:  [[x1, x2, x3...],[y1, y2, y3...]]
         """
-        x_data_y_data =  zip(*self.get_xy_data())
+        x_data_y_data = [[data[0] for data in self.get_xy_data()],
+                         [data[1] for data in self.get_xy_data()]]
         return x_data_y_data
 
     def get_xy_data(self):
@@ -145,7 +146,8 @@ class Line(object):
         :param visible:  boolean
         :param animated:  boolean
         """
-        x_data_y_data = zip(*xy_data)
+        x_data_y_data = [[data[0] for data in xy_data],
+                         [data[1] for data in xy_data]]
         self.plot_x_data_y_data(x_data_y_data, visible, animated)
 
     def set_block_select(self, xy_data):
@@ -155,7 +157,8 @@ class Line(object):
         # Set last highlight for undo information
         self._last_highlight = self._highlight.get_xydata().tolist()
         if xy_data != []:
-            self._highlight.set_data(zip(*xy_data))
+            self._highlight.set_data([data[0] for data in xy_data],
+                                     [data[1] for data in xy_data])
         else:
             self._highlight.set_data([],[])            
 
@@ -164,7 +167,8 @@ class Line(object):
         Same as set_block_select, but don't set undo information.
         """
         if xy_data != []:
-            self._highlight.set_data(zip(*xy_data))
+            self._highlight.set_data([data[0] for data in xy_data],
+                                     [data[1] for data in xy_data])
         else:
             self._highlight.set_data([],[])            
 
@@ -222,10 +226,12 @@ class Line(object):
         """
         :param xy_data: [[x1, y1],[x2, y2],[x3, y3]...]
         """
-        self.set_x_data_y_data(zip(*xy_data))
+        self.set_x_data_y_data([[data[0] for data in xy_data],
+                                [data[1] for data in xy_data]])
 
     def set_xy_data_no_undo(self, xy_data):
-        self.set_x_data_y_data_no_undo(zip(*xy_data))
+        self.set_x_data_y_data_no_undo([[data[0] for data in xy_data],
+                                        [data[1] for data in xy_data]])
 
     def undo(self):
         """ Undo the last movement

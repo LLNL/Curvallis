@@ -205,7 +205,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
             for x in x_values:
                 y_values.append(self._fitter.func(x) - self._fitter2.func(x))
 
-        return zip(x_values, y_values)
+        return [[x_values[i], y_values[i]] for i in range(len(x_values))]
 
     def _calc_derivative_points_for_range(self, x_first, x_last, point_count, logarithmic=False):
         """ For a given x range, interpolate x_count x values and calculate
@@ -222,7 +222,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
             for x in x_values:
                 y_values.append(self._fitter.derivative(x) - self._fitter2.derivative(x))
 
-        return zip(x_values, y_values)
+        return [[x_values[i], y_values[i]] for i in range(len(x_values))]
 
     def _calc_second_derivative_points_for_range(self, x_first, x_last, point_count, logarithmic=False):
         """ For a given x range, interpolate x_count x values and calculate
@@ -238,7 +238,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
             for x in x_values:
                 y_values.append(self._fitter.second_derivative(x) - self._fitter2.second_derivative(x))
 
-        return zip(x_values, y_values)
+        return [[x_values[i], y_values[i]] for i in range(len(x_values))]
 
     def _calc_integral_points_for_range(self, x_first, x_last, point_count):
         """ For a given x range, interpolate x_count x values and calculate
@@ -255,7 +255,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
             for x in x_values:
                 y_values.append(self._fitter.integral(x) - self._fitter2.integral(x))
 
-        return zip(x_values, y_values)
+        return [[x_values[i], y_values[i]] for i in range(len(x_values))]
 
 
     def get_ghost_points(self):
@@ -283,11 +283,12 @@ class _Line_Set_With_Fit(lines.Line_Set):
                 # Run if combined fit type
                 if (self._fitter2 != 'none'):
                     # Calculate error from first fit to use for refined fit
-                    orig_points, y_vals = zip(*points)
+                    orig_points = [point[0] for point in points]
+                    y_vals = [point[1] for point in points]
                     err_points = []
                     for i in range(0, point_count):
                         err_points.append(self._fitter.func(orig_points[i]) - y_vals[i])
-                        points2 = zip(orig_points, err_points)
+                        points2 = [[orig_points[i], err_points[i]] for i in range(len(orig_points))]
                     self._fitter2.fit_to_points(points2)
             else:
                 print('!!! Not doing fit for line set %s because num points = %s' %
@@ -327,7 +328,14 @@ class _Line_Set_With_Fit(lines.Line_Set):
                 return
 
             #Find logarithmic decades covered by new x-scale multiplied by points per decade
-            total_points = int(log10(self._x_view_high_limit / self._x_view_low_limit) * self._args.points_per_decade)
+            if self._x_view_low_limit >= 1:
+                total_points = int(log10(self._x_view_high_limit / self._x_view_low_limit) * self._args.points_per_decade)
+            else:
+                #It isn't mathematically accurate to just shift up the x-values,
+                #but you can't take the log of anything less than 1 for this to work
+                shift_up = 1 - self._x_view_low_limit
+                total_points = int(log10((self._x_view_high_limit+shift_up) / (self._x_view_low_limit+shift_up)) * self._args.points_per_decade)
+                
 
             if total_points == 0:
                 return
@@ -364,7 +372,9 @@ class _Line_Set_With_Fit(lines.Line_Set):
         # Must do here to check if block select mode is active
         if (self._in_set == True and self.movable._last_highlight != None 
             and self.movable._last_highlight != []):
-            self.movable._highlight.set_data(zip(*self.movable._last_highlight))
+            self.movable._highlight.set_data(
+                    [data[0] for data in self.movable._last_highlight],
+                    [data[1] for data in self.movable._last_highlight])
         self.movable.draw()
 
         # Undo information for any fit curves as well
@@ -458,7 +468,13 @@ class _Line_Sets(object):
 
         #Find total amount of points needed through multiplying the
         #logarithmic decades covered by x-value range by the points per decade
-        total_points = int(log10(self._x_high_limit / self._x_low_limit) * self._args.points_per_decade)
+        if self._x_low_limit >= 1:
+            total_points = int(log10(self._x_high_limit / self._x_low_limit) * self._args.points_per_decade)
+        else:
+            #It isn't mathematically accurate to just shift up the x-values,
+            #but you can't take the log of anything less than 1 for this to work
+            shift_up = 1 - self._x_low_limit
+            total_points = int(log10((self._x_high_limit+shift_up) / (self._x_low_limit+shift_up)) * self._args.points_per_decade)
 
         if total_points == 0:
             return
@@ -477,7 +493,13 @@ class _Line_Sets(object):
         line_set = self._get_only_line_set()
 
         #Find logarithmic decades covered by x-value range
-        decades_covered = log10(self._x_high_limit / self._x_low_limit)
+        if self._x_low_limit >= 1:
+            decades_covered = log10(self._x_high_limit / self._x_low_limit)
+        else:
+            #It isn't mathematically accurate to just shift up the x-values,
+            #but you can't take the log of anything less than 1 for this to work
+            shift_up = 1 - self._x_low_limit
+            decades_covered = log10((self._x_high_limit+shift_up) / (self._x_low_limit+shift_up))
 
         # The current fit curve data is custom-generated for the current zoom's .
         # x range. Calculate the curve for the the movable line's full x range:
@@ -493,7 +515,13 @@ class _Line_Sets(object):
         line_set = self._get_only_line_set()
 
         #Find logarithmic decades covered by x-value range
-        decades_covered = log10(self._x_high_limit / self._x_low_limit)
+        if self._x_low_limit >= 1:
+            decades_covered = log10(self._x_high_limit / self._x_low_limit)
+        else:
+            #It isn't mathematically accurate to just shift up the x-values,
+            #but you can't take the log of anything less than 1 for this to work
+            shift_up = 1 - self._x_low_limit
+            decades_covered = log10((self._x_high_limit+shift_up) / (self._x_low_limit+shift_up))
 
         # The current fit curve data is custom-generated for the current zoom's .
         # x range. Calculate the curve for the the movable line's full x range:
