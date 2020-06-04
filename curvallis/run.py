@@ -178,6 +178,8 @@ class CurveInteractor(object):
         self._ax = self._figure.add_subplot(1, 1, 1)
         # Minimize margins:
         self._figure.tight_layout(pad=self._figure_padding)
+        # Make axes ticks update and stay detailed
+        self._ax.minorticks_on()
         self._ax.set_xlabel('X')
         self._ax.set_ylabel('Y')
 #        self._background_line = lines.Line(
