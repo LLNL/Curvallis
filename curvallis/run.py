@@ -27,11 +27,11 @@ import math
 from matplotlib import pyplot, rcParams
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 from matplotlib.widgets import RectangleSelector
-from curve_editing import curve_fitters, io, lines, regions, configargparse
+from curvallis.curve_editing import curve_fitters, io, lines, regions, configargparse
 from tkinter import Tk, Label, Button, Entry
 from math import log10
 
-VERSION_STRING = '2015-12-01 11:02AM'
+VERSION_STRING = '2020-06-02 03:13PM'
 
 # Overwrite Panning and Zooming Functions
 PAN_ENABLED = False
@@ -275,7 +275,7 @@ class CurveInteractor(object):
     def _plot_background_data(self):
         if self._background_data_sets.num_sets() > 0:
             # Plot each background data line
-            for back_set in self._background_data_sets.get_set_iterator():
+            for back_set in self._background_data_sets.get_set_values():
                 if len(back_set) > 0:
                     self._background_line.append(
                         lines.Line(self._ax, lines.line_attributes['background_points']))
@@ -653,7 +653,7 @@ class CurveInteractor(object):
         Set flag to determine if graph is logscale x
         """
         for region in self._regions._regions:
-            for lineset in region._line_sets._sets.itervalues():
+            for lineset in region._line_sets._sets.values():
                 lineset._logscale = not lineset._logscale
 
     def _get_equation(self):

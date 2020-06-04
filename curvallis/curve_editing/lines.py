@@ -115,11 +115,11 @@ class Line(object):
         :param visible:  boolean
         """
         x_data_y_data = list(x_data_y_data)
-        assert len(list(x_data_y_data)) == 2, "No points in region."
+        assert len(x_data_y_data) == 2, "No points in region."
 
         #Actual Line
         self._id = self._ax.plot(
-            list(x_data_y_data)[0], list(x_data_y_data)[1],
+            x_data_y_data[0], x_data_y_data[1],
             visible=visible,
             animated=animated,
             **self._attributes)[0]
