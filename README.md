@@ -128,11 +128,11 @@ Options can be entered by either command line or initialization file. All option
 
    - **--matchpt _float_ (Default: -1)**
 
-   Specify the matchpoint for integral smoothing. 
+   Specify the matchpoint for integral smoothing. This is in the form of an x-value. The default is "-1", or rather not to use a matchpoint.
 
    - **--interp _arg_ (Default: cubic)**
 
-   Specify the interpolator for integral smoothing.
+   Specify the interpolator for integral smoothing. Options can be found under the "Kind" parameter on the [SciPy Documentation Page](https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html).
 
    - **--angle _int_ (Default: 90)**
 

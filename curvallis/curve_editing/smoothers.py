@@ -247,7 +247,7 @@ class IntegralSmoother(object):
     then taking it's integral to get back to the original function.  The integral smooths things out a bit
     so you end up at a smoother function (usually).
 
-    You can also pass in another smoother as "derivRepair"  this will be used to smooth the derivative.
+    You can also pass in another smoother as "derivRepair" this will be used to smooth the derivative.
     """
 
 
