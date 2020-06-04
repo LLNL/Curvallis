@@ -32,11 +32,11 @@ class TriLocalSmoother(object):
             raise ValueError("TriLocalSmoother: numpoints must be odd, %d is not odd" % self.maxNumPts)
 
     def makeTriLocalCoefficents(self, xdata):
-        midpoint = len(xdata) / 2
+        midpoint = int(len(xdata) / 2)
 
-        distance_xdata = map(lambda x: math.fabs(x - xdata[int(midpoint)]), xdata)
+        distance_xdata = list(map(lambda x: math.fabs(x - xdata[midpoint]), xdata))
         sumtot = sum(distance_xdata)
-        avg_xdata = map(lambda x: 1 - (x / sumtot), distance_xdata)  # We want farther away points to have less importance, so avg - 1
+        avg_xdata = list(map(lambda x: 1 - (x / sumtot), distance_xdata))  # We want farther away points to have less importance, so avg - 1
 
         sumtot = sum(avg_xdata)
         coeff = map(lambda x: x / sumtot, avg_xdata)  # Normalize it again because the flip around threw it off
@@ -56,7 +56,7 @@ class TriLocalSmoother(object):
         if(xmax >= 0):
           xMaxIndex = bisect.bisect_right(xdata, xmax)
 
-        orig_lpts = self.maxNumPts / 2  # Half the eval points left of center
+        orig_lpts = int(self.maxNumPts / 2)  # Half the eval points left of center
         orig_rpts = self.maxNumPts - orig_lpts  # One at center, and the remainder at right (right includes center pt).
 
         for ii in range(xMinIndex, xMaxIndex):
@@ -76,15 +76,11 @@ class TriLocalSmoother(object):
             else:
                 xpts = xdata[ii - lpts: ii + rpts]
                 ypts = ydata[ii - lpts: ii + rpts]
-                coeff = self.makeTriLocalCoefficents(xpts)
+                coeff = list(self.makeTriLocalCoefficents(xpts))
 
             sumtot = 0
-            # VVV Currently Broken # Needs Fixing VVV
+
             for xx in range(0, len(xpts)):
-                if(not(type(coeff) == 'list')):
-                    coeff = list(coeff)
-                if(not(type(ypts) == 'list')):
-                    ypts = list(ypts)
                 sumtot += coeff[xx] * ypts[xx]
 
             avgYdata.append(sumtot)
