@@ -382,6 +382,14 @@ Interactive Commands
 
    Prints a list of all the interactive commands, as well as a quick description of what each does.
 
+   - **i**
+
+   Increases the size of the figure/plot margins. This is usefull if the numbers labelling the x-axis are so large they go off the screen. This is the opposite of the "_shift_ I" interactive command.
+
+   - **_shift_ I**
+
+   Decreases the size of the figure/plot margins. This is the opposite of the "i" interactive command.
+
    - **_shift_ H**
 
    Increase the size of the background markers. These background markers are placed when a file is given as an input to the "background_file" optional argument.

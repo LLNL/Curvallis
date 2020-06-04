@@ -78,6 +78,7 @@ class CurveInteractor(object):
         self._background_line = None
         self._canvas = None
         self._figure = None
+        self._figure_padding = 1.08
         self._input_data_sets = io.Data_Sets()
         self._io_manager = None
         self._parser = None
@@ -176,7 +177,7 @@ class CurveInteractor(object):
         # One row, one column, first subplot:
         self._ax = self._figure.add_subplot(1, 1, 1)
         # Minimize margins:
-        self._figure.tight_layout()
+        self._figure.tight_layout(pad=self._figure_padding)
         self._ax.set_xlabel('X')
         self._ax.set_ylabel('Y')
 #        self._background_line = lines.Line(
@@ -478,6 +479,18 @@ class CurveInteractor(object):
                 #Decrease background point marker size
                 for i in range(len(self._background_line)):
                     self._background_line[i].set_marker_size(self._background_line[i].get_marker_size() * 0.8)
+                self._canvas.draw()
+            elif event.key == 'i':
+                #Increase the margins of the pyplot figure and decrease tightness
+                self._figure_padding += 0.1
+                self._figure.tight_layout(pad=self._figure_padding)
+                self._canvas.draw()
+            elif event.key == 'I':
+                #Decrease the margins of the pyplot figure and increase tightness
+                self._figure_padding -= 0.1
+                if self._figure_padding < 0:
+                    self._figure_padding = 0
+                self._figure.tight_layout(pad=self._figure_padding)
                 self._canvas.draw()
 
     def xlim_changed_callback(self, event):
@@ -790,9 +803,11 @@ class CurveInteractor(object):
         print('Press b to toggle points on and off [default: on]')
         print('Press w to write the the current points to a file')
         print('Press y to toggle xy move capability on and off')
-        print('Press a to toggle adding and removing points with left and right click \n[default: off]')
+        print('Press a to toggle adding and removing points with left and right click [default: off]')
         print('Press e to toggle selecting a block of points')
         print('Press u to undo the last point manipulation')
+        print('Press i to enlarge figure margins')
+        print('Press <shift> I to decrease figure margins')
         print('Press <shift> H to increase size of background markers')
         print('Press <shift> J to decrease size of background markers')
         print('Press <shift> Q to enter an equation to plot')
