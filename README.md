@@ -285,7 +285,7 @@ Options can be entered by either command line or initialization file. All option
 
    Choose pressure (P) or energy (E) for the y axis for the integral plot.
 
-   - **--yref _float_**
+   - **--yref _float_ (Default: 0)**
 
    Set a reference y value to determine the integration constant for the integral plot.
 
