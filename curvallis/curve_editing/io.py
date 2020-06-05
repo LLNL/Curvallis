@@ -310,6 +310,14 @@ def process_args (parser, args):
             parser.error('Either "--region_bound" or "--region_data_points" '
                          'is used to define regions, not both at the same time.')
 
+    def check_numpoints():
+        """ Prevent the user from giving the numpoint argument an even number,
+            which causes problems later in the program.
+        """
+        if args.numpoints % 2 == 0:
+            parser.error('"--numpoints" must be an odd number, not "%s".' %
+                          args.numpoints)
+
     check_no_config_file()
     check_decimate_and_step()
     check_input_arg()
@@ -317,6 +325,7 @@ def process_args (parser, args):
     check_eos_args()
     check_sandiapc_rho0()
     check_region_divisions()
+    check_numpoints()
 
 class XY_Limits(object):
     """ Contains an x range and a y range.
@@ -345,8 +354,9 @@ class XY_Limits(object):
         """
         :param xy_values: [[x,y], [x,y], [x,y]...]
         """
-        if xy_values is not None and len(xy_values) > 0:
-            x_values, y_values = zip(*xy_values)
+        if len(xy_values) > 0:
+            x_values = [point[0] for point in xy_values]
+            y_values = [point[1] for point in xy_values]
             self.update_using_x_values_y_values(x_values, y_values)
 
     def update_using_limits(self, other_limits):
@@ -529,7 +539,7 @@ class Manager(object):
         result = self._io_adapter.get_data_sets()
         
         if (self._args.v_axis == True):
-            keylist = result._sets.keys()
+            keylist = list(result._sets.keys())
             for i in range(0, len(keylist)):
                 newlist = []
                 for j in range(0, len(result._sets[keylist[i]])):
@@ -611,7 +621,7 @@ class Predefined_Adapter(IO_Adapter):
             (0.35, -1.1),
             (2.2, 3.2),
             (3, -4.0)]
-        result.add_set(points, name='predefined points')
+        result.add_set(points, name='predefined_points')
         return result
 
 
@@ -632,7 +642,7 @@ class Noisy_Parabola_Adapter(IO_Adapter):
         parabola = x**2
         noise = np.random.normal(0, 300, num_pairs)
         y = parabola + noise
-        result.add_set(points=zip(x, y), name='noisy parabola points')
+        result.add_set(points=[[x[i],y[i]] for i in range(len(x))], name='noisy_parabola_points')
         return result
 
 
@@ -908,12 +918,13 @@ def _do_include_scale_and_shift (points_in, name, args):
 def print_data_stats(xy_values, name):
     print('---------------------------------------------------------------')
     print ('%s:' % name)
-    if xy_values is None:
+    if len(xy_values) == 0:
         print ('None')
     else:
         print ('Number of points: %s' % len(xy_values))
         if len(xy_values) > 0:
-            x_vals, y_vals = zip(*xy_values)
+            x_vals = [point[0] for point in xy_values]
+            y_vals = [point[1] for point in xy_values]
             print ('X range: %.15E .. %.15E' % (min(x_vals), max(x_vals)))
             print ('Y range: %.15E .. %.15E' % (min(y_vals), max(y_vals)))
     print('---------------------------------------------------------------')

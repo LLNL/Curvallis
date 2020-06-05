@@ -120,7 +120,7 @@ Options can be entered by either command line or initialization file. All option
 
    - **--numpoints _int_ (Default: 5)**
 
-   Specify the number of points to use to find averages for tri-local smoothing. Press "_shift_ Z" while running the program to smooth the data.
+   Specify the number of points to use to find averages for tri-local smoothing. This number must be odd, not even. Press "_shift_ Z" while running the program to smooth the data.
 
    - **--repeat _int_ (Default: 10)**
 
@@ -128,11 +128,11 @@ Options can be entered by either command line or initialization file. All option
 
    - **--matchpt _float_ (Default: -1)**
 
-   Specify the matchpoint for integral smoothing. 
+   Specify the matchpoint for integral smoothing. This is in the form of an x-value. The default is "-1", or rather not to use a matchpoint.
 
    - **--interp _arg_ (Default: cubic)**
 
-   Specify the interpolator for integral smoothing.
+   Specify the interpolator for integral smoothing. Options can be found under the "Kind" parameter on the [SciPy Documentation Page](https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html).
 
    - **--angle _int_ (Default: 90)**
 
@@ -170,11 +170,11 @@ Options can be entered by either command line or initialization file. All option
 
    - **--step _step_**
 
-   Only use every "_step_th" point. For example, "--step 3" uses every third point. When writing out points with "--step" set, the points not shown are still included in the written file.
+   Only use every "_step_<sup>th</sup>" point. For example, "--step 3" uses every third point. When writing out points with "--step" set, the points not shown are still included in the written file.
 
    - **--t_step _step_**
 
-   Only use every "_step_th" isotherm. Each isotherm is its own line, so every "_step_th" line in the input file is skipped. The skipped isotherms are still included if the moved points are written out.
+   Only use every "_step_<sup>th</sup>" isotherm. Each isotherm is its own line, so every "_step_<sup>th</sup>" line in the input file is skipped. The skipped isotherms are still included if the moved points are written out.
 
    - **--x_include _low_ _high_, --xinclude _low_ _high_**
 
@@ -285,7 +285,7 @@ Options can be entered by either command line or initialization file. All option
 
    Choose pressure (P) or energy (E) for the y axis for the integral plot.
 
-   - **--yref _float_**
+   - **--yref _float_ (Default: 0)**
 
    Set a reference y value to determine the integration constant for the integral plot.
 
@@ -381,6 +381,14 @@ Interactive Commands
    - **m**
 
    Prints a list of all the interactive commands, as well as a quick description of what each does.
+
+   - **i**
+
+   Increases the size of the figure/plot margins. This is usefull if the numbers labelling the x-axis are so large they go off the screen. This is the opposite of the "_shift_ I" interactive command.
+
+   - **_shift_ I**
+
+   Decreases the size of the figure/plot margins. This is the opposite of the "i" interactive command.
 
    - **_shift_ H**
 
