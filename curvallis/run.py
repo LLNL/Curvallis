@@ -214,16 +214,19 @@ class CurveInteractor(object):
         """ Find the max and min x and y of the input values.
             Set the canvas plotting limits to those, plus some padding.
         """
-        def expanded_range(low, high, factor):
-            """ Return low and high moved apart by abs(max-min) * factor
+        def expanded_range(lows, highs, factor):
+            """ Receive: [lownum, possible args value], [highnum, possible
+                args value], factor
+                Return low and high moved apart by abs(max-min) * factor if
+                not set manually by user
             """
-            rangee = high - low
+            rangee = highs[0] - lows[0]
             move = rangee * factor / 2
-            # print ('expanded_range: input range is %.15E .. %.15E' % (low, high))
-            low -= move
-            high += move
-            # print ('expanded_range: output range is %.15E .. %.15E' % (low, high))
-            return low, high
+            if not lows[1]:
+                lows[0] -= move
+            if not highs[1]:
+                highs[0] += move
+            return lows[0], highs[0]
 
         self._xy_limits.update_using_limits(self._input_data_sets.get_xy_limits())
         self._xy_limits.update_using_limits(self._background_data_sets.get_xy_limits())
@@ -262,9 +265,10 @@ class CurveInteractor(object):
         ymin_disp = self._ax.transData.transform((0,self._xy_limits.view_y_min))[1]
         ymax_disp = self._ax.transData.transform((0,self._xy_limits.view_y_max))[1]
 
-        # Calculate expanded range in display coordinates
-        xmin_exp, xmax_exp = expanded_range(xmin_disp, xmax_disp, self.RANGE_MARGIN)
-        ymin_exp, ymax_exp = expanded_range(ymin_disp, ymax_disp, self.RANGE_MARGIN)
+        # Calculate expanded range in display coordinates if the max
+        # or min wasn't explicitly given by the user.
+        xmin_exp, xmax_exp = expanded_range([xmin_disp,self._args.x_min], [xmax_disp,self._args.x_max], self.RANGE_MARGIN)
+        ymin_exp, ymax_exp = expanded_range([ymin_disp,self._args.y_min], [ymax_disp,self._args.y_max], self.RANGE_MARGIN)
 
         # Convert expanded range data to data coordinates
         xmin_data = self._ax.transData.inverted().transform((xmin_exp,0))[0]
