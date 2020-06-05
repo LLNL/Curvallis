@@ -539,7 +539,7 @@ class Manager(object):
         result = self._io_adapter.get_data_sets()
         
         if (self._args.v_axis == True):
-            keylist = result._sets.keys()
+            keylist = list(result._sets.keys())
             for i in range(0, len(keylist)):
                 newlist = []
                 for j in range(0, len(result._sets[keylist[i]])):
