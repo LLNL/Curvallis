@@ -517,7 +517,7 @@ class Energy_Fit_Class(Base_Fit_Class):
         if len(parabola_points) > 0:
             xcoords_tup = [point[0] for point in parabola_points]
             ycoords = [point[1] for point in parabola_points]
-            xcoords = map(lambda rho: rho-self.rho0, xcoords_tup) #Shift the rho axis so rho0 is 0 (otherwise the parabolo fit doesn't work)
+            xcoords = list(map(lambda rho: rho-self.rho0, xcoords_tup)) #Shift the rho axis so rho0 is 0 (otherwise the parabolo fit doesn't work)
             a,b,c = polyfit(xcoords,ycoords,2)
             
             if self.k0 is None:
@@ -1538,6 +1538,11 @@ class Poly_Original(object):
         self._order = int(name[4:])
         self._f = None
         self._is_first_fit = True
+        self.derivative_scale = args.derivative_scale
+        self.second_derivative_scale = args.second_derivative_scale
+        self.integral_scale = args.integral_scale
+        self.x_integral_ref = args.x_integral_ref
+        self.y_integral_ref = args.y_integral_ref
 
     def fit_to_points(self, points):
         """ Calculate the coefficients and create the polynomial function.
@@ -1582,13 +1587,15 @@ class Poly_Original(object):
         return self._f(x)
 
     def derivative(self, x):
-        return self._der(x)
+        return self.derivative_scale * self._der(x)
 
     def second_derivative(self, x):
-        return self._scnd_der(x)
+        return self.second_derivative_scale * self._scnd_der(x)
 
     def integral(self, x):
-        return self._int(x)
+        return self.integral_scale * \
+               (self._int(x) +
+                (self.y_integral_ref - self._int(self.x_integral_ref)))
 
 factory.register ('poly', Poly_Original)
 
