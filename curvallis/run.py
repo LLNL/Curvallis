@@ -24,6 +24,8 @@ from __future__ import print_function
 import sys
 import math
 
+import matplotlib
+matplotlib.use('TkAgg')
 from matplotlib import pyplot, rcParams
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 from matplotlib.widgets import RectangleSelector
@@ -735,9 +737,10 @@ class CurveInteractor(object):
         l3.grid(column=0, row=2)
         e.grid(column=1, columnspan=2, row=1)
         e2.grid(column=1, columnspan=2, row=2, pady=5)
-        b1.grid(column=0, pady=10)
+        b1.grid(column=0, row=3, pady=10)
         b2.grid(column=1, row=3, pady=10, padx=34)
         b3.grid(column=2, row=3)
+        
         
     def _plot_icurves(self):
         """

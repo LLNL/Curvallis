@@ -384,7 +384,7 @@ Interactive Commands
 
    - **i**
 
-   Increases the size of the figure/plot margins. This is usefull if the numbers labelling the x-axis are so large they go off the screen. This is the opposite of the "_shift_ I" interactive command.
+   Increases the size of the figure/plot margins. This is usefull if the numbers labelling an axis are so large they go off the screen. This is the opposite of the "_shift_ I" interactive command.
 
    - **_shift_ I**
 
