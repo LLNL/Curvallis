@@ -792,12 +792,6 @@ class CurveInteractor(object):
         print('===============================================================')
         print('matplotlib keys:')
         print('===============================================================')
-        def keys_for(action):
-            return str(rcParams['keymap.%s' % action])
-        for action in ('fullscreen', 'home', 'back', 'forward', 'pan', 'zoom',
-                      'save', 'quit',):
-            print(action + ': %s' % keys_for(action))
-        print('show_all_axes: %s' % keys_for('all_axes'))
         print()
         print('Drag points to update line') 
         print('Press q then q again to quit')

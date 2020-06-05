@@ -170,11 +170,11 @@ Options can be entered by either command line or initialization file. All option
 
    - **--step _step_**
 
-   Only use every "_step_th" point. For example, "--step 3" uses every third point. When writing out points with "--step" set, the points not shown are still included in the written file.
+   Only use every "_step_<sup>th</sup>" point. For example, "--step 3" uses every third point. When writing out points with "--step" set, the points not shown are still included in the written file.
 
    - **--t_step _step_**
 
-   Only use every "_step_th" isotherm. Each isotherm is its own line, so every "_step_th" line in the input file is skipped. The skipped isotherms are still included if the moved points are written out.
+   Only use every "_step_<sup>th</sup>" isotherm. Each isotherm is its own line, so every "_step_<sup>th</sup>" line in the input file is skipped. The skipped isotherms are still included if the moved points are written out.
 
    - **--x_include _low_ _high_, --xinclude _low_ _high_**
 
