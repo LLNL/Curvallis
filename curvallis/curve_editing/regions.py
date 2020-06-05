@@ -288,7 +288,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
                     err_points = []
                     for i in range(0, point_count):
                         err_points.append(self._fitter.func(orig_points[i]) - y_vals[i])
-                        points2 = [[orig_points[i], err_points[i]] for i in range(len(orig_points))]
+                    points2 = [[orig_points[i], err_points[i]] for i in range(len(orig_points))]
                     self._fitter2.fit_to_points(points2)
             else:
                 print('!!! Not doing fit for line set %s because num points = %s' %
