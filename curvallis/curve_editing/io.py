@@ -185,10 +185,6 @@ def define_args(parser):
         '--eos_function',
         help='Only read in the data for this function'
              '[default: %(default)s]')
-    parser.add_argument(
-        '--use_eos_info_file', action='store_true',
-        help='When EOS is selected as input, read and write the .info file with the'
-             ' same name as the eos data file with extension .info. [default: %(default)s]')
     # parser.add_argument(
     #     '--yaml', action='store_true',
     #     dest='use_yaml_io',
@@ -241,7 +237,6 @@ def define_args(parser):
         # other:
         background_file=[],
         curve_output_file_name='fit_curve_out.dat',
-        use_eos_info_file=False,
         use_yaml_io=False,
         eos_function='all',
     )
@@ -682,7 +677,6 @@ class EOS_Files_Adapter(IO_Adapter):
         result = Data_Sets()
         eos_file_base = self._args.in_eos_file_base
         self._eos_data = eos_data_io.Data(
-                use_info_file=self._args.use_eos_info_file,
 #                use_function=self._args.eos_function)
                 use_function='all')
         self._eos_data.read(eos_file_base)
