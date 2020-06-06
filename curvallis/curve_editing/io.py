@@ -691,7 +691,7 @@ class EOS_Files_Adapter(IO_Adapter):
             if self._args.eos_function != 'all' and section.name != self._args.eos_function:
                 continue
             # Skip over N isotherms defined by t_step
-            newlist = section.isotherms.values()[::self._args.t_step]
+            newlist = list(section.isotherms.values())[::self._args.t_step]
             for isotherm in newlist:
                 # Check if within t_include bounds
                 if self._args.t_include[0] < isotherm.temp < self._args.t_include[1]:
