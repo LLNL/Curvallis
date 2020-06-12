@@ -15,18 +15,18 @@ Setup file for curvallis
 Written by: Eric Heinke
 """
 
-import sys
 from sys import version_info as version
 from sys import argv
-import platform
-import os
 import subprocess
+import platform
+import sys
 import pip
+import os
 
 # Start initial variables
 ##################################################
-version_number = "1.0"
-version_string = "6/8/2020"
+version_number = "1.1"
+version_string = "6/12/2020"
 version_message = "Tested with Linux (Ubuntu 18) and Windows 10 using python 2.7.17 and python 3.8."
 package_installer_level = 1 # 1,2,3
 verbose = False
@@ -35,8 +35,8 @@ generic = False
 py_ver = [version.major,version.minor,version.micro,version.releaselevel]
 py_path = ""
 # Format for modules: ["module_name","module_version"] where "0" means latest version.
-py27_modules = [["Tkinter","0"],["scipy","0"],["matplotlib","0"],["numpy","0"],["argparse","0"]]
-py3_modules = [["tkinter","0"],["scipy","0"],["matplotlib","0"],["numpy","0"],["argparse","0"]]
+py27_modules = [["Tkinter","0"],["scipy","0"],["numpy","0"],["matplotlib","0"],["argparse","0"]]#,["pylab","0"]
+py3_modules = [["tkinter","0"],["scipy","0"],["numpy","0"],["matplotlib","0"],["argparse","0"]]#,["pylab","0"]
 ##################################################
 # End initial variables
 
@@ -55,6 +55,7 @@ def display_help(): # Help message
     print("       --path\t\tManually set python executable's location (path)")
     print(" -p,   --PACKAGE\tSpecify aditional packages to install")
     print("       --GENERIC\tRun installer in generic mode")
+    print(" -env, --ENVIRONMENT\tRun virtual python environment tools")
     print(" -l,   --level\t\tChanges the level of integration of the installer (only change is the default of 1 fails)")
     exit()
 def version_info(): # Version information
@@ -113,6 +114,7 @@ def install_package(package,version="0",method=3): # Package installer
             os.system(py_path + " -m pip install " + package)
         else:
             os.system(py_path + " -m pip install " + package + "==" + version)
+    # python -m pip install module==version
 def add_package(name,version):
     if(version[0] == "-"):
         py27_modules.append([name,"0"])
@@ -154,8 +156,13 @@ else:
                 i += add_package(argv[i+1],argv[i+2])
             else:
                 i += add_package(argv[i+1],"0")
-        elif(arg == "--ENVIRONMENT" or arg == "-ENV"):# Create new virtual python environment
-            pass
+        elif(arg == "--ENVIRONMENT" or arg == "-ENV"):# Run virtual python environment tools
+            vprint(platform.system() + ", " + platform.release())
+            pass_args = [sys.executable,"venv_tools.py"]
+            for a in range(i+1,len(argv)):
+                pass_args.append(argv[a])
+            subprocess.check_call(pass_args)
+            exit()
         elif(arg == "--LEVEL" or arg == "-L"):      # Change install level
             tmp = int(argv[i+1])
             if(tmp < 1 or tmp > 3):
