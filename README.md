@@ -78,10 +78,6 @@ Options can be entered by either command line or initialization file. All option
 
    Allows the user to only plot a portion of a data file. 2d data files are separated into different sections. Each section is a different eos function, which the user can specify with this argument. Usual eos function names are "Ec", "Pc", "Cs", etc. By default, all sections are displayed.
 
-   - **--use_eos_info_file**
-
-   Uses the ".info" file associated with the eos data. The ".info" file must have the same name as the eos data. A new ".info" file will be written along with a new eos data file. If this option isn't specified, any ".info" files will be ignored, and a new ".info" file will not be created if data is written out.
-
    - **--do_derivative**
 
    Plot the derivative of the specified "--fit_curve" functions. Some derivative equations are questionable, so results may not be accurate. Unsure if this works with multiple fit types.
@@ -142,7 +138,7 @@ Options can be entered by either command line or initialization file. All option
 
    - **--in_eos_file_base _base path_**
 
-   Read in source data points specified by "_base path_" from 2d, 3 column eos data (contains more than one isotherm). Do not include the file extension in the name. If "--use_eos_info_file" is set, a ".info" file with the same name as the data must be read in as well. If this option is set, "--out_eos_file_base" must be set as well.
+   Read in source data points specified by "_base path_" from 2d, 3 column eos data (contains more than one isotherm). Do not include the file extension in the name. If this option is set, "--out_eos_file_base" must be set as well.
 
    - **--input_file _path_**
 
@@ -160,7 +156,7 @@ Options can be entered by either command line or initialization file. All option
 
    - **--out_eos_file_base _base path_**
 
-   Use the file names "_base path_.dat" and "_base path_.info" when writing out the moved data points for 2d, eos data. Only create the "_base path_.info" file if "--use_eos_info_file" is set. This option must be set if "--in_eos_file_base" is set.
+   Use the file name "_base path_.dat" when writing out the moved data points for 2d, eos data. This option must be set if "--in_eos_file_base" is set.
 
 **Shift, Limit, and Point Exclusion arguments** alter the appearance of input data. None of these options are required to be set.
 
