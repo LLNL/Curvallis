@@ -2,6 +2,7 @@ from sys import version_info as version
 from sys import argv
 import subprocess
 import platform
+import argparse
 import shutil
 import sys
 import os
@@ -9,44 +10,17 @@ import os
 # https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/
 # https://docs.python-guide.org/dev/virtualenvs/
 
-# Start initial variables
-##################################################
-version_number = "1.1"
-version_string = "6/12/2020"
-version_message = "Tested with Linux (Ubuntu 18) and Windows 10 using python 2.7.17 and python 3.8."
-verbose = False
-py_ver = [version.major,version.minor,version.micro,version.releaselevel]
-venv_dir = ""
-##################################################
-# End initial variables
-
-# Begin General Functions
+# Begin Functions
 ##################################################
 def vprint(message): # For verbose output
-    if(verbose):
+    if(args.verbose):
         print(message)
 def display_help(): # Help message
-    print("usage: venv_tools.py [option] ... [dir]")
-    print("Options and arguments:")
-    print(" -h,   --help\t\tDisplay this help message and exit")
-    print("       --version\tOutput version information and exit")
-    print(" -v,   --verbose\tEnable verbose output")
-    print(" -c,   --create\t\tCreate virtual python environment")
-    print(" -r,   --remove\t\tRemove virtual python environment")
-    print(" -a,   --activate\tGet instructions for activating virtual python environment")
-    print(" -d,   --deactivate\tGet instructions for deactivating virtual python environment")
-    print("")
     print(" [dir]\t\tThe directory you want to create the virtual python")
     print("\t\tenvironment in (leave blank for current directory)")
     exit()
 def version_info(): # Version information
-    print("Curvallis readdyness tool version " + version_number + " (" + version_string + ")")
-    print(version_message)
-##################################################
-# End General Functions
-
-# Begin virtual python functions
-##################################################
+    return ("Virtual python environment tools version " + version_number + " (" + version_string + ")")
 def check_pip():
     try:
         subprocess.check_output([sys.executable,"-m" "pip","--version"])
@@ -101,38 +75,31 @@ def install_venv():
     except Exception as e:
         vprint(e)
 ##################################################
-# Begin virtual python functions
+# Begin functions
+
+# Start initial variables
+##################################################
+version_number = "1.3"
+version_string = "6/14/2020"
+py_ver = [version.major,version.minor,version.micro,version.releaselevel]
+##################################################
+# End initial variables
 
 # Begin Argument decoder
 ##################################################
-function = ''
-if(len(argv) == 1):
-    display_help()
-else:
-    i = 1
-    while(i < len(argv)):
-        arg = argv[i].upper()
-        if(arg == "--HELP" or arg == "-H"):         # Displays help message
-            display_help()
-        elif(arg == "--VERSION"):                   # Display version information
-            version_info()
-            exit()
-        elif(arg == "--VERBOSE" or arg == "-V"):    # Enable verbose output
-            verbose = True
-        elif(arg == "--CREATE" or arg == "-C"):     # Create virtual python environment
-            function = 'c'
-        elif(arg == "--REMOVE" or arg == "-R"):     # Remove virtual python environment
-            function = 'r'
-        elif(arg == "--ACTIVATE" or arg == "-A"):   # Activate virtual python environment
-            function = 'a'
-        elif(arg == "--DEACTIVATE" or arg == "-D"): # Deactivate virtual python environment
-            function = 'd'
-        elif(i == len(argv)-1 and not(arg[0] == '-')):# directory given
-            venv_dir = argv[i]
-        else:                                       # Bad argument given
-            print("Invalid argument: " + argv[i])
-            display_help()
-        i += 1
+# https://docs.python.org/3/library/argparse.html
+parser = argparse.ArgumentParser()
+group = parser.add_mutually_exclusive_group(required=True)
+# Visplay version information
+parser.add_argument("--version", action="version",version = version_info())
+# Enable verbose output
+parser.add_argument("-v", "--verbose", help="enable verbose output", action="store_true")
+# Create virtual python environment
+group.add_argument("-c", help="create virtual python environment", metavar="DIR", type=str, action="store")
+group.add_argument("-r", help="remove virtual python environment", metavar="DIR", type=str, action="store")
+group.add_argument("-a", help="get instructions for activating virtual python environment", action="store_true")
+group.add_argument("-d", help="get instructions for deactivating virtual python environment", action="store_true")
+args = parser.parse_args()
 ##################################################
 # End Argument decoder
 
@@ -145,21 +112,21 @@ if(not(check_pip())):                               # Check if pip is installed
     exit()
 vprint("System: " + platform.system() + ", " + platform.release())
 ##################################################
-if(function == 'c'):                            # Creating virtual python environment
+if(not(args.c == None)):                            # Creating virtual python environment
     if((py_ver[0] == 2 and py_ver[1] == 7) \
     or (py_ver[0] == 3 and py_ver[1] < 3)):         # If python version is 2.7 or 3.0-2
         if(platform.system() == "Linux"):               # For Linux:
             if(not(check_virtualenv())):                    # Check if virtualenv is installed
                 install_virtualenv()                        # Install virtualenv if needed
-            create_virtualenv(venv_dir)                     # Create virtualenv
+            create_virtualenv(args.c)                       # Create virtualenv
         elif(platform.system() == "Windows"):           # For Windows:
             if(not(check_virtualenv())):                    # Check if virtualenv is installed
                 install_virtualenv()                        # Install virtualenv if needed
-            create_virtualenv(venv_dir)                     # Create virtualenv
+            create_virtualenv(args.c)                       # Create virtualenv
         elif(platform.system() == "Darwin"):            # For MacOS / OSX
             if(not(check_virtualenv())):                    # Check if virtualenv is installed
                 install_virtualenv()                        # Install virtualenv if needed
-            create_virtualenv(venv_dir)                     # Create virtualenv
+            create_virtualenv(args.c)                       # Create virtualenv
         else:                                           # For unknown OS
             print("Unknown OS. No environment instructions available.")
             exit()
@@ -167,15 +134,15 @@ if(function == 'c'):                            # Creating virtual python enviro
         if(platform.system() == "Linux"):               # For Linux:
             if(not(check_venv())):                          # Check if venv is installed
                 install_venv()                              # Install venv if needed
-            create_venv(venv_dir)                           # Create venv
+            create_venv(args.c)                             # Create venv
         elif(platform.system() == "Windows"):           # For Windows:
             if(not(check_venv())):                          # Check if venv is installed
                 install_venv()                              # Install venv if needed
-            create_venv(venv_dir)                           # Create venv
+            create_venv(args.c)                             # Create venv
         elif(platform.system() == "Darwin"):            # For MacOS / OSX
             if(not(check_venv())):                          # Check if venv is installed
                 install_venv()                              # Install venv if needed
-            create_venv(venv_dir)                           # Create venv
+            create_venv(args.c)                             # Create venv
         else:                                           # For unknown OS
             print("Unknown OS. No environment instructions available.")
             exit()
@@ -183,28 +150,26 @@ if(function == 'c'):                            # Creating virtual python enviro
         print("Unsupported version of python (" + str(py_ver[0]) + "." + str(py_ver[1]) + "." + str(py_ver[2]))
         exit()
 ##################################################
-elif(function == 'r'):                          # Removing virtual python environment
+elif(not(args.r == None)):                          # Removing virtual python environment
     if(len(argv) < 3):  # Check if directory specified
         print("A directory must be specified.")
         display_help()
     print("Removing virtual python environment...")
     if(platform.system() == "Linux"):               # For Linux:
         try:
-            shutil.rmtree(venv_dir)
-            #subprocess.check_output(["rm","-rf",venv_dir])# Delete virtual python's directory
+            shutil.rmtree(args.r)
             print("Virtual environment successfully removed.")
         except Exception as e:
             vprint(e)
     elif(platform.system() == "Windows"):           # For Windows:
         try:
-            shutil.rmtree(venv_dir)                     # Delete virtual python's directory
+            shutil.rmtree(args.r)
             print("Virtual environment successfully removed.")
         except Exception as e:
             vprint(e)
     elif(platform.system() == "Darwin"):            # For MacOS / OSX
         try:
-            shutil.rmtree(venv_dir)
-            #subprocess.check_output(["rm","-rf",venv_dir])# Delete virtual python's directory
+            shutil.rmtree(args.r)
             print("Virtual environment successfully removed.")
         except Exception as e:
             vprint(e)
@@ -212,26 +177,26 @@ elif(function == 'r'):                          # Removing virtual python enviro
         print("Unknown OS. No environment instructions available.")
         exit()
 ##################################################
-elif(function == 'a'):                          # Activating virtual python environment
+elif(not(args.a == None)):                           # Activating virtual python environment
     if(platform.system() == "Linux" \
     or platform.system() == "Darwin"):               # For Linux and MacOS:
         print("To activate the virtual environment, run the following command:")
-        print("\"source venv/bin/activate\" where venv is the directory containing the virtual environemtn")
+        print("\"source venv/bin/activate\" where venv is the directory containing the virtual environment")
     elif(platform.system() == "Windows"):           # For Windows:
         print("To activate the virtual environemtn, run the following command:")
-        print("\"venv\\Scripts\\activate.bat\" where venv is the directory containing the virtual environemtn")
+        print("\"venv\\Scripts\\activate.bat\" where venv is the directory containing the virtual environment")
     else:                                           # For unknown OS
         print("Unknown OS. No environment instructions available.")
         exit()
 ##################################################
-elif(function == 'd'):                          # Deactivating virtual python environment
+elif(not(args.r == None)):                           # Deactivating virtual python environment
     if(platform.system() == "Linux" \
     or platform.system() == "Darwin"):               # For Linux and MacOS:
         print("To deactivate the virtual environment, run the following command:")
         print("\"deactivate\"")
     elif(platform.system() == "Windows"):           # For Windows:
         print("To deactivate the virtual environment, run the following command:")
-        print("\"venv\\Scripts\\deactivate.bat\" where venv is the directory containing the virtual environemtn")
+        print("\"venv\\Scripts\\deactivate.bat\" where venv is the directory containing the virtual environment")
     else:                                           # For unknown OS
         print("Unknown OS. No environment instructions available.")
         exit()

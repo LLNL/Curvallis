@@ -9,9 +9,18 @@ Curvallis has the following dependencies which should be installed automatically
 
 matplotlib, Tkinter, numpy, scipy, argparse
 
-Scipy can be difficult to install, so it may have to be installed manually if the installer fails. This installer has been tested using Python v 2.7.10.
+Scipy can be difficult to install, so it may have to be installed manually if the installer fails. This installer has been tested using Python v 2.7.17, Python v 3.6.9, and Python v 3.8.1.
 
-To install this program, type "python setup.py install" into a terminal in the directory containing "setup.py".
+To install this program, type "python setup.py" into a terminal in the directory containing 'setup.py'.
+Run 'python setup.py --help' for more instalation options.
+
+Virtual Python Environments
+---------------------------
+Virtual python environments are a great way to create new instances of python. Virtual python environments act like a normal instalation of python except the are compleatly isolated from your systems main python installation. This sepparation means that the virtual environment has its own exicutable, pip package manager, and packages.
+It is reccomended to create a virtual python environment in the following circumstances:
+ - When one wants to have a program isolated from their main installation
+ - When there are two or more programs that require conflicting packages or different versions of the same package
+ - When an isolated python environment is desired
 
 Running
 -------
