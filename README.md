@@ -16,8 +16,8 @@ Run 'python setup.py --help' for more instalation options.
 
 Virtual Python Environments
 ---------------------------
-Virtual python environments are a great way to create new instances of python. Virtual python environments act like a normal instalation of python except the are compleatly isolated from your systems main python installation. This sepparation means that the virtual environment has its own exicutable, pip package manager, and packages.
-It is reccomended to create a virtual python environment in the following circumstances:
+Virtual python environments are a great way to create new instances of python. Virtual python environments act like a normal installation of python except they are completely isolated from your systems main python installation. This separation means that the virtual environment has its own executable, pip package manager, and packages.
+It is recommended to create a virtual python environment in the following circumstances:
  - When one wants to have a program isolated from their main installation
  - When there are two or more programs that require conflicting packages or different versions of the same package
  - When an isolated python environment is desired

@@ -30,7 +30,7 @@ def vprint(message): # For verbose output
     if(args.verbose):
         print(message)
 def version_info(): # Version information
-    return ("Curvallis readdyness tool version " + version_number + " (" + version_string + ")")
+    return ("Curvallis readiness tool version " + version_number + " (" + version_string + ")")
 def decode_python_version(ver): # Decode python version
     tmp = ""
     new_ver = []
