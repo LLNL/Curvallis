@@ -29,14 +29,14 @@ class TriLocalSmoother(object):
         self.maxNumPts = in_numPts
         self.repeat = in_repeat
         if(self.maxNumPts % 2 != 1):
-            raise ValueError("TriLocalSmoother: maxNumPoints must be odd, %d is not odd" % self.maxNumPts)
+            raise ValueError("TriLocalSmoother: numpoints must be odd, %d is not odd" % self.maxNumPts)
 
     def makeTriLocalCoefficents(self, xdata):
-        midpoint = len(xdata) / 2
+        midpoint = int(len(xdata) / 2)
 
-        distance_xdata = map(lambda x: math.fabs(x - xdata[midpoint]), xdata)
+        distance_xdata = list(map(lambda x: math.fabs(x - xdata[midpoint]), xdata))
         sumtot = sum(distance_xdata)
-        avg_xdata = map(lambda x: 1 - (x / sumtot), distance_xdata)  # We want farther away points to have less importance, so avg - 1
+        avg_xdata = list(map(lambda x: 1 - (x / sumtot), distance_xdata))  # We want farther away points to have less importance, so avg - 1
 
         sumtot = sum(avg_xdata)
         coeff = map(lambda x: x / sumtot, avg_xdata)  # Normalize it again because the flip around threw it off
@@ -56,7 +56,7 @@ class TriLocalSmoother(object):
         if(xmax >= 0):
           xMaxIndex = bisect.bisect_right(xdata, xmax)
 
-        orig_lpts = self.maxNumPts / 2  # Half the eval points left of center
+        orig_lpts = int(self.maxNumPts / 2)  # Half the eval points left of center
         orig_rpts = self.maxNumPts - orig_lpts  # One at center, and the remainder at right (right includes center pt).
 
         for ii in range(xMinIndex, xMaxIndex):
@@ -76,9 +76,10 @@ class TriLocalSmoother(object):
             else:
                 xpts = xdata[ii - lpts: ii + rpts]
                 ypts = ydata[ii - lpts: ii + rpts]
-                coeff = self.makeTriLocalCoefficents(xpts)
+                coeff = list(self.makeTriLocalCoefficents(xpts))
 
             sumtot = 0
+
             for xx in range(0, len(xpts)):
                 sumtot += coeff[xx] * ypts[xx]
 
@@ -246,7 +247,7 @@ class IntegralSmoother(object):
     then taking it's integral to get back to the original function.  The integral smooths things out a bit
     so you end up at a smoother function (usually).
 
-    You can also pass in another smoother as "derivRepair"  this will be used to smooth the derivative.
+    You can also pass in another smoother as "derivRepair" this will be used to smooth the derivative.
     """
 
 
@@ -331,10 +332,12 @@ class IntegralSmoother(object):
 
 class BSplineSmoother(object):
     """BSplineSmoother creates an object for smoothing 1D data via B-Spline smoothing"""
-    def __init__(self):
-        pass
-    def applySmooth(self, datax, datay, unknown1, unknown2, detail=0):
-        #l= number of input data points
+    def __init__(self, detail=0):
+        # The detail of the curve. Higher values give greater accuracy but slower operation. The reverse is also true.
+        # It is recommended to keep detail
+        self.detail = detail
+    def applySmooth(self, datax, datay, unknown1, unknown2):
+        # l= number of input data points
         l = len(datax)
         if(l < 4):
             print("Error: Must have at least 4 points selected")
@@ -342,14 +345,12 @@ class BSplineSmoother(object):
         t = numpy.linspace(0,1,l-2,endpoint=True)
         t = numpy.append([0,0,0],t)
         t = numpy.append(t, [1,1,1])
-        #t= knots, c= coefficients, k= degree of spline
+        # t= knots, c= coefficients, k= degree of spline
         tck = [t,[datax,datay],3]
-        #The detail of the curve. Higher values give greater accuracy but slower opperation. The reverse is also true.
-        detail = l*5
-        #The linespace that will be used to compute the spline
-        u3 = numpy.linspace(0,1,detail,endpoint=True)
+        # The linspace that will be used to compute the spline
+        u3 = numpy.linspace(0,1,l*self.detail,endpoint=True)
         out = scipy.interpolate.splev(u3,tck)
-        #Moves the input points to their place on the curve.
+        # Moves the input points to their place on the curve.
         newy = []
         for i in range(l):
             x = datax[i]

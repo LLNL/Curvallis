@@ -17,8 +17,8 @@ from operator import itemgetter
 import numpy as np
 import pprint
 
-import eos_data_io
-import configargparse
+import curvallis.curve_editing.eos_data_io as eos_data_io
+import curvallis.curve_editing.configargparse as configargparse
 
 """ Supports getting point data into and out of the curve_editor.  Can read from
 a file, generate, or provide predefined points.  Can write to file(s).
@@ -185,10 +185,6 @@ def define_args(parser):
         '--eos_function',
         help='Only read in the data for this function'
              '[default: %(default)s]')
-    parser.add_argument(
-        '--use_eos_info_file', action='store_true',
-        help='When EOS is selected as input, read and write the .info file with the'
-             ' same name as the eos data file with extension .info. [default: %(default)s]')
     # parser.add_argument(
     #     '--yaml', action='store_true',
     #     dest='use_yaml_io',
@@ -241,7 +237,6 @@ def define_args(parser):
         # other:
         background_file=[],
         curve_output_file_name='fit_curve_out.dat',
-        use_eos_info_file=False,
         use_yaml_io=False,
         eos_function='all',
     )
@@ -310,6 +305,14 @@ def process_args (parser, args):
             parser.error('Either "--region_bound" or "--region_data_points" '
                          'is used to define regions, not both at the same time.')
 
+    def check_numpoints():
+        """ Prevent the user from giving the numpoint argument an even number,
+            which causes problems later in the program.
+        """
+        if args.numpoints % 2 == 0:
+            parser.error('"--numpoints" must be an odd number, not "%s".' %
+                          args.numpoints)
+
     check_no_config_file()
     check_decimate_and_step()
     check_input_arg()
@@ -317,6 +320,7 @@ def process_args (parser, args):
     check_eos_args()
     check_sandiapc_rho0()
     check_region_divisions()
+    check_numpoints()
 
 class XY_Limits(object):
     """ Contains an x range and a y range.
@@ -345,8 +349,9 @@ class XY_Limits(object):
         """
         :param xy_values: [[x,y], [x,y], [x,y]...]
         """
-        if xy_values is not None and len(xy_values) > 0:
-            x_values, y_values = zip(*xy_values)
+        if len(xy_values) > 0:
+            x_values = [point[0] for point in xy_values]
+            y_values = [point[1] for point in xy_values]
             self.update_using_x_values_y_values(x_values, y_values)
 
     def update_using_limits(self, other_limits):
@@ -386,11 +391,11 @@ class Data_Sets(object):
         self._expand_limits_using(points)
 
     def decimate(self, args):
-        for name, data_set in self._sets.iteritems():
+        for name, data_set in self._sets.items():
             self._sets[name] = _decimate(data_set, name, args)
 
     def do_include_scale_and_shift(self, args):
-        for name, data_set in self._sets.iteritems():
+        for name, data_set in self._sets.items():
             self._sets[name] = _do_include_scale_and_shift(data_set, name, args)
 
     def _expand_limits_using(self, points):
@@ -399,8 +404,8 @@ class Data_Sets(object):
     def get_copy(self):
         return copy.deepcopy(self)
 
-    def get_name_set_iterator(self):
-        return self._sets.iteritems()
+    def get_name_set_items(self):
+        return self._sets.items()
 
     def get_names(self):
         return self._sets.keys()
@@ -425,13 +430,13 @@ class Data_Sets(object):
 
     def get_only_set(self):
         assert self.num_sets() == 1
-        return self._sets.values()[0]
+        return list(self._sets.values())[0]
 
     def get_set(self, name):
         return self._sets[name]
 
-    def get_set_iterator(self):
-        return self._sets.itervalues()
+    def get_set_values(self):
+        return self._sets.values()
 
     def get_x_slice(self, x_low, x_high):
         """
@@ -440,7 +445,7 @@ class Data_Sets(object):
         :return: Data_Sets with all points having x_low <= x <= x_high
         """
         result = Data_Sets()
-        for name, points in self._sets.iteritems():
+        for name, points in self._sets.items():
             sliced_points = []
             for point in points:
                 if x_low <= point[0] <= x_high:
@@ -455,7 +460,7 @@ class Data_Sets(object):
         :return: Data_Sets with all points having y_low <= y <= y_high
         """
         result = Data_Sets()
-        for name, points in self._sets.iteritems():
+        for name, points in self._sets.items():
             sliced_points = []
             for point in points:
                 if y_low <= point[1] <= y_high:
@@ -474,18 +479,15 @@ class Data_Sets(object):
         return result._all_sets_xy_limits
 #        return self._all_sets_xy_limits
 
-    def iteritems(self):
-        return self._sets.iteritems()
-
     def num_sets(self):
         return len(self._sets)
 
     def print_stats(self, prefix):
-        for name, data_set in self._sets.iteritems():
+        for name, data_set in self._sets.items():
             print_data_stats(data_set, '%s: %s' % (prefix, name))
 
     def sort_by_x(self):
-        for name, data_set in self._sets.iteritems():
+        for name, data_set in self._sets.items():
             data_set.sort(key=itemgetter(0))
             self._sets[name] = data_set
 
@@ -532,7 +534,7 @@ class Manager(object):
         result = self._io_adapter.get_data_sets()
         
         if (self._args.v_axis == True):
-            keylist = result._sets.keys()
+            keylist = list(result._sets.keys())
             for i in range(0, len(keylist)):
                 newlist = []
                 for j in range(0, len(result._sets[keylist[i]])):
@@ -614,7 +616,7 @@ class Predefined_Adapter(IO_Adapter):
             (0.35, -1.1),
             (2.2, 3.2),
             (3, -4.0)]
-        result.add_set(points, name='predefined points')
+        result.add_set(points, name='predefined_points')
         return result
 
 
@@ -635,7 +637,7 @@ class Noisy_Parabola_Adapter(IO_Adapter):
         parabola = x**2
         noise = np.random.normal(0, 300, num_pairs)
         y = parabola + noise
-        result.add_set(points=zip(x, y), name='noisy parabola points')
+        result.add_set(points=[[x[i],y[i]] for i in range(len(x))], name='noisy_parabola_points')
         return result
 
 
@@ -675,7 +677,6 @@ class EOS_Files_Adapter(IO_Adapter):
         result = Data_Sets()
         eos_file_base = self._args.in_eos_file_base
         self._eos_data = eos_data_io.Data(
-                use_info_file=self._args.use_eos_info_file,
 #                use_function=self._args.eos_function)
                 use_function='all')
         self._eos_data.read(eos_file_base)
@@ -684,7 +685,7 @@ class EOS_Files_Adapter(IO_Adapter):
             if self._args.eos_function != 'all' and section.name != self._args.eos_function:
                 continue
             # Skip over N isotherms defined by t_step
-            newlist = section.isotherms.values()[::self._args.t_step]
+            newlist = list(section.isotherms.values())[::self._args.t_step]
             for isotherm in newlist:
                 # Check if within t_include bounds
                 if self._args.t_include[0] < isotherm.temp < self._args.t_include[1]:
@@ -710,7 +711,7 @@ class EOS_Files_Adapter(IO_Adapter):
         :param data_sets: Data_Sets
         """
         assert self._eos_data is not None
-        for name, points in data_sets.get_name_set_iterator():
+        for name, points in data_sets.get_name_set_items():
             section_name, isotherm_temp = self._to_section_name_isotherm_temp(name)
             isotherm = eos_data_io._Isotherm(temperature=isotherm_temp,
                                           num_points=len(points))
@@ -911,12 +912,13 @@ def _do_include_scale_and_shift (points_in, name, args):
 def print_data_stats(xy_values, name):
     print('---------------------------------------------------------------')
     print ('%s:' % name)
-    if xy_values is None:
+    if len(xy_values) == 0:
         print ('None')
     else:
         print ('Number of points: %s' % len(xy_values))
         if len(xy_values) > 0:
-            x_vals, y_vals = zip(*xy_values)
+            x_vals = [point[0] for point in xy_values]
+            y_vals = [point[1] for point in xy_values]
             print ('X range: %.15E .. %.15E' % (min(x_vals), max(x_vals)))
             print ('Y range: %.15E .. %.15E' % (min(y_vals), max(y_vals)))
     print('---------------------------------------------------------------')
@@ -981,7 +983,7 @@ def check_output_file(file_name):
     :param file_name: string
     """
     if os.path.exists (file_name):
-        want_to = raw_input ('Do you want to overwrite the file "%s"? ' % file_name)
+        want_to = input('Do you want to overwrite the file "%s"? ' % file_name)
         if 'Y' in want_to or 'y' in want_to:
             os.remove(file_name)
         else:

@@ -24,14 +24,16 @@ from __future__ import print_function
 import sys
 import math
 
+import matplotlib
+matplotlib.use('TkAgg')
 from matplotlib import pyplot, rcParams
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 from matplotlib.widgets import RectangleSelector
-from curve_editing import curve_fitters, io, lines, regions, configargparse
-from Tkinter import Tk, Label, Button, Entry
+from curvallis.curve_editing import curve_fitters, io, lines, regions, configargparse
+from tkinter import Tk, Label, Button, Entry
 from math import log10
 
-VERSION_STRING = '2015-12-01 11:02AM'
+VERSION_STRING = '2020-06-02 03:13PM'
 
 # Overwrite Panning and Zooming Functions
 PAN_ENABLED = False
@@ -78,6 +80,7 @@ class CurveInteractor(object):
         self._background_line = None
         self._canvas = None
         self._figure = None
+        self._figure_padding = 1.08
         self._input_data_sets = io.Data_Sets()
         self._io_manager = None
         self._parser = None
@@ -176,7 +179,9 @@ class CurveInteractor(object):
         # One row, one column, first subplot:
         self._ax = self._figure.add_subplot(1, 1, 1)
         # Minimize margins:
-        self._figure.tight_layout()
+        self._figure.tight_layout(pad=self._figure_padding)
+        # Make axes ticks update and stay detailed
+        self._ax.minorticks_on()
         self._ax.set_xlabel('X')
         self._ax.set_ylabel('Y')
 #        self._background_line = lines.Line(
@@ -211,16 +216,19 @@ class CurveInteractor(object):
         """ Find the max and min x and y of the input values.
             Set the canvas plotting limits to those, plus some padding.
         """
-        def expanded_range(low, high, factor):
-            """ Return low and high moved apart by abs(max-min) * factor
+        def expanded_range(lows, highs, factor):
+            """ Receive: [lownum, possible args value], [highnum, possible
+                args value], factor
+                Return low and high moved apart by abs(max-min) * factor if
+                not set manually by user
             """
-            rangee = high - low
+            rangee = highs[0] - lows[0]
             move = rangee * factor / 2
-            # print ('expanded_range: input range is %.15E .. %.15E' % (low, high))
-            low -= move
-            high += move
-            # print ('expanded_range: output range is %.15E .. %.15E' % (low, high))
-            return low, high
+            if not lows[1]:
+                lows[0] -= move
+            if not highs[1]:
+                highs[0] += move
+            return lows[0], highs[0]
 
         self._xy_limits.update_using_limits(self._input_data_sets.get_xy_limits())
         self._xy_limits.update_using_limits(self._background_data_sets.get_xy_limits())
@@ -259,9 +267,10 @@ class CurveInteractor(object):
         ymin_disp = self._ax.transData.transform((0,self._xy_limits.view_y_min))[1]
         ymax_disp = self._ax.transData.transform((0,self._xy_limits.view_y_max))[1]
 
-        # Calculate expanded range in display coordinates
-        xmin_exp, xmax_exp = expanded_range(xmin_disp, xmax_disp, self.RANGE_MARGIN)
-        ymin_exp, ymax_exp = expanded_range(ymin_disp, ymax_disp, self.RANGE_MARGIN)
+        # Calculate expanded range in display coordinates if the max
+        # or min wasn't explicitly given by the user.
+        xmin_exp, xmax_exp = expanded_range([xmin_disp,self._args.x_min], [xmax_disp,self._args.x_max], self.RANGE_MARGIN)
+        ymin_exp, ymax_exp = expanded_range([ymin_disp,self._args.y_min], [ymax_disp,self._args.y_max], self.RANGE_MARGIN)
 
         # Convert expanded range data to data coordinates
         xmin_data = self._ax.transData.inverted().transform((xmin_exp,0))[0]
@@ -273,9 +282,9 @@ class CurveInteractor(object):
         self._ax.set_ylim(ymin_data, ymax_data)
 
     def _plot_background_data(self):
-        if self._background_data_sets.num_sets > 0:
+        if self._background_data_sets.num_sets() > 0:
             # Plot each background data line
-            for back_set in self._background_data_sets.get_set_iterator():
+            for back_set in self._background_data_sets.get_set_values():
                 if len(back_set) > 0:
                     self._background_line.append(
                         lines.Line(self._ax, lines.line_attributes['background_points']))
@@ -479,6 +488,18 @@ class CurveInteractor(object):
                 for i in range(len(self._background_line)):
                     self._background_line[i].set_marker_size(self._background_line[i].get_marker_size() * 0.8)
                 self._canvas.draw()
+            elif event.key == 'i':
+                #Increase the margins of the pyplot figure and decrease tightness
+                self._figure_padding += 0.1
+                self._figure.tight_layout(pad=self._figure_padding)
+                self._canvas.draw()
+            elif event.key == 'I':
+                #Decrease the margins of the pyplot figure and increase tightness
+                self._figure_padding -= 0.1
+                if self._figure_padding < 0:
+                    self._figure_padding = 0
+                self._figure.tight_layout(pad=self._figure_padding)
+                self._canvas.draw()
 
     def xlim_changed_callback(self, event):
         """ xlim is changed by a zoom or a pan
@@ -653,7 +674,7 @@ class CurveInteractor(object):
         Set flag to determine if graph is logscale x
         """
         for region in self._regions._regions:
-            for lineset in region._line_sets._sets.itervalues():
+            for lineset in region._line_sets._sets.values():
                 lineset._logscale = not lineset._logscale
 
     def _get_equation(self):
@@ -716,9 +737,10 @@ class CurveInteractor(object):
         l3.grid(column=0, row=2)
         e.grid(column=1, columnspan=2, row=1)
         e2.grid(column=1, columnspan=2, row=2, pady=5)
-        b1.grid(column=0, pady=10)
+        b1.grid(column=0, row=3, pady=10)
         b2.grid(column=1, row=3, pady=10, padx=34)
         b3.grid(column=2, row=3)
+        
         
     def _plot_icurves(self):
         """
@@ -777,12 +799,6 @@ class CurveInteractor(object):
         print('===============================================================')
         print('matplotlib keys:')
         print('===============================================================')
-        def keys_for(action):
-            return str(rcParams['keymap.%s' % action])
-        for action in ('fullscreen', 'home', 'back', 'forward', 'pan', 'zoom',
-                      'save', 'quit',):
-            print(action + ': %s' % keys_for(action))
-        print('show_all_axes: %s' % keys_for('all_axes'))
         print()
         print('Drag points to update line') 
         print('Press q then q again to quit')
@@ -790,9 +806,11 @@ class CurveInteractor(object):
         print('Press b to toggle points on and off [default: on]')
         print('Press w to write the the current points to a file')
         print('Press y to toggle xy move capability on and off')
-        print('Press a to toggle adding and removing points with left and right click \n[default: off]')
+        print('Press a to toggle adding and removing points with left and right click [default: off]')
         print('Press e to toggle selecting a block of points')
         print('Press u to undo the last point manipulation')
+        print('Press i to enlarge figure margins')
+        print('Press <shift> I to decrease figure margins')
         print('Press <shift> H to increase size of background markers')
         print('Press <shift> J to decrease size of background markers')
         print('Press <shift> Q to enter an equation to plot')

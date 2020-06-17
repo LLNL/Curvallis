@@ -20,16 +20,8 @@ from collections import OrderedDict
 
 class _Reader_Writer_Base(object):
     """Provides operations and state used when reading or writing MEOS EOS
-    output data files.  The data is stored in a .info file and a .dat file.
-    The .info file contains descriptive info for the whole data set and for
-    each function's data.  The .dat file contains each function's data.
-
-    The first (non-blank) line in the .info file must be 'info'
-
-    The rest of the .info file is in sections.  A section begins with a line
-    containing one word, e.g. 'material_info' or 'Et'.  The rest of the section
-    consists of lines in the form; <value_name> = <value(s)>.  A value is either
-    number or a string.  The interpretation is based on the name of the value.
+    output data files.  The data is stored in a .dat file. The .dat file
+    contains each function's data.
 
     The .dat file contains a data section for each function in the .info file.
     The first line of each section is the function name, the number of isotherms,
@@ -44,11 +36,8 @@ class _Reader_Writer_Base(object):
     _RHO_COUNT_FIELD_NAME  = 'numrho'
     _TEMP_COUNT_FIELD_NAME = 'numtemp'
 
-    def __init__(self, base_name, use_info_file):
+    def __init__(self, base_name):
         self._base_name = base_name
-        self._use_info_file = use_info_file
-        self._info_file = None
-        self._info_file_name = '%s.info' % self._base_name[:-4]
         self._data_file = None
         self._data_file_name = '%s' % self._base_name
 
@@ -112,35 +101,17 @@ class _Section(_EqIfFieldsEq):
         self.fields = OrderedDict()
         self.isotherms = OrderedDict()
 
-    def write(self, info_file, data_file, use_info_file):
-        if use_info_file:
-            self.write_info(info_file)
+    def write(self, data_file):
         self._write_data(data_file)
-
-    def write_info(self, file_out):
-        """ Write out the info fields, in the order they were added.  This is
-        public because it is called by _Writer._write_material_info_section.
-
-        :param file_out: INPUT parameter. The output file.
-        """
-        file_out.writelines('\n')
-        file_out.writelines(self.name + '\n')
-        for name in self.fields.iterkeys():
-            self._write_info_field(file_out, name, self.fields[name])
 
     def _write_data(self, file_out):
         """ Write out one data section, with a trailing blank line.
         """
         file_out.writelines('%s    %s   %s\n' %
             (self.name, self.num_isotherms, self.isotherm_num_points))
-        for isotherm in self.isotherms.itervalues():
+        for isotherm in self.isotherms.values():
             isotherm.write(file_out)
         file_out.writelines('\n')
-
-    def _write_info_field (self, file_out, name, values):
-        """ Writes <name> = <value(s)>
-        """
-        file_out.writelines('%s = %s\n' % (name, self._values_to_string(values)))
 
     def _values_to_string(self, values):
         """ Returns stringified value(s) separated by spaces.  Does not return
@@ -166,8 +137,8 @@ class _Section(_EqIfFieldsEq):
 class _Parser(_Reader_Writer_Base):
     """Provides file reading support for MEOS EOS output data.
     """
-    def __init__(self, base_name, use_function, use_info_file):
-        super(_Parser, self).__init__(base_name, use_info_file)
+    def __init__(self, base_name, use_function):
+        super(_Parser, self).__init__(base_name)
         self._sections = OrderedDict()
         self._read_called = False
         self._current_file = None
@@ -181,13 +152,6 @@ class _Parser(_Reader_Writer_Base):
         self._current_rho_num = 0
         self._use_function = use_function
 
-    @staticmethod
-    def _is_info_section(self, name):
-        """ Returns true if the section is the info section.  Used to determine
-         the fields for the section.
-        """
-        return name == self._INFO_SECTION_NAME
-
     def read(self):
         """May only be called once.
 
@@ -195,41 +159,8 @@ class _Parser(_Reader_Writer_Base):
         """
         self._assert_eq(self._read_called, False)
         self._read_called = True
-        if self. _use_info_file:
-            self._parse_info_file()
         self._parse_data_file()
         return self._sections
-
-    def _parse_info_file(self):
-        message = 'Reading EOS info from "%s"' % self._info_file_name
-        print (message)
-        self._at_eof = False
-        with open(self._info_file_name, 'r') as info_file:
-            self._current_file = info_file
-            self._current_line_num = 0
-            self._parse_info_header()
-            self._parse_info_lines()
-        print ('DONE ' + message)
-
-    def _parse_info_header(self):
-        self._get_next_line_words()
-        self._assert_word_count_eq(1)
-        self._assert_field_name_eq ('info')
-
-    def _parse_info_lines(self):
-        self._get_next_line_words()
-        while not self._at_eof:
-            self._parse_info_line()
-            self._get_next_line_words()
-
-    def _parse_info_line(self):
-        # One word on a line by itself starts a new section:
-        if len(self._current_words) == 1:
-            self._start_new_section()
-        elif self._current_section_wanted():
-            self._assert_word_count_ge(3)
-            self._assert_eq (self._current_words[1], '=')
-            self._parse_info_field()
 
     def _section_wanted(self, name):
         return self._use_function == name or self._use_function == 'all' or \
@@ -247,38 +178,6 @@ class _Parser(_Reader_Writer_Base):
                 self._sections[name] = _Section(name)
             self._current_section = self._sections[name]
         self._current_section_name = name
-
-    def _parse_info_field(self):
-        """ Try to convert each value to a float or an int.  If any fail, return a
-        single string.  Return a value and not a list if len(value_in) == 1.
-        Raise an exception if the same field is set more than once.
-        """
-        self._assert_field_not_set()
-        # noinspection PyUnusedLocal
-        result = None
-        values = self._current_words[2].split()
-        # Assume text string if any word is not numeric:
-        try:
-            for i in range(len(values)):
-                value = values[i]
-                if '.' in value:
-                    num_value = float(value)
-                else:
-                    num_value = int(value)
-                values[i] = num_value
-            if len(values) == 1:
-                result = values[0]
-            else:
-                result = values
-        except ValueError:
-            # remove trailing blanks and line feeds:
-            result = self._current_words[2].rstrip(' \n')
-        self._current_section.fields[self._current_field_name] = result
-        # For convenience later:
-        if self._current_field_name == self._TEMP_COUNT_FIELD_NAME:
-            self._current_section.num_isotherms = result
-        elif self._current_field_name == self._RHO_COUNT_FIELD_NAME:
-            self._current_section.isotherm_num_points = result
 
     def _parse_data_file(self):
         message = 'Reading EOS data from "%s"' % self._data_file_name
@@ -320,17 +219,11 @@ class _Parser(_Reader_Writer_Base):
         if self._section_wanted(name):
             data_num_temps = int(self._current_words[1])
             data_num_rhos = int(self._current_words[2])
-            if self._use_info_file:
-                self._assert_in(name, self._sections)
-                self._current_section = self._sections[name]
-                self._assert_eq(data_num_temps, self._current_section.num_isotherms)
-                self._assert_eq(data_num_rhos, self._current_section.isotherm_num_points)
-            else:
-                if name not in self._sections:
-                    self._sections[name] = _Section(name)
-                self._current_section = self._sections[name]
-                self._current_section.num_isotherms = data_num_temps
-                self._current_section.isotherm_num_points = data_num_rhos
+            if name not in self._sections:
+                self._sections[name] = _Section(name)
+            self._current_section = self._sections[name]
+            self._current_section.num_isotherms = data_num_temps
+            self._current_section.isotherm_num_points = data_num_rhos
 
     def _parse_data_values(self):
         if len(self._current_words) == 3:        
@@ -428,20 +321,12 @@ class _Parser(_Reader_Writer_Base):
 class _Writer(_Reader_Writer_Base):
     """Provides file writing support for MEOS EOS output data.
     """
-    def __init__(self, base_name, use_info_file):
-        super(_Writer, self).__init__(base_name, use_info_file)
+    def __init__(self, base_name):
+        super(_Writer, self).__init__(base_name)
 
     def write(self, sections):
-        if self._use_info_file:
-            message = 'Writing EOS data to "%s" and "%s"' % \
-                      (self._info_file_name, self._data_file_name)
-        else:
-            message = 'Writing EOS data to "%s"' % self._data_file_name
+        message = 'Writing EOS data to "%s"' % self._data_file_name
         print (message)
-        if self._use_info_file:
-            self._info_file = self._create_file(self._info_file_name)
-            self._write_info_file_header()
-            self._write_material_info_section(sections)
         self._data_file = self._create_file(self._data_file_name)
         self._write_func_sections(sections)
         print ('DONE ' + message)
@@ -456,43 +341,32 @@ class _Writer(_Reader_Writer_Base):
             result = None
         return result
 
-    def _write_info_file_header(self):
-        self._info_file.writelines(self._INFO_HEADER_LINE + '\n')
-
-    def _write_material_info_section(self, sections):
-        sections[self._INFO_SECTION_NAME].write_info(self._info_file)
-
     def _write_func_sections(self, sections):
         """ Write each function section, in the same order they were added
         """
-        for name in sections.iterkeys():
+        for name in sections.keys():
             if name != self._INFO_SECTION_NAME:
-                sections[name].write(info_file=self._info_file,
-                                     data_file=self._data_file,
-                                     use_info_file=self._use_info_file)
+                sections[name].write(data_file=self._data_file)
 
 
 class Data(_EqIfFieldsEq):
     """ Contains the actual data, and encapsulates I/O
     """
 
-    def __init__(self, use_info_file, use_function):
+    def __init__(self, use_function):
         """
 
-        :param use_info_file: bool - whether to read and write the .info file.
         :param use_function: str - which function to read in, or all.
         :return:
         """
         super(Data, self).__init__()
         self._use_function = use_function
-        self._use_info_file = use_info_file
         self.sections = {}
 
     def read(self, base_name):
         self.sections = _Parser(base_name,
-                                self._use_function,
-                                self._use_info_file).read()
+                                self._use_function).read()
 
     def write(self, base_name):
-        _Writer(base_name, self._use_info_file).write(self.sections)
+        _Writer(base_name).write(self.sections)
 

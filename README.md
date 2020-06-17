@@ -1,7 +1,7 @@
 Curvallis
 =========
 
-Curvallis is a plotting program written in Python using MatPlotLib to visualize and modify experimental equation of state data. It does this by plotting individual isotherms as lines. Data can be either 1d or 2d, meaning there can be 1 or many isotherms plotted at once. Data points on these lines can be moved around, and new points can be added or removed. 1d data can have different equations fitted to them, which best fit the data. Some popular equations are currently Nth degree polynomials and Equations of State, but more exist and any equation can be added. Manipulating data points causes this fitted line to be recalculated and redisplayed. The manipulated data points, the fitted line, and calculated derivatives can be written to a file.
+Curvallis is a plotting program written in Python 3 using MatPlotLib to visualize and modify experimental equation of state data. It does this by plotting individual isotherms as lines. Data can be either 1d or 2d, meaning there can be 1 or many isotherms plotted at once. Data points on these lines can be moved around, and new points can be added or removed. 1d data can have different equations fitted to them, which best fit the data. Some popular equations are currently Nth degree polynomials and Equations of State, but more exist and any equation can be added. Manipulating data points causes this fitted line to be recalculated and redisplayed. The manipulated data points, the fitted line, and calculated derivatives can be written to a file.
 
 Installation
 ------------
@@ -9,9 +9,18 @@ Curvallis has the following dependencies which should be installed automatically
 
 matplotlib, Tkinter, numpy, scipy, argparse
 
-Scipy can be difficult to install, so it may have to be installed manually if the installer fails. This installer has been tested using Python v 2.7.10.
+Scipy can be difficult to install, so it may have to be installed manually if the installer fails. This installer has been tested using Python v 2.7.17, Python v 3.6.9, and Python v 3.8.1.
 
-To install this program, type "python setup.py install" into a terminal in the directory containing "setup.py".
+To install this program, type "python setup.py" into a terminal in the directory containing 'setup.py'.
+Run 'python setup.py --help' for more instalation options.
+
+Virtual Python Environments
+---------------------------
+Virtual python environments are a great way to create new instances of python. Virtual python environments act like a normal installation of python except they are completely isolated from your systems main python installation. This separation means that the virtual environment has its own executable, pip package manager, and packages.
+It is recommended to create a virtual python environment in the following circumstances:
+ - When one wants to have a program isolated from their main installation
+ - When there are two or more programs that require conflicting packages or different versions of the same package
+ - When an isolated python environment is desired
 
 Running
 -------
@@ -78,10 +87,6 @@ Options can be entered by either command line or initialization file. All option
 
    Allows the user to only plot a portion of a data file. 2d data files are separated into different sections. Each section is a different eos function, which the user can specify with this argument. Usual eos function names are "Ec", "Pc", "Cs", etc. By default, all sections are displayed.
 
-   - **--use_eos_info_file**
-
-   Uses the ".info" file associated with the eos data. The ".info" file must have the same name as the eos data. A new ".info" file will be written along with a new eos data file. If this option isn't specified, any ".info" files will be ignored, and a new ".info" file will not be created if data is written out.
-
    - **--do_derivative**
 
    Plot the derivative of the specified "--fit_curve" functions. Some derivative equations are questionable, so results may not be accurate. Unsure if this works with multiple fit types.
@@ -120,7 +125,7 @@ Options can be entered by either command line or initialization file. All option
 
    - **--numpoints _int_ (Default: 5)**
 
-   Specify the number of points to use to find averages for tri-local smoothing. Press "_shift_ Z" while running the program to smooth the data.
+   Specify the number of points to use to find averages for tri-local smoothing. This number must be odd, not even. Press "_shift_ Z" while running the program to smooth the data.
 
    - **--repeat _int_ (Default: 10)**
 
@@ -128,11 +133,11 @@ Options can be entered by either command line or initialization file. All option
 
    - **--matchpt _float_ (Default: -1)**
 
-   Specify the matchpoint for integral smoothing. 
+   Specify the matchpoint for integral smoothing. This is in the form of an x-value. The default is "-1", or rather not to use a matchpoint.
 
    - **--interp _arg_ (Default: cubic)**
 
-   Specify the interpolator for integral smoothing.
+   Specify the interpolator for integral smoothing. Options can be found under the "Kind" parameter on the [SciPy Documentation Page](https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html).
 
    - **--angle _int_ (Default: 90)**
 
@@ -142,7 +147,7 @@ Options can be entered by either command line or initialization file. All option
 
    - **--in_eos_file_base _base path_**
 
-   Read in source data points specified by "_base path_" from 2d, 3 column eos data (contains more than one isotherm). Do not include the file extension in the name. If "--use_eos_info_file" is set, a ".info" file with the same name as the data must be read in as well. If this option is set, "--out_eos_file_base" must be set as well.
+   Read in source data points specified by "_base path_" from 2d, 3 column eos data (contains more than one isotherm). Do not include the file extension in the name. If this option is set, "--out_eos_file_base" must be set as well.
 
    - **--input_file _path_**
 
@@ -160,7 +165,7 @@ Options can be entered by either command line or initialization file. All option
 
    - **--out_eos_file_base _base path_**
 
-   Use the file names "_base path_.dat" and "_base path_.info" when writing out the moved data points for 2d, eos data. Only create the "_base path_.info" file if "--use_eos_info_file" is set. This option must be set if "--in_eos_file_base" is set.
+   Use the file name "_base path_.dat" when writing out the moved data points for 2d, eos data. This option must be set if "--in_eos_file_base" is set.
 
 **Shift, Limit, and Point Exclusion arguments** alter the appearance of input data. None of these options are required to be set.
 
@@ -170,11 +175,11 @@ Options can be entered by either command line or initialization file. All option
 
    - **--step _step_**
 
-   Only use every "_step_th" point. For example, "--step 3" uses every third point. When writing out points with "--step" set, the points not shown are still included in the written file.
+   Only use every "_step_<sup>th</sup>" point. For example, "--step 3" uses every third point. When writing out points with "--step" set, the points not shown are still included in the written file.
 
    - **--t_step _step_**
 
-   Only use every "_step_th" isotherm. Each isotherm is its own line, so every "_step_th" line in the input file is skipped. The skipped isotherms are still included if the moved points are written out.
+   Only use every "_step_<sup>th</sup>" isotherm. Each isotherm is its own line, so every "_step_<sup>th</sup>" line in the input file is skipped. The skipped isotherms are still included if the moved points are written out.
 
    - **--x_include _low_ _high_, --xinclude _low_ _high_**
 
@@ -285,7 +290,7 @@ Options can be entered by either command line or initialization file. All option
 
    Choose pressure (P) or energy (E) for the y axis for the integral plot.
 
-   - **--yref _float_**
+   - **--yref _float_ (Default: 0)**
 
    Set a reference y value to determine the integration constant for the integral plot.
 
@@ -382,6 +387,14 @@ Interactive Commands
 
    Prints a list of all the interactive commands, as well as a quick description of what each does.
 
+   - **i**
+
+   Increases the size of the figure/plot margins. This is usefull if the numbers labelling an axis are so large they go off the screen. This is the opposite of the "_shift_ I" interactive command.
+
+   - **_shift_ I**
+
+   Decreases the size of the figure/plot margins. This is the opposite of the "i" interactive command.
+
    - **_shift_ H**
 
    Increase the size of the background markers. These background markers are placed when a file is given as an input to the "background_file" optional argument.
@@ -392,7 +405,7 @@ Interactive Commands
 
    - **_shift_ Q**
 
-   Pop up a window to enter an equation to plot. Equations must be entered using Python syntax. For example, "x^2" doesn't work, you have to use either "x\**2" or "pow(x,2)". Check the [Python Math library](https://docs.python.org/2/library/math.html) to see a list of available math related functions to use. To plot the entered equation, press the "Plot" button. To remove the plotted equation, press the "Delete" button. If the user wants to plot multiple equations, pressing "_shift_ Q" will continue to open new windows to plot more equations. After closing a window, the equation plotted from that window is deleted. After plotting an equation, the user can write the points to a file by specifying a file name in the "Filename" Entry and clicking "Write". The equation must be plotted and a file name must be specified before any points will be written.
+   Pop up a window to enter an equation to plot. Equations must be entered using Python syntax. For example, "x^2" doesn't work, you have to use either "x\**2" or "pow(x,2)". Check the [Python Math library](https://docs.python.org/3/library/math.html) to see a list of available math related functions to use. To plot the entered equation, press the "Plot" button. To remove the plotted equation, press the "Delete" button. If the user wants to plot multiple equations, pressing "_shift_ Q" will continue to open new windows to plot more equations. After closing a window, the equation plotted from that window is deleted. After plotting an equation, the user can write the points to a file by specifying a file name in the "Filename" Entry and clicking "Write". The equation must be plotted and a file name must be specified before any points will be written.
 
    - **_shift_ Z**
 
