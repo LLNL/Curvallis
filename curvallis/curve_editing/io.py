@@ -650,6 +650,15 @@ class File_Adapter(IO_Adapter):
         :return:  Data_Sets with one set
         """
         input_file = self._args.input_file
+        # Check if input file is a valid data file
+        ########################################
+        opened_input_file = open(input_file.name,"r")
+        for line in opened_input_file:
+            if(line[0] == '['):
+                print("Error: --input_file\nA data file was expected but a non-data file was given.")
+                exit()
+        opened_input_file.close()
+        ########################################
         result = Data_Sets()
         result.add_set(points=get_points_from_file(input_file),
                        name=os.path.basename(input_file.name))
