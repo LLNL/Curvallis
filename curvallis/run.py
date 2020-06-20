@@ -26,6 +26,7 @@ import math
 
 import matplotlib
 matplotlib.use('TkAgg')
+import tkinter
 from matplotlib import pyplot, rcParams
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 from matplotlib.widgets import RectangleSelector
@@ -63,6 +64,7 @@ def new_home(self, *args, **kwargs):
     old_home(self, *args, **kwargs)
     self.push_current()
 NavigationToolbar2.home = new_home
+keymap_window_open = False
 
 class CurveInteractor(object):
     """ Calculate a curve to fit the data, let user move points and recalculate.
@@ -385,6 +387,8 @@ class CurveInteractor(object):
             self._quit_pending = True
         elif event.key == 'm':                  #If 'm' pressed
             self._print_keymap()                #Display key mapping
+        elif event.key == 'M':
+            self._display_key_mappings()
         elif event.inaxes:
             if event.key == 't':              #If 't' pressed
                                                 #Toggle viewing of original line
@@ -741,7 +745,6 @@ class CurveInteractor(object):
         b2.grid(column=1, row=3, pady=10, padx=34)
         b3.grid(column=2, row=3)
         
-        
     def _plot_icurves(self):
         """
         Plot interactive user inputted equations.
@@ -791,6 +794,82 @@ class CurveInteractor(object):
                 ydata.append(eval(eq, ns))
             # Plot the data
             plot.set_data([[xdata],[ydata]])
+
+    def _display_key_mappings(self):
+        """
+        Set up interface for displaying key mappings
+        """
+        global keymap_window_open
+        def on_closing():
+            global keymap_window_open
+            keymap_window_open = False
+            textbox.destroy()
+        if(keymap_window_open):
+            print("Key mapping window already open.")
+            return
+        mpl_lines = [
+            'Drag points to update line',
+            'Press t to toggle original line on and off [default: off]',
+            'Press b to toggle points on and off [default: on]',
+            'Press y to toggle xy move capability on and off',
+            'Press a to toggle adding and removing points with left and right',
+            '\t click respectively [default: off]',
+            'Press e to toggle selecting a block of points',
+            'Press i to enlarge figure margins',
+            'Press <shift> I to decrease figure margins',
+            'Press <shift> H to increase size of background markers',
+            'Press <shift> J to decrease size of background markers'
+        ]
+        cur_lines = [
+            'Press q then q again to quit',
+            'Press w to write the the current points to a file',
+            'Press u to undo the last point manipulation',
+            'Press <shift> Q to enter an equation to plot',
+            'Press <shift> Z for trilocal smoothing',
+            'Press <shift> X for integral smoothing',
+            'Press <shift> B for B-spline smoothing',
+            'Press <shift> V for acute repair smoothing'
+        ]
+        post_lines = [
+            'Make sure focus is on the plotting window and the cursor is',
+            'also in the plotting window when using these keys.',
+            '',
+            'Press "<SHIFT> M" to show these keys again',
+            '',
+            'More key mappings can be found at:',
+            'https://github.com/LLNL/Curvallis#interactive-commands'
+        ]
+        horizontal_line = "============================================="
+        def placelines(window,lines,spacing,offset_x,offset_y):
+            for i in range(len(lines)):
+                l = tkinter.Label(window, text=lines[i])
+                l.place(x=offset_x, y=offset_y + (spacing * i))
+        # Line Spacing
+        spacing = 20
+        # Window Size (width, height, x_offset, y_offset)
+        window_size = (500, ((8 + len(mpl_lines) + len(cur_lines) + len(post_lines)) * spacing), 30, 30)
+        textbox = tkinter.Tk()
+        # width x height + x_offset + y_offset:
+        textbox.geometry(str(window_size[0]) + "x" + str(window_size[1]) + "+" + str(window_size[2]) + "+" + str(window_size[3]))
+        # Disable window resizing
+        textbox.resizable(False, False)
+        textbox.protocol("WM_DELETE_WINDOW", on_closing)
+        textbox.title("Key Mappings")
+        ##### Matplotlib Keys #####
+        t1 = tkinter.Label(textbox, text=horizontal_line + "\nMatplotlib Keys:\n" + horizontal_line)
+        t1.place(x=0, y=0)
+        placelines(textbox, mpl_lines, spacing, 20, 3*spacing)
+        ##### Curvallis Keys #####
+        t2 = tkinter.Label(textbox, text=horizontal_line + "\nCurvallis Keys:\n" + horizontal_line)
+        t2.place(x=0, y=(len(mpl_lines) + 3) * spacing)
+        placelines(textbox, cur_lines, spacing, 20, (len(mpl_lines)+6)*spacing)
+        ##### Other keys/lines #####
+        t3 = tkinter.Label(textbox, text=horizontal_line)
+        t3.place(x=0, y=(len(mpl_lines)+len(cur_lines)+6)*spacing)
+        placelines(textbox, post_lines, spacing, 0, (len(mpl_lines)+len(cur_lines)+7)*spacing)
+        t4 = tkinter.Label(textbox, text=horizontal_line)
+        t4.place(x=0, y=(len(mpl_lines) + len(cur_lines) + len(post_lines) + 7) * spacing)
+        keymap_window_open = True
 
     # END Callback support======================================================
 

@@ -69,18 +69,24 @@ def group_module_checker(modules): # Checks if group of module are installed
 def py_ver_as_string(): # Returns python version as a string
     return str(py_ver[0]) + "." + str(py_ver[1]) + "." + str(py_ver[2]) + " (" + str(py_ver[3]) + ")"
 def install_package(package,version="0"): # Package installer
-    if(args.level == 1):
-        if(hasattr(pip,"main")):
-            pip.main(["install",package])
-        else:
-            pip._internal.main(['install', package])
-    elif(args.level == 2):
-        subprocess.check_call([args.path,"-m","pip","install",package])
-    elif(args.level == 3):
-        if(version == "0"):
-            os.system(args.path + " -m pip install " + package)
-        else:
-            os.system(args.path + " -m pip install " + package + "==" + version)
+    try:
+        if(args.level == 1):
+            if(hasattr(pip,"main")):
+                pip.main(["install",package])
+            else:
+                pip._internal.main(['install', package])
+        elif(args.level == 2):
+            if(version == "0"):
+                subprocess.check_call([args.path,"-m","pip","install",package])
+            else:
+                subprocess.check_call([args.path,"-m","pip","install",package + "==" + version])
+        elif(args.level == 3):
+            if(version == "0"):
+                os.system(args.path + " -m pip install " + package)
+            else:
+                os.system(args.path + " -m pip install " + package + "==" + version)
+    except Exception:
+        print("An error occured while installing " + package)
     # python -m pip install module==version
 def add_package(name,version):
     if(version[0] == "-"):
@@ -96,6 +102,14 @@ def decode_package(package):
         return [package[0:package.find("==")], package[package.find("==")+2:len(package)]]
     else:
         return [package,"0"]
+def check_pip():
+    try:
+        subprocess.check_output([sys.executable,"-m" "pip","--version"])
+        vprint("pip is installed.")
+        return True
+    except Exception as e:
+        vprint(e)
+        return False
 ##################################################
 # End Functions
 
@@ -135,6 +149,9 @@ args = parser.parse_args()
 if(not(args.environment == None)):
     subprocess.check_call([sys.executable, "venv_tools.py"] + args.environment)
     exit()
+if(args.level < 1 or args.level > 3):
+    print("Instalation level must be between 1 and 3.")
+    exit()
 if(args.python == None):
     py_ver = [version.major,version.minor,version.micro,version.releaselevel]
 else:
@@ -155,6 +172,10 @@ vprint("Installer configured for python version " + py_ver_as_string() + ", loca
 
 # Start module checker
 ##################################################
+if(not(check_pip())): # Check if pip is installed
+    print("pip is not installed.")
+    print("Please install pip.")
+    exit()
 append_modules = []
 if(py_ver[0] == 2 and py_ver[1] == 7):
     if(args.generic):
@@ -207,6 +228,8 @@ if(len(modules_not_installed) > 0):
             print(" * " + module[0])
         else:
             print(" * " + module[0] + " version " + module[1])
+    print("You may need to install these modules manually or install them through your OS's package manager.")
+    print("You could also try to upgrade pip to the latest version.") # python -m pip install --upgrade pip
 else:
     print("All modules were installed successfully.")
 ##################################################
