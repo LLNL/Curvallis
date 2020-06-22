@@ -27,11 +27,11 @@ import math
 import matplotlib
 matplotlib.use('TkAgg')
 import tkinter
+from tkinter import Tk, Label, Button, Entry
 from matplotlib import pyplot, rcParams
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 from matplotlib.widgets import RectangleSelector
 from curvallis.curve_editing import curve_fitters, io, lines, regions, configargparse
-from tkinter import Tk, Label, Button, Entry
 from math import log10
 
 VERSION_STRING = '2020-06-02 03:13PM'
@@ -387,7 +387,6 @@ class CurveInteractor(object):
             self._quit_pending = True
         elif event.key == 'm':                  #If 'm' pressed
             self._print_keymap()                #Display key mapping
-        elif event.key == 'M':
             self._display_key_mappings()
         elif event.inaxes:
             if event.key == 't':              #If 't' pressed
@@ -805,15 +804,17 @@ class CurveInteractor(object):
             keymap_window_open = False
             textbox.destroy()
         if(keymap_window_open):
-            print("Key mapping window already open.")
+            global textbox
+            textbox.lift()
+            textbox.focus_force()
             return
         mpl_lines = [
             'Drag points to update line',
             'Press t to toggle original line on and off [default: off]',
             'Press b to toggle points on and off [default: on]',
             'Press y to toggle xy move capability on and off',
-            'Press a to toggle adding and removing points with left and right',
-            '\t click respectively [default: off]',
+            'Press a to toggle adding and removing points with left ',
+            '\tand right click respectively [default: off]',
             'Press e to toggle selecting a block of points',
             'Press i to enlarge figure margins',
             'Press <shift> I to decrease figure margins',
@@ -834,40 +835,57 @@ class CurveInteractor(object):
             'Make sure focus is on the plotting window and the cursor is',
             'also in the plotting window when using these keys.',
             '',
-            'Press "<SHIFT> M" to show these keys again',
+            'Press "m" to show these keys again',
             '',
             'More key mappings can be found at:',
             'https://github.com/LLNL/Curvallis#interactive-commands'
         ]
-        horizontal_line = "============================================="
-        def placelines(window,lines,spacing,offset_x,offset_y):
+        max_length = 0
+        for i in (mpl_lines + cur_lines + post_lines):
+            if(len(i) > max_length):
+                max_length = len(i)
+        max_length += 2
+        horizontal_line = '=' * max_length
+        def placelines(window,lines,spacing,offset_x,offset_y,text_font):
             for i in range(len(lines)):
-                l = tkinter.Label(window, text=lines[i])
+                l = tkinter.Label(window, text=lines[i], font=text_font)
                 l.place(x=offset_x, y=offset_y + (spacing * i))
+        # Creating textbox
+        textbox = tkinter.Tk()
         # Line Spacing
         spacing = 20
+        # Font and font size (change to "TkFixedFont" if possible)
+        text_font = ("Courier", 12)
         # Window Size (width, height, x_offset, y_offset)
-        window_size = (500, ((8 + len(mpl_lines) + len(cur_lines) + len(post_lines)) * spacing), 30, 30)
-        textbox = tkinter.Tk()
+        window_size = (10 * max_length, ((8 + len(mpl_lines) + len(cur_lines) + len(post_lines)) * spacing), 30, 30)
+        # Host system screen resolution
+        host_screen = (textbox.winfo_screenwidth(), textbox.winfo_screenheight())
+        # Check if window can fit on screen
+        if(window_size[0] > (host_screen[0]*0.4)):
+            print("error: window too wide")
+            return
+        if (window_size[1] > (host_screen[1]*0.8)):
+            window_size = (window_size[0], int(host_screen[1]*0.8), window_size[2], window_size[3])
+            print("error: window too tall")
         # width x height + x_offset + y_offset:
-        textbox.geometry(str(window_size[0]) + "x" + str(window_size[1]) + "+" + str(window_size[2]) + "+" + str(window_size[3]))
+        textbox.geometry("%dx%d+%d+%d" % (window_size[0], window_size[1], window_size[2], window_size[3]))
         # Disable window resizing
         textbox.resizable(False, False)
         textbox.protocol("WM_DELETE_WINDOW", on_closing)
         textbox.title("Key Mappings")
         ##### Matplotlib Keys #####
-        t1 = tkinter.Label(textbox, text=horizontal_line + "\nMatplotlib Keys:\n" + horizontal_line)
+        t1 = tkinter.Label(textbox, text=horizontal_line + "\nMatplotlib Keys:\n" + horizontal_line, font=text_font)
         t1.place(x=0, y=0)
-        placelines(textbox, mpl_lines, spacing, 20, 3*spacing)
+        placelines(textbox, mpl_lines, spacing, 20, 3*spacing, text_font)
         ##### Curvallis Keys #####
-        t2 = tkinter.Label(textbox, text=horizontal_line + "\nCurvallis Keys:\n" + horizontal_line)
+        t2 = tkinter.Label(textbox, text=horizontal_line + "\nCurvallis Keys:\n" + horizontal_line, font=text_font)
         t2.place(x=0, y=(len(mpl_lines) + 3) * spacing)
-        placelines(textbox, cur_lines, spacing, 20, (len(mpl_lines)+6)*spacing)
+        placelines(textbox, cur_lines, spacing, 20, (len(mpl_lines)+6)*spacing, text_font)
         ##### Other keys/lines #####
-        t3 = tkinter.Label(textbox, text=horizontal_line)
+        t3 = tkinter.Label(textbox, text=horizontal_line, font=text_font)
         t3.place(x=0, y=(len(mpl_lines)+len(cur_lines)+6)*spacing)
-        placelines(textbox, post_lines, spacing, 0, (len(mpl_lines)+len(cur_lines)+7)*spacing)
-        t4 = tkinter.Label(textbox, text=horizontal_line)
+        placelines(textbox, post_lines, spacing, 0, (len(mpl_lines)+len(cur_lines)+7)*spacing, text_font)
+        t4 = tkinter.Label(textbox, text=horizontal_line, font=text_font)
         t4.place(x=0, y=(len(mpl_lines) + len(cur_lines) + len(post_lines) + 7) * spacing)
         keymap_window_open = True
 
