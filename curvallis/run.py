@@ -65,6 +65,8 @@ def new_home(self, *args, **kwargs):
     self.push_current()
 NavigationToolbar2.home = new_home
 keymap_window_open = False
+twinx_enabled = False
+twiny_enabled = False
 
 class CurveInteractor(object):
     """ Calculate a curve to fit the data, let user move points and recalculate.
@@ -132,6 +134,12 @@ class CurveInteractor(object):
             help='Do not use any config file, even if a default is provided',
             action='store_true')
         # config_file default is implicitly 'config_file.ini'
+        parser.add_argument(
+            '--x_label', action='store', nargs=(2 if twinx_enabled else 1),
+            default='X', help='Set name of x axis label.')
+        parser.add_argument(
+            '--y_label', action='store', nargs=(2 if twiny_enabled else 1),
+            default='Y', help='Set name of y axis label.')
         io.define_args(parser)
         regions.define_args(parser)
         curve_fitters.define_args(parser)
@@ -184,8 +192,8 @@ class CurveInteractor(object):
         self._figure.tight_layout(pad=self._figure_padding)
         # Make axes ticks update and stay detailed
         self._ax.minorticks_on()
-        self._ax.set_xlabel('X')
-        self._ax.set_ylabel('Y')
+        self._ax.set_xlabel(self._args.x_label[0])
+        self._ax.set_ylabel(self._args.y_label[0])
 #        self._background_line = lines.Line(
 #            self._ax, lines.line_attributes['background_points'])
         self._background_line = []
@@ -373,37 +381,37 @@ class CurveInteractor(object):
 
     def key_press_callback(self, event):
         """ Whenever a key is pressed"""
-        print ('Pressed %s' % event.key) #Display name of pressed key
-        if self._quit_pending:                  #If a quit is pending
-            if event.key == 'q':                #and 'q' is pressed
-                print ('Quitting.')             #quit
+        print ('Pressed %s' % event.key) #D isplay name of pressed key
+        if self._quit_pending:                  # If a quit is pending
+            if event.key == 'q':                # and 'q' is pressed
+                print ('Quitting.')             # quit
                 exit(0)
-            else:                               #Else:
-                self._quit_pending = False      #cancel quit pending
+            else:                               # Else:
+                self._quit_pending = False      # cancel quit pending
                 print ('Quit cancelled.')
-        elif event.key == 'q':                  #If 'q' pressed
-                                                #Display pending quit
+        elif event.key == 'q':                  # If 'q' pressed
+                                                # Display pending quit
             print ('Quit requested.  Press q again to quit, any other key to cancel.')
             self._quit_pending = True
-        elif event.key == 'm':                  #If 'm' pressed
-            self._print_keymap()                #Display key mapping
+        elif event.key == 'm' or event.key == 'f1':# If 'm' or 'F1' pressed
+            self._print_keymap()                # Display key mapping
             self._display_key_mappings()
         elif event.inaxes:
-            if event.key == 't':              #If 't' pressed
-                                                #Toggle viewing of original line
+            if event.key == 't':                # If 't' pressed
+                                                # Toggle viewing of original line
                 self._regions.toggle_original_line_visibility()
                 self._canvas.draw()
-            elif event.key == 'b':              #If 'b' pressed
-                                                #Toggle points on/off
+            elif event.key == 'b':              # If 'b' pressed
+                                                # Toggle points on/off
                 self._regions.toggle_points()
                 self._canvas.draw()
-            elif event.key == 'w':              #If 'w' pressed
-                                                #Write the current points to a file
+            elif event.key == 'w':              # If 'w' pressed
+                                                # Write the current points to a file
                 self._regions.write_output_files()
-            elif event.key == 'y':              #If 'y' pressed
-                                                #Toggle the ability to move points on the x axis (and y axis?)
+            elif event.key == 'y':              # If 'y' pressed
+                                                # Toggle the ability to move points on the x axis (and y axis?)
                 self._regions.toggle_allow_xy_move()
-            elif event.key == 'a':              #If 'a' pressed
+            elif event.key == 'a':              # If 'a' pressed
                                                 # Toggle adding/removing points
                 if self._args.in_eos_file_base is not None:
                     # Don't allow for multi line data
@@ -414,8 +422,8 @@ class CurveInteractor(object):
                         print ("Add/Remove Mode Enabled")
                     else:
                         print ("Add/Remove Mode Disabled")
-            elif event.key == 'e':              #If 'e' pressed
-                                                #Toggle moving blocks of points
+            elif event.key == 'e':              # If 'e' pressed
+                                                # Toggle moving blocks of points
                 if self._move_set == True:
                     self._regions.cancel_move_set()
                     self._move_set = False
@@ -431,34 +439,34 @@ class CurveInteractor(object):
                     else:
                         self._selector.set_active(False)
                         print ("Block Select Disabled")
-            elif event.key == 'Q':              #If 'Q' pressed
-                self._get_equation()            #Get equation from user to plot
-            elif event.key == 'u':              #If 'u' pressed
-                                                #Undo the last point manipulation
+            elif event.key == 'Q':              # If 'Q' pressed
+                self._get_equation()            # Get equation from user to plot
+            elif event.key == 'u':              # If 'u' pressed
+                                                # Undo the last point manipulation
                 self._regions.undo()
                 self._canvas.draw()
-            elif event.key == 'Z':              #If 'Z' pressed
-                if self._move_set == True:      #Run TriLocal Smoothing
+            elif event.key == 'Z':              # If 'Z' pressed
+                if self._move_set == True:      # Run TriLocal Smoothing
                     self._regions.smooth_data("trilocal", self._xmin, self._xmax, 
                                               self._ymin, self._ymax)
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")
-            elif event.key == 'X':              #If 'X' pressed
-                if self._move_set == True:      #Run Integral Smoothing
+            elif event.key == 'X':              # If 'X' pressed
+                if self._move_set == True:      # Run Integral Smoothing
                     self._regions.smooth_data("integral", self._xmin, self._xmax, 
                                               self._ymin, self._ymax)
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")
-            elif event.key == 'V':              #If 'V' pressed
-                if self._move_set == True:      #Run Acute Repair Smoothing
+            elif event.key == 'V':              # If 'V' pressed
+                if self._move_set == True:      # Run Acute Repair Smoothing
                     self._regions.smooth_data("acute", self._xmin, self._xmax, 
                                               self._ymin, self._ymax)
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")
-            elif event.key == 'k' or event.key == 'L':#If 'k' or 'L' pressed
+            elif event.key == 'k' or event.key == 'L':# If 'k' or 'L' pressed
                 # Set graph x scale
                 if self._ax.get_xscale() == 'linear':
                     self._ax.set_xscale('log')
@@ -467,7 +475,7 @@ class CurveInteractor(object):
                 self._set_xlim_ylim()
                 self._set_logscale()
                 self._canvas.draw()
-            elif event.key == 'l':                  #If 'l' pressed
+            elif event.key == 'l':                  # If 'l' pressed
                 # Set graph y scale
                 if self._ax.get_yscale() == 'linear':
                     self._ax.set_yscale('log')
@@ -475,8 +483,8 @@ class CurveInteractor(object):
                     self._ax.set_yscale('linear')
                 self._set_xlim_ylim()
                 self._canvas.draw()
-            elif event.key == 'B':                  #If "B" pressed
-                if self._move_set == True:          #Run B-Spline Smoothing
+            elif event.key == 'B':                  # If "B" pressed
+                if self._move_set == True:          # Run B-Spline Smoothing
                     self._regions.smooth_data("bspline", self._xmin, self._xmax, self._ymin, self._ymax)
                     self._canvas.draw()
                 else:
