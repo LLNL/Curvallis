@@ -378,7 +378,7 @@ class CurveInteractor(object):
 
     def key_press_callback(self, event):
         """ Whenever a key is pressed"""
-        print ('Pressed %s' % event.key) #D isplay name of pressed key
+        print ('Pressed %s' % event.key) # Display name of pressed key
         if self._quit_pending:                  # If a quit is pending
             if event.key == 'q':                # and 'q' is pressed
                 print ('Quitting.')             # quit
