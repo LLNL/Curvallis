@@ -64,8 +64,6 @@ def new_home(self, *args, **kwargs):
     self.push_current()
 NavigationToolbar2.home = new_home
 keymap_window_open = False
-twinx_enabled = False
-twiny_enabled = False
 
 class CurveInteractor(object):
     """ Calculate a curve to fit the data, let user move points and recalculate.
@@ -134,10 +132,10 @@ class CurveInteractor(object):
             action='store_true')
         # config_file default is implicitly 'config_file.ini'
         parser.add_argument(
-            '--x_label', action='store', nargs=(2 if twinx_enabled else 1),
+            '--x_label', action='store', nargs=1,
             default='X', help='Set name of x axis label.')
         parser.add_argument(
-            '--y_label', action='store', nargs=(2 if twiny_enabled else 1),
+            '--y_label', action='store', nargs=1,
             default='Y', help='Set name of y axis label.')
         io.define_args(parser)
         regions.define_args(parser)
