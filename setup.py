@@ -12,7 +12,7 @@
 
 """
 Setup file for curvallis
-Written by: Eric Heinke
+@author: Eric Heinke (sudo-Eric)
 """
 
 from sys import version_info as version

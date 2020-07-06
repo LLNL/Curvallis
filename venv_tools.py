@@ -1,3 +1,20 @@
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Copyright (c) 2016, Lawrence Livermore National Security, LLC.
+# Produced at the Lawrence Livermore National Laboratory
+# Written by Paul Minner <minner.paul@gmail.com>
+#            Charles Reynolds <reynolds12@llnl.gov>
+# LLNL-CODE-704098
+# All rights reserved.
+# This file is part of Curvallis.
+# For details, see https://github.com/llnl/Curvallis.
+# Please also Curvallis/LICENSE.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+"""
+Setup file for curvallis
+@author: Eric Heinke (sudo-Eric)
+"""
+
 from sys import version_info as version
 from sys import argv
 import subprocess
@@ -5,7 +22,6 @@ import platform
 import argparse
 import shutil
 import sys
-import os
 
 # https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/
 # https://docs.python-guide.org/dev/virtualenvs/

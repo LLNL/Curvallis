@@ -11,7 +11,6 @@
 # Please also Curvallis/LICENSE.
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 """
 Created on Fri Mar 13 15:34:13 2015
 
@@ -27,11 +26,11 @@ import math
 import matplotlib
 matplotlib.use('TkAgg')
 import tkinter
+from tkinter import Tk, Label, Button, Entry
 from matplotlib import pyplot, rcParams
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 from matplotlib.widgets import RectangleSelector
 from curvallis.curve_editing import curve_fitters, io, lines, regions, configargparse
-from tkinter import Tk, Label, Button, Entry
 from math import log10
 
 VERSION_STRING = '2020-06-02 03:13PM'
@@ -132,6 +131,12 @@ class CurveInteractor(object):
             help='Do not use any config file, even if a default is provided',
             action='store_true')
         # config_file default is implicitly 'config_file.ini'
+        parser.add_argument(
+            '--x_label', action='store', nargs=1,
+            default='X', help='Set name of x axis label.')
+        parser.add_argument(
+            '--y_label', action='store', nargs=1,
+            default='Y', help='Set name of y axis label.')
         io.define_args(parser)
         regions.define_args(parser)
         curve_fitters.define_args(parser)
@@ -184,8 +189,8 @@ class CurveInteractor(object):
         self._figure.tight_layout(pad=self._figure_padding)
         # Make axes ticks update and stay detailed
         self._ax.minorticks_on()
-        self._ax.set_xlabel('X')
-        self._ax.set_ylabel('Y')
+        self._ax.set_xlabel(self._args.x_label[0])
+        self._ax.set_ylabel(self._args.y_label[0])
 #        self._background_line = lines.Line(
 #            self._ax, lines.line_attributes['background_points'])
         self._background_line = []
@@ -373,38 +378,37 @@ class CurveInteractor(object):
 
     def key_press_callback(self, event):
         """ Whenever a key is pressed"""
-        print ('Pressed %s' % event.key) #Display name of pressed key
-        if self._quit_pending:                  #If a quit is pending
-            if event.key == 'q':                #and 'q' is pressed
-                print ('Quitting.')             #quit
+        print ('Pressed %s' % event.key) # Display name of pressed key
+        if self._quit_pending:                  # If a quit is pending
+            if event.key == 'q':                # and 'q' is pressed
+                print ('Quitting.')             # quit
                 exit(0)
-            else:                               #Else:
-                self._quit_pending = False      #cancel quit pending
+            else:                               # Else:
+                self._quit_pending = False      # cancel quit pending
                 print ('Quit cancelled.')
-        elif event.key == 'q':                  #If 'q' pressed
-                                                #Display pending quit
+        elif event.key == 'q':                  # If 'q' pressed
+                                                # Display pending quit
             print ('Quit requested.  Press q again to quit, any other key to cancel.')
             self._quit_pending = True
-        elif event.key == 'm':                  #If 'm' pressed
-            self._print_keymap()                #Display key mapping
-        elif event.key == 'M':
+        elif event.key == 'm' or event.key == 'f1':# If 'm' or 'F1' pressed
+            self._print_keymap()                # Display key mapping
             self._display_key_mappings()
         elif event.inaxes:
-            if event.key == 't':              #If 't' pressed
-                                                #Toggle viewing of original line
+            if event.key == 't':                # If 't' pressed
+                                                # Toggle viewing of original line
                 self._regions.toggle_original_line_visibility()
                 self._canvas.draw()
-            elif event.key == 'b':              #If 'b' pressed
-                                                #Toggle points on/off
+            elif event.key == 'b':              # If 'b' pressed
+                                                # Toggle points on/off
                 self._regions.toggle_points()
                 self._canvas.draw()
-            elif event.key == 'w':              #If 'w' pressed
-                                                #Write the current points to a file
+            elif event.key == 'w':              # If 'w' pressed
+                                                # Write the current points to a file
                 self._regions.write_output_files()
-            elif event.key == 'y':              #If 'y' pressed
-                                                #Toggle the ability to move points on the x axis (and y axis?)
+            elif event.key == 'y':              # If 'y' pressed
+                                                # Toggle the ability to move points on the x axis (and y axis?)
                 self._regions.toggle_allow_xy_move()
-            elif event.key == 'a':              #If 'a' pressed
+            elif event.key == 'a':              # If 'a' pressed
                                                 # Toggle adding/removing points
                 if self._args.in_eos_file_base is not None:
                     # Don't allow for multi line data
@@ -415,8 +419,8 @@ class CurveInteractor(object):
                         print ("Add/Remove Mode Enabled")
                     else:
                         print ("Add/Remove Mode Disabled")
-            elif event.key == 'e':              #If 'e' pressed
-                                                #Toggle moving blocks of points
+            elif event.key == 'e':              # If 'e' pressed
+                                                # Toggle moving blocks of points
                 if self._move_set == True:
                     self._regions.cancel_move_set()
                     self._move_set = False
@@ -432,34 +436,34 @@ class CurveInteractor(object):
                     else:
                         self._selector.set_active(False)
                         print ("Block Select Disabled")
-            elif event.key == 'Q':              #If 'Q' pressed
-                self._get_equation()            #Get equation from user to plot
-            elif event.key == 'u':              #If 'u' pressed
-                                                #Undo the last point manipulation
+            elif event.key == 'Q':              # If 'Q' pressed
+                self._get_equation()            # Get equation from user to plot
+            elif event.key == 'u':              # If 'u' pressed
+                                                # Undo the last point manipulation
                 self._regions.undo()
                 self._canvas.draw()
-            elif event.key == 'Z':              #If 'Z' pressed
-                if self._move_set == True:      #Run TriLocal Smoothing
+            elif event.key == 'Z':              # If 'Z' pressed
+                if self._move_set == True:      # Run TriLocal Smoothing
                     self._regions.smooth_data("trilocal", self._xmin, self._xmax, 
                                               self._ymin, self._ymax)
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")
-            elif event.key == 'X':              #If 'X' pressed
-                if self._move_set == True:      #Run Integral Smoothing
+            elif event.key == 'X':              # If 'X' pressed
+                if self._move_set == True:      # Run Integral Smoothing
                     self._regions.smooth_data("integral", self._xmin, self._xmax, 
                                               self._ymin, self._ymax)
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")
-            elif event.key == 'V':              #If 'V' pressed
-                if self._move_set == True:      #Run Acute Repair Smoothing
+            elif event.key == 'V':              # If 'V' pressed
+                if self._move_set == True:      # Run Acute Repair Smoothing
                     self._regions.smooth_data("acute", self._xmin, self._xmax, 
                                               self._ymin, self._ymax)
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")
-            elif event.key == 'k' or event.key == 'L':#If 'k' or 'L' pressed
+            elif event.key == 'k' or event.key == 'L':# If 'k' or 'L' pressed
                 # Set graph x scale
                 if self._ax.get_xscale() == 'linear':
                     self._ax.set_xscale('log')
@@ -468,7 +472,7 @@ class CurveInteractor(object):
                 self._set_xlim_ylim()
                 self._set_logscale()
                 self._canvas.draw()
-            elif event.key == 'l':                  #If 'l' pressed
+            elif event.key == 'l':                  # If 'l' pressed
                 # Set graph y scale
                 if self._ax.get_yscale() == 'linear':
                     self._ax.set_yscale('log')
@@ -476,8 +480,8 @@ class CurveInteractor(object):
                     self._ax.set_yscale('linear')
                 self._set_xlim_ylim()
                 self._canvas.draw()
-            elif event.key == 'B':                  #If "B" pressed
-                if self._move_set == True:          #Run B-Spline Smoothing
+            elif event.key == 'B':                  # If "B" pressed
+                if self._move_set == True:          # Run B-Spline Smoothing
                     self._regions.smooth_data("bspline", self._xmin, self._xmax, self._ymin, self._ymax)
                     self._canvas.draw()
                 else:
@@ -805,15 +809,17 @@ class CurveInteractor(object):
             keymap_window_open = False
             textbox.destroy()
         if(keymap_window_open):
-            print("Key mapping window already open.")
+            global textbox
+            textbox.lift()
+            textbox.focus_force()
             return
         mpl_lines = [
             'Drag points to update line',
             'Press t to toggle original line on and off [default: off]',
             'Press b to toggle points on and off [default: on]',
             'Press y to toggle xy move capability on and off',
-            'Press a to toggle adding and removing points with left and right',
-            '\t click respectively [default: off]',
+            'Press a to toggle adding and removing points with left ',
+            '\tand right click respectively [default: off]',
             'Press e to toggle selecting a block of points',
             'Press i to enlarge figure margins',
             'Press <shift> I to decrease figure margins',
@@ -834,40 +840,57 @@ class CurveInteractor(object):
             'Make sure focus is on the plotting window and the cursor is',
             'also in the plotting window when using these keys.',
             '',
-            'Press "<SHIFT> M" to show these keys again',
+            'Press "m" to show these keys again',
             '',
             'More key mappings can be found at:',
             'https://github.com/LLNL/Curvallis#interactive-commands'
         ]
-        horizontal_line = "============================================="
-        def placelines(window,lines,spacing,offset_x,offset_y):
+        max_length = 0
+        for i in (mpl_lines + cur_lines + post_lines):
+            if(len(i) > max_length):
+                max_length = len(i)
+        max_length += 2
+        horizontal_line = '=' * max_length
+        def placelines(window,lines,spacing,offset_x,offset_y,text_font):
             for i in range(len(lines)):
-                l = tkinter.Label(window, text=lines[i])
+                l = tkinter.Label(window, text=lines[i], font=text_font)
                 l.place(x=offset_x, y=offset_y + (spacing * i))
+        # Creating textbox
+        textbox = tkinter.Tk()
         # Line Spacing
         spacing = 20
+        # Font and font size (change to "TkFixedFont" if possible)
+        text_font = ("Courier", 12)
         # Window Size (width, height, x_offset, y_offset)
-        window_size = (500, ((8 + len(mpl_lines) + len(cur_lines) + len(post_lines)) * spacing), 30, 30)
-        textbox = tkinter.Tk()
+        window_size = (10 * max_length, ((8 + len(mpl_lines) + len(cur_lines) + len(post_lines)) * spacing), 30, 30)
+        # Host system screen resolution
+        host_screen = (textbox.winfo_screenwidth(), textbox.winfo_screenheight())
+        # Check if window can fit on screen
+        if(window_size[0] > (host_screen[0]*0.4)):
+            print("error: window too wide")
+            return
+        if (window_size[1] > (host_screen[1]*0.8)):
+            window_size = (window_size[0], int(host_screen[1]*0.8), window_size[2], window_size[3])
+            print("error: window too tall")
         # width x height + x_offset + y_offset:
-        textbox.geometry(str(window_size[0]) + "x" + str(window_size[1]) + "+" + str(window_size[2]) + "+" + str(window_size[3]))
+        textbox.geometry("%dx%d+%d+%d" % (window_size[0], window_size[1], window_size[2], window_size[3]))
         # Disable window resizing
         textbox.resizable(False, False)
         textbox.protocol("WM_DELETE_WINDOW", on_closing)
         textbox.title("Key Mappings")
         ##### Matplotlib Keys #####
-        t1 = tkinter.Label(textbox, text=horizontal_line + "\nMatplotlib Keys:\n" + horizontal_line)
+        t1 = tkinter.Label(textbox, text=horizontal_line + "\nMatplotlib Keys:\n" + horizontal_line, font=text_font)
         t1.place(x=0, y=0)
-        placelines(textbox, mpl_lines, spacing, 20, 3*spacing)
+        placelines(textbox, mpl_lines, spacing, 20, 3*spacing, text_font)
         ##### Curvallis Keys #####
-        t2 = tkinter.Label(textbox, text=horizontal_line + "\nCurvallis Keys:\n" + horizontal_line)
+        t2 = tkinter.Label(textbox, text=horizontal_line + "\nCurvallis Keys:\n" + horizontal_line, font=text_font)
         t2.place(x=0, y=(len(mpl_lines) + 3) * spacing)
-        placelines(textbox, cur_lines, spacing, 20, (len(mpl_lines)+6)*spacing)
+        placelines(textbox, cur_lines, spacing, 20, (len(mpl_lines)+6)*spacing, text_font)
         ##### Other keys/lines #####
-        t3 = tkinter.Label(textbox, text=horizontal_line)
+        t3 = tkinter.Label(textbox, text=horizontal_line, font=text_font)
         t3.place(x=0, y=(len(mpl_lines)+len(cur_lines)+6)*spacing)
-        placelines(textbox, post_lines, spacing, 0, (len(mpl_lines)+len(cur_lines)+7)*spacing)
-        t4 = tkinter.Label(textbox, text=horizontal_line)
+        placelines(textbox, post_lines, spacing, 0, (len(mpl_lines)+len(cur_lines)+7)*spacing, text_font)
+        t4 = tkinter.Label(textbox, text=horizontal_line, font=text_font)
         t4.place(x=0, y=(len(mpl_lines) + len(cur_lines) + len(post_lines) + 7) * spacing)
         keymap_window_open = True
 
