@@ -1529,13 +1529,25 @@ def _print_polynomial(coeffs):
 
 # Old polynomial fit calculator:
 
-class Poly_Original(object):
+class MetaPoly(ABCMeta):
+    @property
+    def name_prefix(cls):
+        return cls._name_prefix
+
+class PolyBase(object, metaclass=MetaPoly):
+    @property
+    def name_prefix(self):
+        return type(self).name_prefix
+
+class Poly_Original(PolyBase):
+    _name_prefix = 'poly'
+
     """ This is substantially different from the rest of the fit classes above,
     but presents the same public methods as Base_Fit_Class:
     """
     def __init__(self, args, name):
 #        self._order = args.polynomial_order
-        self._order = int(name[4:])
+        self._order = int(name[len(self.name_prefix):])
         self._f = None
         self._is_first_fit = True
         self.derivative_scale = args.derivative_scale
@@ -1597,7 +1609,7 @@ class Poly_Original(object):
                (self._int(x) +
                 (self.y_integral_ref - self._int(self.x_integral_ref)))
 
-factory.register ('poly', Poly_Original)
+factory.register (Poly_Original.name_prefix, Poly_Original)
 
 
 #--------------------------------------------------------------------------------
@@ -2122,4 +2134,82 @@ class GammaV(Base_Fit_Class):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
 factory.register ('gammaV', GammaV)
+
+
+class GammaPoly(PolyBase, metaclass=MetaPoly):
+    """
+    Fits gamma as a function of density (rho) or volume
+    Separate polynomials are fitted for high pressure versus low pressure data (relative to some reference rho0)
+    """
+    _name_prefix = 'gammapoly'
+
+    def __init__(self, args, name, x_is_rho=True):
+        self._order = int(name[len(self.name_prefix):])
+        self._is_first_fit = True
+        self.rho0 = args.rho0
+        # create two fitters: one for high P data and one for low P data
+        fname = '{0}{1}'.format(Poly_Original.name_prefix, self._order)
+        self._hiP_fitter = Poly_Original(args, fname)
+        self._loP_fitter = Poly_Original(args, fname)
+        self._highP_f = None
+        self._lowP_f = None
+        self._x_is_rho = x_is_rho        # indicates whether x values and rho0 are density (True) or volume (False)
+        # high pressure means high density/low volume; low pressure means low density/high volume
+        self._xfactor = 1 if x_is_rho else -1
+
+    def _get_highP_lowP_x_indices(self, x):
+        """
+        Separates independent variable into high pressure and low pressure regimes
+        Also gives a factor to apply to x depending on whether values are in density or volume
+        """
+        # if rho0 is one of the x values, you must include it in both hiP and loP
+        hiP_indices = np.nonzero((x*self.xfactor) >= self.rho0)
+        loP_indices = np.nonzero((x*self.xfactor) <= self.rho0)
+        return hiP_indices, loP_indices
+
+    def _get_highP_fit_x(self, x):
+        """ for high pressure points, fit a polynomial in rho/rho0 if self._x_is_rho,
+                or V0/V (the reciprocal) otherwise
+        """
+        return np.power(x/self.rho0, self.xfactor)
+
+    def _get_lowP_fit_x(self, x):
+        """ for low pressure points, fit a polynomial in rho0/rho if self._x_is_rho,
+                        or V/V0 (the reciprocal) otherwise
+        """
+        return np.power(self.rho0/x, self.xfactor)
+
+    def _get_highP_lowP_fit_points(self, points):
+        hiP_idx, loP_idx = self._get_highP_lowP_x_indices([x for (x,y) in points])
+
+        hiP_fit_pts = [(self._get_highP_fit_x(x), y) for (x, y) in points[hiP_idx]]
+        # for low pressure, fit a polynomial in rho0/rho or V/V0
+        loP_fit_pts = [(self._get_lowP_fit_x(x), y) for (x, y) in points[loP_idx]]
+        return hiP_fit_pts, loP_fit_pts
+
+    def guess_coefficients(self, points):
+        pass
+
+    def fit_to_points(self, points):
+        highP_points, lowP_points = self._get_highP_lowP_fit_points(points)
+        print('High pressure fit')
+        self._hiP_fitter.fit_to_points(highP_points)
+        print('Low pressure fit')
+        self._loP_fitter.fit_to_points(lowP_points)
+        self._is_first_fit = False
+
+    def func(self, x):
+        # TODO: if rho0 is among values of x, will return lowP fit.  Make this configurable?
+        hiP_idx, loP_idx = self._get_highP_lowP_x_indices(x)
+        y = np.empty(len(x), np.float)
+        y[hiP_idx] = self._hiP_fitter.func(self._get_highP_fit_x(x[hiP_idx]))
+        y[loP_idx] = self._loP_fitter.func(self._get_lowP_fit_x(x[loP_idx]))
+        return y
+
+
+
+
+
+factory.register (GammaPoly.name_prefix, GammaPoly)
+
 
