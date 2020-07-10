@@ -2136,14 +2136,23 @@ class GammaV(Base_Fit_Class):
 factory.register ('gammaV', GammaV)
 
 
-class GammaPoly(PolyBase, metaclass=MetaPoly):
+class GammaPoly(PolyBase):
     """
     Fits gamma as a function of density (rho) or volume
     Separate polynomials are fitted for high pressure versus low pressure data (relative to some reference rho0)
+        High pressure means high density or low volume
+        Low pressure means low density or high volum
+
     """
     _name_prefix = 'gammapoly'
 
-    def __init__(self, args, name, x_is_rho=True):
+    def __init__(self, args, name, rho_is_density=True):
+        """
+
+        :param args:
+        :param name:
+        :param rho_is_density: If True, x values and rho0 are densities.  If False, x values and rho0 are unit volumes.
+        """
         self._order = int(name[len(self.name_prefix):])
         self._is_first_fit = True
         self.rho0 = args.rho0
@@ -2153,35 +2162,37 @@ class GammaPoly(PolyBase, metaclass=MetaPoly):
         self._loP_fitter = Poly_Original(args, fname)
         self._highP_f = None
         self._lowP_f = None
-        self._x_is_rho = x_is_rho        # indicates whether x values and rho0 are density (True) or volume (False)
-        # high pressure means high density/low volume; low pressure means low density/high volume
-        self._xfactor = 1 if x_is_rho else -1
+        # rho_is_density indicates whether x values and rho0 are density (True) or volume (False)
+        self._rho_is_density = rho_is_density
 
     def _get_highP_lowP_x_indices(self, x):
         """
         Separates independent variable into high pressure and low pressure regimes
-        Also gives a factor to apply to x depending on whether values are in density or volume
+        If self.rho0 is present, it will be in both
         """
-        # if rho0 is one of the x values, you must include it in both hiP and loP
-        hiP_indices = np.nonzero((x*self.xfactor) >= self.rho0)
-        loP_indices = np.nonzero((x*self.xfactor) <= self.rho0)
+        # determine the correct comparison function for (x, rho0) depending on whether using density or volume
+        hiP_comp = np.greater_equal if self._rho_is_density else np.less_equal
+        loP_comp = np.less_equal if self._rho_is_density else np.greater_equal
+        hiP_indices = np.flatnonzero(hiP_comp(x, self.rho0))
+        loP_indices = np.flatnonzero(loP_comp(x, self.rho0))
         return hiP_indices, loP_indices
 
     def _get_highP_fit_x(self, x):
-        """ for high pressure points, fit a polynomial in rho/rho0 if self._x_is_rho,
-                or V0/V (the reciprocal) otherwise
+        """ for high pressure points, fit a polynomial in rho/rho0 if rho_is_density, or V0/V (the reciprocal) otherwise
         """
-        return np.power(x/self.rho0, self.xfactor)
+        x1_x2 = (x, self.rho0) if self._rho_is_density else (self.rho0, x)
+        return np.divide(*x1_x2)    # use numpy to correctly handle divide by 0
 
     def _get_lowP_fit_x(self, x):
-        """ for low pressure points, fit a polynomial in rho0/rho if self._x_is_rho,
-                        or V/V0 (the reciprocal) otherwise
+        """ for low pressure points, fit a polynomial in rho0/rho if rho_is_density, or V/V0 (the reciprocal) otherwise
         """
-        return np.power(self.rho0/x, self.xfactor)
+        # use np.divide to handle divide by zero
+        x1_x2 = (self.rho0, x) if self._rho_is_density else (x, self.rho0)
+        return np.divide(*x1_x2)    # use numpy to correctly handle divide by 0
 
     def _get_highP_lowP_fit_points(self, points):
+        points = np.array(points)  # wrap for easier indexing; if already a numpy.ndarray, this won't do anything
         hiP_idx, loP_idx = self._get_highP_lowP_x_indices([x for (x,y) in points])
-
         hiP_fit_pts = [(self._get_highP_fit_x(x), y) for (x, y) in points[hiP_idx]]
         # for low pressure, fit a polynomial in rho0/rho or V/V0
         loP_fit_pts = [(self._get_lowP_fit_x(x), y) for (x, y) in points[loP_idx]]
