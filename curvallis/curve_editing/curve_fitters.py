@@ -2141,8 +2141,7 @@ class GammaPoly(PolyBase):
     Fits gamma as a function of density (rho) or volume
     Separate polynomials are fitted for high pressure versus low pressure data (relative to some reference rho0)
         High pressure means high density or low volume
-        Low pressure means low density or high volum
-
+        Low pressure means low density or high volume
     """
     _name_prefix = 'gammapoly'
 

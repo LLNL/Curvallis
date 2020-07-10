@@ -57,7 +57,7 @@ class TestCurveFitters(ut.TestCase):
         return self._make_poly_and_setpoints(degree, x)
 
     def _make_poly_and_setpoints(self, degree, x):
-        poly = np.poly1d(np.random.randint(10, size=degree + 1))
+        poly = np.poly1d(np.random.randint(10, size=degree + 1).astype(np.float))
         return poly, list(zip(x, poly(x)))
 
     def test_Poly_name_prefix_class(self):
@@ -106,7 +106,7 @@ class TestCurveFitters(ut.TestCase):
     def _make_random_GammaPoly(self, rho_is_density=True, **kwargs):
         return self._make_GammaPoly(self._get_random_degree(), rho_is_density, **kwargs)
 
-    def _make_gammapoly_and_points(self, degree, rho0, x_min=0, x_max=100, num_pts=0, rho_is_density=True):
+    def _make_gammapoly_and_points(self, degree, rho0, x_min=0.1, x_max=100, num_pts=0, rho_is_density=True):
         """ Generates two 1-D polynomials of the specified degree (one for high pressure, the other for low)
             as well as a number of points to fit to those curves
             most parameters are analogous to those in _make_poly_and_points
@@ -114,7 +114,8 @@ class TestCurveFitters(ut.TestCase):
                     break point between high and low pressure regimes
         :param num_pts: the number of points generated for each of the high pressure and low pressure regimes
         :param rho_is_density: controls whether independent variable is in density (True) or unit volume (False)
-        :return: hiP_poly, hiP_points, loP_poly, loP_points
+        :return: gammapoly, hiP_poly, hiP_points, loP_poly, loP_points
+                    gammapoly is the fitter object
                     the [hi|lo]P_poly variables are numpy.poly1d objects used to generate the points.  Note that the
                         independent variable in these is actually some ratio of x and rho0.  See GammaPoly.
                     the [hi|lo]P_points variables are lists of (x,y) tuples, as expected by GammaPoly.fit_to_points
@@ -125,14 +126,15 @@ class TestCurveFitters(ut.TestCase):
         num_pts = int(num_pts)
         if num_pts <= 0:
             num_pts = degree ** 2 + degree
-        gpoly = self._make_GammaPoly(degree, rho_is_density, rho0=rho0)
+        # this object will be discarded -- creating it just to use existing well-tested logic re: hi/lo pressure regimes
+        gammapoly = self._make_GammaPoly(degree, rho_is_density, rho0=rho0)
         x = np.concatenate((get_regime_x(x_min, rho0, num_pts), get_regime_x(rho0, x_max, num_pts)))
-        hiP_xi, loP_xi = gpoly._get_highP_lowP_x_indices(x)
-        hiP_poly, hiP_fitxy = self._make_poly_and_setpoints(degree, gpoly._get_highP_fit_x(x[hiP_xi]))
-        loP_poly, loP_fitxy = self._make_poly_and_setpoints(degree, gpoly._get_lowP_fit_x(x[loP_xi]))
+        hiP_xi, loP_xi = gammapoly._get_highP_lowP_x_indices(x)
+        hiP_poly, hiP_fitxy = self._make_poly_and_setpoints(degree, gammapoly._get_highP_fit_x(x[hiP_xi]))
+        loP_poly, loP_fitxy = self._make_poly_and_setpoints(degree, gammapoly._get_lowP_fit_x(x[loP_xi]))
         hiP_y = [y for (fitx, y) in hiP_fitxy]
         loP_y = [y for (fitx, y) in loP_fitxy]
-        return hiP_poly, list(zip(x[hiP_xi], hiP_y)), loP_poly, list(zip(x[loP_xi], loP_y))
+        return gammapoly, hiP_poly, list(zip(x[hiP_xi], hiP_y)), loP_poly, list(zip(x[loP_xi], loP_y))
 
 
     def test_GammaPoly_name_prefix_class(self):
@@ -195,7 +197,13 @@ class TestCurveFitters(ut.TestCase):
         np.testing.assert_equal(hiP_points, np.array([(6/r0, 7), (8/r0, 6)]), 'High pressure points are incorrect')
         np.testing.assert_equal(loP_points, np.array([(np.inf, 1), (r0/2, 4), (r0/3, 8)]), 'Low pressure points are incorrect')
 
-
+    def test_GammaPoly_fit_to_points_density(self):
+        r0 = 5; degree = 3
+        gammapoly, hiP_poly, hiP_pts, loP_poly, loP_pts = self._make_gammapoly_and_points(degree, r0, x_min=1, x_max=10)
+        points = np.concatenate((loP_pts, hiP_pts))
+        gammapoly.fit_to_points(points)
+        np.testing.assert_array_almost_equal(gammapoly._hiP_fitter._f.c, hiP_poly.c, decimal=0, err_msg='Bad high pressure fit')
+        np.testing.assert_array_almost_equal(gammapoly._loP_fitter._f.c, loP_poly.c, decimal=0, err_msg='Bad low pressure fit')
 
 
 
