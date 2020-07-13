@@ -53,7 +53,19 @@ class TestCurveFitters(ut.TestCase):
         r = re.compile(cf.Poly_Original.name_prefix + '(1|2|3|4|5|6|7|8|9|10|11|12)')
         self.assertEqual(len(list(filter(r.match, refine_fit_names))), 12)
 
+    def test_Factory_make_object_of_class_Poly_Original(self):
+        degree = self._get_random_degree()
+        poly = cf.factory.make_object_of_class(cf.Poly_Original.name_prefix+str(degree), self._make_poly_args())
+        self.assertEqual(type(poly), cf.Poly_Original)
+        self.assertEqual(poly._order, degree)
 
+    def test_Factory_make_object_of_class_GammaPoly(self):
+        degree = self._get_random_degree()
+        gpoly = cf.factory.make_object_of_class(cf.GammaPoly.name_prefix+str(degree), self._make_poly_args(rho0=5))
+        self.assertEqual(type(gpoly), cf.GammaPoly)
+        self.assertEqual(gpoly._order, degree, 'GammaPoly object has wrong degree')
+        self.assertEqual(gpoly._hiP_fitter._order, degree, 'GammaPoly high pressure fitter has wrong degree')
+        self.assertEqual(gpoly._loP_fitter._order, degree, 'GammaPoly low pressure fitter has wrong degree')
 
 
 

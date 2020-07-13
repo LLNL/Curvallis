@@ -30,6 +30,7 @@ import scipy.interpolate as interp
 from pylab import polyfit
 import math
 import bisect
+import re
 
 _min_polynomial_degree = 1
 _max_polynomial_degree = 12
@@ -253,8 +254,10 @@ class Factory(object):
         return names
 
     def make_object_of_class(self, name, args):
-        if name[:4] == 'poly':
-            return self._classes[name[:4]](args, name)
+        r = re.compile('({0}|{1})\d+'.format(Poly_Original.name_prefix, GammaPoly.name_prefix))
+        polymatch = r.match(name)
+        if polymatch:
+            return self._classes[polymatch.group(1)](args, name)
         elif name[:7] == 'eseries':
             return self._classes[name[:7]](args, name)
         else:
