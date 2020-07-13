@@ -136,6 +136,17 @@ class TestCurveFitters(ut.TestCase):
         loP_y = [y for (fitx, y) in loP_fitxy]
         return gammapoly, hiP_poly, list(zip(x[hiP_xi], hiP_y)), loP_poly, list(zip(x[loP_xi], loP_y))
 
+    def _test_gammapoly_func(self, degree, rho0, x, rho_is_density=True):
+        gammapoly = self._make_random_GammaPoly(rho_is_density=rho_is_density, rho0=rho0)
+        hiP_poly, _ = self._make_poly_and_setpoints(degree, [])
+        loP_poly, _ = self._make_poly_and_setpoints(degree, [])
+        gammapoly._hiP_fitter._f = hiP_poly  # artificially set these as the fits
+        gammapoly._loP_fitter._f = loP_poly
+        hiP_xi, loP_xi = gammapoly._get_highP_lowP_x_indices(x)
+        y = np.empty(x.shape, np.float)
+        y[hiP_xi] = hiP_poly(gammapoly._get_highP_fit_x(x[hiP_xi]))
+        y[loP_xi] = loP_poly(gammapoly._get_lowP_fit_x(x[loP_xi]))
+        np.testing.assert_array_equal(gammapoly.func(x), y)
 
     def test_GammaPoly_name_prefix_class(self):
         self.assertEqual(cf.GammaPoly.name_prefix, 'gammapoly')
@@ -143,6 +154,13 @@ class TestCurveFitters(ut.TestCase):
     def test_GammaPoly_name_prefix_obj(self):
         p = self._make_random_GammaPoly()
         self.assertEqual(p.name_prefix, 'gammapoly')
+
+    def test_GammaPoly___init___order(self):
+        degree = self._get_random_degree()
+        gpoly = self._make_GammaPoly(degree)
+        self.assertEqual(gpoly._order, degree, 'order is incorrect')
+        self.assertEqual(gpoly._hiP_fitter._order, degree, 'High pressure order is incorrect')
+        self.assertEqual(gpoly._loP_fitter._order, degree, 'Low pressure order is incorrect')
 
     ## if using density (rho_is_density=True), higher pressure should correspond to higher density
 
@@ -198,13 +216,30 @@ class TestCurveFitters(ut.TestCase):
         np.testing.assert_equal(loP_points, np.array([(np.inf, 1), (r0/2, 4), (r0/3, 8)]), 'Low pressure points are incorrect')
 
     def test_GammaPoly_fit_to_points_density(self):
-        r0 = 5; degree = 3
+        r0 = 5
+        degree = 3
         gammapoly, hiP_poly, hiP_pts, loP_poly, loP_pts = self._make_gammapoly_and_points(degree, r0, x_min=1, x_max=10)
         points = np.concatenate((loP_pts, hiP_pts))
         gammapoly.fit_to_points(points)
         np.testing.assert_array_almost_equal(gammapoly._hiP_fitter._f.c, hiP_poly.c, decimal=0, err_msg='Bad high pressure fit')
         np.testing.assert_array_almost_equal(gammapoly._loP_fitter._f.c, loP_poly.c, decimal=0, err_msg='Bad low pressure fit')
 
+    def test_GammaPoly_func_density_sans_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        x = x[x != r0]  # remove rho0 if it's there
+        self._test_gammapoly_func(degree, r0, x)
+
+
+    def test_GammaPoly_func_density_with_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        ri = np.searchsorted(x, r0)
+        if x[ri] != r0:      # add rho0 if it's not there
+            np.insert(x, ri, r0)
+        self._test_gammapoly_func(degree, r0, x)
 
 
 
@@ -255,10 +290,31 @@ class TestCurveFitters(ut.TestCase):
         np.testing.assert_equal(hiP_points, np.array([(np.inf, 1), (r0/2, 4), (r0/3, 8)]), 'High pressure points are incorrect')
         np.testing.assert_equal(loP_points, np.array([(6/r0, 7), (8/r0, 6)]), 'Low pressure points are incorrect')
 
+    def test_GammaPoly_fit_to_points_volume(self):
+        r0 = 5; degree = 3
+        gammapoly, hiP_poly, hiP_pts, loP_poly, loP_pts = \
+            self._make_gammapoly_and_points(degree, r0, x_min=1, x_max=10, rho_is_density=False)
+        points = np.concatenate((loP_pts, hiP_pts))  # order of points shouldn't matter
+        gammapoly.fit_to_points(points)
+        np.testing.assert_array_almost_equal(gammapoly._hiP_fitter._f.c, hiP_poly.c, decimal=0, err_msg='Bad high pressure fit')
+        np.testing.assert_array_almost_equal(gammapoly._loP_fitter._f.c, loP_poly.c, decimal=0, err_msg='Bad low pressure fit')
+
+    def test_GammaPoly_fit_to_points_func_volume_sans_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        x = x[x != r0]      # remove rho0 if it's there
+        self._test_gammapoly_func(degree, r0, x, rho_is_density=False)
 
 
-
-
+    def test_GammaPoly_fit_to_points_func_volume_with_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        ri = np.searchsorted(x, r0)
+        if x[ri] != r0:      # add rho0 if it's not there
+            np.insert(x, ri, r0)
+        self._test_gammapoly_func(degree, r0, x, rho_is_density=False)
 
 
 

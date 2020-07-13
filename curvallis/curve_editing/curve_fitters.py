@@ -2145,6 +2145,7 @@ class GammaPoly(PolyBase):
     """
     _name_prefix = 'gammapoly'
 
+    # TODO: wire in rho_is_density so external app can use.  Maybe just subclass GammaV and pass False to __init__?
     def __init__(self, args, name, rho_is_density=True):
         """
 
@@ -2216,10 +2217,8 @@ class GammaPoly(PolyBase):
         y[loP_idx] = self._loP_fitter.func(self._get_lowP_fit_x(x[loP_idx]))
         return y
 
-
-
-
-
 factory.register (GammaPoly.name_prefix, GammaPoly)
+
+
 
 
