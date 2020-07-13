@@ -56,8 +56,11 @@ class TestCurveFitters(ut.TestCase):
         x = np.logspace(np.log10(self._replace_if_zero(x_min)), np.log10(self._replace_if_zero(x_max)), num_pts)
         return self._make_poly_and_setpoints(degree, x)
 
+    def _make_random_poly1d(self, degree):
+        return np.poly1d(np.random.randint(10, size=degree + 1).astype(np.float))
+
     def _make_poly_and_setpoints(self, degree, x):
-        poly = np.poly1d(np.random.randint(10, size=degree + 1).astype(np.float))
+        poly = self._make_random_poly1d(degree)
         return poly, list(zip(x, poly(x)))
 
     def test_Poly_name_prefix_class(self):
@@ -85,6 +88,19 @@ class TestCurveFitters(ut.TestCase):
         poly5 = cf.Poly_Original(self._make_poly_args(), 'poly{0}'.format(deg))
         poly5.fit_to_points(noisy_pts)
         np.testing.assert_array_almost_equal(poly5._f.c, actual_f.c, decimal=0)
+
+    def _test_Poly__set_poly(self):
+        deg = self._get_random_degree()
+        f = self._make_random_poly1d(deg)
+        df = np.polyder(f)
+        poly = cf.Poly_Original(self._make_poly_args(), 'poly{0}'.format(deg))
+        poly._set_poly(f)
+        np.testing.assert_array_equal(poly._f.c, f.c)
+        np.testing.assert_array_equal(poly._der.c, df.c)
+        np.testing.assert_array_equal(poly._scnd_der.c, np.polyder(df).c)
+        np.testing.assert_array_equal(poly._int.c, np.polyint(f).c)
+
+
 
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
     #   GammaPoly tests
@@ -136,17 +152,54 @@ class TestCurveFitters(ut.TestCase):
         loP_y = [y for (fitx, y) in loP_fitxy]
         return gammapoly, hiP_poly, list(zip(x[hiP_xi], hiP_y)), loP_poly, list(zip(x[loP_xi], loP_y))
 
+    # TODO: figure out a nice way to combine these next 4 functions
     def _test_gammapoly_func(self, degree, rho0, x, rho_is_density=True):
-        gammapoly = self._make_random_GammaPoly(rho_is_density=rho_is_density, rho0=rho0)
+        gammapoly = self._make_GammaPoly(degree, rho_is_density=rho_is_density, rho0=rho0)
         hiP_poly, _ = self._make_poly_and_setpoints(degree, [])
         loP_poly, _ = self._make_poly_and_setpoints(degree, [])
-        gammapoly._hiP_fitter._f = hiP_poly  # artificially set these as the fits
-        gammapoly._loP_fitter._f = loP_poly
+        gammapoly._hiP_fitter._set_poly(hiP_poly)  # artificially set these as the fits
+        gammapoly._loP_fitter._set_poly(loP_poly)
         hiP_xi, loP_xi = gammapoly._get_highP_lowP_x_indices(x)
         y = np.empty(x.shape, np.float)
         y[hiP_xi] = hiP_poly(gammapoly._get_highP_fit_x(x[hiP_xi]))
         y[loP_xi] = loP_poly(gammapoly._get_lowP_fit_x(x[loP_xi]))
         np.testing.assert_array_equal(gammapoly.func(x), y)
+
+    def _test_gammapoly_derivative(self, degree, rho0, x, rho_is_density=True):
+        gammapoly = self._make_GammaPoly(degree, rho_is_density=rho_is_density, rho0=rho0)
+        hiP_poly, _ = self._make_poly_and_setpoints(degree, [])
+        loP_poly, _ = self._make_poly_and_setpoints(degree, [])
+        gammapoly._hiP_fitter._set_poly(hiP_poly)  # artificially set these as the fits
+        gammapoly._loP_fitter._set_poly(loP_poly)
+        hiP_xi, loP_xi = gammapoly._get_highP_lowP_x_indices(x)
+        y = np.empty(x.shape, np.float)
+        y[hiP_xi] = np.polyder(hiP_poly)(gammapoly._get_highP_fit_x(x[hiP_xi]))
+        y[loP_xi] = np.polyder(loP_poly)(gammapoly._get_lowP_fit_x(x[loP_xi]))
+        np.testing.assert_array_equal(gammapoly.derivative(x), y)
+
+    def _test_gammapoly_second_derivative(self, degree, rho0, x, rho_is_density=True):
+        gammapoly = self._make_GammaPoly(degree, rho_is_density=rho_is_density, rho0=rho0)
+        hiP_poly, _ = self._make_poly_and_setpoints(degree, [])
+        loP_poly, _ = self._make_poly_and_setpoints(degree, [])
+        gammapoly._hiP_fitter._set_poly(hiP_poly)  # artificially set these as the fits
+        gammapoly._loP_fitter._set_poly(loP_poly)
+        hiP_xi, loP_xi = gammapoly._get_highP_lowP_x_indices(x)
+        y = np.empty(x.shape, np.float)
+        y[hiP_xi] = np.polyder(hiP_poly, 2)(gammapoly._get_highP_fit_x(x[hiP_xi]))
+        y[loP_xi] = np.polyder(loP_poly, 2)(gammapoly._get_lowP_fit_x(x[loP_xi]))
+        np.testing.assert_array_equal(gammapoly.second_derivative(x), y)
+
+    def _test_gammapoly_integral(self, degree, rho0, x, rho_is_density=True):
+        gammapoly = self._make_GammaPoly(degree, rho_is_density=rho_is_density, rho0=rho0)
+        hiP_poly, _ = self._make_poly_and_setpoints(degree, [])
+        loP_poly, _ = self._make_poly_and_setpoints(degree, [])
+        gammapoly._hiP_fitter._set_poly(hiP_poly)  # artificially set these as the fits
+        gammapoly._loP_fitter._set_poly(loP_poly)
+        hiP_xi, loP_xi = gammapoly._get_highP_lowP_x_indices(x)
+        y = np.empty(x.shape, np.float)
+        y[hiP_xi] = np.polyint(hiP_poly)(gammapoly._get_highP_fit_x(x[hiP_xi]))
+        y[loP_xi] = np.polyint(loP_poly)(gammapoly._get_lowP_fit_x(x[loP_xi]))
+        np.testing.assert_array_equal(gammapoly.integral(x), y)
 
     def test_GammaPoly_name_prefix_class(self):
         self.assertEqual(cf.GammaPoly.name_prefix, 'gammapoly')
@@ -241,6 +294,53 @@ class TestCurveFitters(ut.TestCase):
             np.insert(x, ri, r0)
         self._test_gammapoly_func(degree, r0, x)
 
+    def test_GammaPoly_derivative_density_sans_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        x = x[x != r0]  # remove rho0 if it's there
+        self._test_gammapoly_derivative(degree, r0, x)
+
+    def test_GammaPoly_derivative_density_with_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        ri = np.searchsorted(x, r0)
+        if x[ri] != r0:  # add rho0 if it's not there
+            np.insert(x, ri, r0)
+        self._test_gammapoly_derivative(degree, r0, x)
+
+    def test_GammaPoly_second_derivative_density_sans_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        x = x[x != r0]  # remove rho0 if it's there
+        self._test_gammapoly_second_derivative(degree, r0, x)
+
+    def test_GammaPoly_second_derivative_density_with_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        ri = np.searchsorted(x, r0)
+        if x[ri] != r0:  # add rho0 if it's not there
+            np.insert(x, ri, r0)
+        self._test_gammapoly_second_derivative(degree, r0, x)
+
+    def test_GammaPoly_integral_density_sans_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        x = x[x != r0]  # remove rho0 if it's there
+        self._test_gammapoly_integral(degree, r0, x)
+
+    def test_GammaPoly_integral_density_with_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        ri = np.searchsorted(x, r0)
+        if x[ri] != r0:  # add rho0 if it's not there
+            np.insert(x, ri, r0)
+        self._test_gammapoly_integral(degree, r0, x)
 
 
     ## if using volume (rho_is_density=False, higher pressure should correspond to lower unit volume
@@ -315,6 +415,71 @@ class TestCurveFitters(ut.TestCase):
         if x[ri] != r0:      # add rho0 if it's not there
             np.insert(x, ri, r0)
         self._test_gammapoly_func(degree, r0, x, rho_is_density=False)
+
+    def test_GammaPoly_func_volume_sans_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        x = x[x != r0]  # remove rho0 if it's there
+        self._test_gammapoly_func(degree, r0, x, rho_is_density=False)
+
+
+    def test_GammaPoly_func_volume_with_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        ri = np.searchsorted(x, r0)
+        if x[ri] != r0:      # add rho0 if it's not there
+            np.insert(x, ri, r0)
+        self._test_gammapoly_func(degree, r0, x, rho_is_density=False)
+
+    def test_GammaPoly_derivative_volume_sans_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        x = x[x != r0]  # remove rho0 if it's there
+        self._test_gammapoly_derivative(degree, r0, x, rho_is_density=False)
+
+    def test_GammaPoly_derivative_volume_with_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        ri = np.searchsorted(x, r0)
+        if x[ri] != r0:  # add rho0 if it's not there
+            np.insert(x, ri, r0)
+        self._test_gammapoly_derivative(degree, r0, x, rho_is_density=False)
+
+    def test_GammaPoly_second_derivative_volume_sans_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        x = x[x != r0]  # remove rho0 if it's there
+        self._test_gammapoly_second_derivative(degree, r0, x, rho_is_density=False)
+
+    def test_GammaPoly_second_derivative_volume_with_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        ri = np.searchsorted(x, r0)
+        if x[ri] != r0:  # add rho0 if it's not there
+            np.insert(x, ri, r0)
+        self._test_gammapoly_second_derivative(degree, r0, x, rho_is_density=False)
+
+    def test_GammaPoly_integral_volume_sans_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        x = x[x != r0]  # remove rho0 if it's there
+        self._test_gammapoly_integral(degree, r0, x, rho_is_density=False)
+
+    def test_GammaPoly_integral_volume_with_rho0(self):
+        r0 = 5
+        degree = 3
+        x = np.linspace(0.1, 10, 1000)
+        ri = np.searchsorted(x, r0)
+        if x[ri] != r0:  # add rho0 if it's not there
+            np.insert(x, ri, r0)
+        self._test_gammapoly_integral(degree, r0, x, rho_is_density=False)
 
 
 

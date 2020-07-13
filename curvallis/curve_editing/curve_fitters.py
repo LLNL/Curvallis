@@ -1556,6 +1556,14 @@ class Poly_Original(PolyBase):
         self.x_integral_ref = args.x_integral_ref
         self.y_integral_ref = args.y_integral_ref
 
+    def _set_poly(self, coeffs):
+        # Create a polynomial function using the coefficients, to be used to
+        # calculate a new curve:
+        self._f = np.poly1d(coeffs)
+        self._der = np.polyder(self._f)
+        self._int = np.polyint(self._f)
+        self._scnd_der = np.polyder(self._der)
+
     def fit_to_points(self, points):
         """ Calculate the coefficients and create the polynomial function.
         Doesn't seem to mind if the points are not in order by x.
@@ -1585,12 +1593,7 @@ class Poly_Original(PolyBase):
 
         _print_polynomial(coeffs)
 
-        # Create a polynomial function using the coefficients, to be used to
-        # calculate a new curve:
-        self._f =  np.poly1d(coeffs)
-        self._der = np.polyder(self._f)
-        self._int = np.polyint(self._f)
-        self._scnd_der = np.polyder(self._der)
+        self._set_poly(coeffs)
 
     def guess_coefficients(self, points):
         pass
@@ -2209,13 +2212,25 @@ class GammaPoly(PolyBase):
         self._loP_fitter.fit_to_points(lowP_points)
         self._is_first_fit = False
 
-    def func(self, x):
-        # TODO: if rho0 is among values of x, will return lowP fit.  Make this configurable?
+    def _eval(self, x, hiP_fn, loP_fn):
         hiP_idx, loP_idx = self._get_highP_lowP_x_indices(x)
         y = np.empty(len(x), np.float)
-        y[hiP_idx] = self._hiP_fitter.func(self._get_highP_fit_x(x[hiP_idx]))
-        y[loP_idx] = self._loP_fitter.func(self._get_lowP_fit_x(x[loP_idx]))
+        y[hiP_idx] = hiP_fn(self._get_highP_fit_x(x[hiP_idx]))
+        y[loP_idx] = loP_fn(self._get_lowP_fit_x(x[loP_idx]))
         return y
+
+    def func(self, x):
+        # TODO: if rho0 is among values of x, will return lowP fit.  Make this configurable?
+        return self._eval(x, self._hiP_fitter.func, self._loP_fitter.func)
+
+    def derivative(self, x):
+        return self._eval(x, self._hiP_fitter.derivative, self._loP_fitter.derivative)
+
+    def second_derivative(self, x):
+        return self._eval(x, self._hiP_fitter.second_derivative, self._loP_fitter.second_derivative)
+
+    def integral(self, x):
+        return self._eval(x, self._hiP_fitter.integral, self._loP_fitter.integral)
 
 factory.register (GammaPoly.name_prefix, GammaPoly)
 
