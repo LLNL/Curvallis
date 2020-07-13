@@ -31,6 +31,9 @@ from pylab import polyfit
 import math
 import bisect
 
+_min_polynomial_degree = 1
+_max_polynomial_degree = 12
+
 def define_args(parser):
     fitter_args = parser.add_argument_group(
         title='Curve fitter arguments',
@@ -230,9 +233,10 @@ class Factory(object):
         names = list(self._classes)
 
         #Only allows polynomials up to 12 to avoid crashing
-        for i in range(0, 12):
-            names.append('poly'+str(i+1))
-        names.remove('poly')
+        for pre in [Poly_Original.name_prefix, GammaPoly.name_prefix]:
+            for i in range(_min_polynomial_degree, _max_polynomial_degree+1):
+                names.append(pre+str(i))
+            names.remove(pre)
 
         names.sort()
         return names
@@ -240,7 +244,7 @@ class Factory(object):
     def get_sorted_refine_fit_names(self):
         names = []
         for i in range(0, 12):
-            names.append('poly'+str(i+1))
+            names.append(Poly_Original.name_prefix+str(i+1))
         for i in range(3, 12):
             names.append('eseries'+str(i+1))
         names.append('eseries')

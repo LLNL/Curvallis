@@ -1,9 +1,9 @@
-import warnings, unittest as ut
+import re, warnings
+import unittest as ut
 from collections import namedtuple
 
 import numpy as np
 
-from curvallis.run import CurveInteractor
 from curvallis.curve_editing import curve_fitters as cf
 
 
@@ -20,6 +20,42 @@ class TestCurveFitters(ut.TestCase):
 
     def _replace_if_zero(self, val):
         return val if val != 0 else np.spacing(1)
+
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
+    #   Factory tests
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
+
+    def test_Factory_get_sorted_fit_names_Poly_Original(self):
+        fit_names = cf.factory.get_sorted_fit_names()
+        # all expected degrees are present
+        for i in range(1, 13):
+            self.assertTrue(cf.Poly_Original.name_prefix+str(i) in fit_names)
+        # no unexpected degree is present
+        self.assertFalse(cf.Poly_Original.name_prefix in fit_names)
+        r = re.compile(cf.Poly_Original.name_prefix+'(1|2|3|4|5|6|7|8|9|10|11|12)')
+        self.assertEqual(len(list(filter(r.match, fit_names))), 12)
+
+    def test_Factory_get_sorted_fit_names_GammaPoly(self):
+        fit_names = cf.factory.get_sorted_fit_names()
+        for i in range(1, 13):
+            self.assertTrue(cf.GammaPoly.name_prefix + str(i) in fit_names)
+        # no unexpected degree is present
+        self.assertFalse(cf.GammaPoly.name_prefix in fit_names)
+        r = re.compile(cf.GammaPoly.name_prefix + '(1|2|3|4|5|6|7|8|9|10|11|12)')
+        self.assertEqual(len(list(filter(r.match, fit_names))), 12)
+
+    def test_Factory_get_sorted_refine_fit_names_Poly_Original(self):
+        refine_fit_names = cf.factory.get_sorted_refine_fit_names()
+        for i in range(1, 13):
+            self.assertTrue(cf.Poly_Original.name_prefix + str(i) in refine_fit_names)
+        # no unexpected degree is present
+        self.assertFalse(cf.Poly_Original.name_prefix in refine_fit_names)
+        r = re.compile(cf.Poly_Original.name_prefix + '(1|2|3|4|5|6|7|8|9|10|11|12)')
+        self.assertEqual(len(list(filter(r.match, refine_fit_names))), 12)
+
+
+
+
 
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
     #   Poly_Original tests
