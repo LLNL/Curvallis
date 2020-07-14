@@ -2220,8 +2220,9 @@ class GammaPoly(PolyBase):
         self._is_first_fit = False
 
     def _eval(self, x, hiP_fn, loP_fn):
+        x = np.asarray([x] if np.isscalar(x) else x)
         hiP_idx, loP_idx = self._get_highP_lowP_x_indices(x)
-        y = np.empty(len(x), np.float)
+        y = np.empty(x.shape, np.float)
         y[hiP_idx] = hiP_fn(self._get_highP_fit_x(x[hiP_idx]))
         y[loP_idx] = loP_fn(self._get_lowP_fit_x(x[loP_idx]))
         return y

@@ -137,7 +137,7 @@ class TestCurveFitters(ut.TestCase):
         poly5.fit_to_points(noisy_pts)
         np.testing.assert_array_almost_equal(poly5._f.c, actual_f.c, decimal=0)
 
-    def _test_Poly__set_poly(self):
+    def test_Poly__set_poly(self):
         deg = self._get_random_degree()
         f = self._make_random_poly1d(deg)
         df = np.polyder(f)
@@ -148,6 +148,21 @@ class TestCurveFitters(ut.TestCase):
         np.testing.assert_array_equal(poly._scnd_der.c, np.polyder(df).c)
         np.testing.assert_array_equal(poly._int.c, np.polyint(f).c)
 
+    def test_Poly_func_scalar(self):
+        deg = 3
+        p1d = self._make_random_poly1d(deg)
+        poly = cf.Poly_Original(self._make_poly_args(), 'poly{0}'.format(deg))
+        poly._set_poly(p1d.c)
+        x = 5
+        np.testing.assert_array_equal(poly.func(x), p1d(x))
+
+    def test_Poly_func_array(self):
+        deg = 3
+        p1d = self._make_random_poly1d(deg)
+        poly = cf.Poly_Original(self._make_poly_args(), 'poly{0}'.format(deg))
+        poly._set_poly(p1d.c)
+        x = range(5)
+        np.testing.assert_array_equal(poly.func(x), p1d(x))
 
 
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
@@ -208,9 +223,12 @@ class TestCurveFitters(ut.TestCase):
         gammapoly._hiP_fitter._set_poly(hiP_poly)  # artificially set these as the fits
         gammapoly._loP_fitter._set_poly(loP_poly)
         hiP_xi, loP_xi = gammapoly._get_highP_lowP_x_indices(x)
-        y = np.empty(x.shape, np.float)
-        y[hiP_xi] = hiP_poly(gammapoly._get_highP_fit_x(x[hiP_xi]))
-        y[loP_xi] = loP_poly(gammapoly._get_lowP_fit_x(x[loP_xi]))
+        y = np.empty(1 if np.isscalar(x) else x.shape, np.float)
+        if np.isscalar(x):
+            y = hiP_poly(gammapoly._get_highP_fit_x(x)) if hiP_xi.size else loP_poly(gammapoly._get_lowP_fit_x(x))
+        else:
+            y[hiP_xi] = hiP_poly(gammapoly._get_highP_fit_x(x[hiP_xi]))
+            y[loP_xi] = loP_poly(gammapoly._get_lowP_fit_x(x[loP_xi]))
         np.testing.assert_array_equal(gammapoly.func(x), y)
 
     def _test_gammapoly_derivative(self, degree, rho0, x, rho_is_density=True):
@@ -340,6 +358,12 @@ class TestCurveFitters(ut.TestCase):
         ri = np.searchsorted(x, r0)
         if x[ri] != r0:      # add rho0 if it's not there
             np.insert(x, ri, r0)
+        self._test_gammapoly_func(degree, r0, x)
+
+    def test_GammaPoly_func_density_scalar(self):
+        r0 = 5
+        degree = 3
+        x = 7.5
         self._test_gammapoly_func(degree, r0, x)
 
     def test_GammaPoly_derivative_density_sans_rho0(self):
