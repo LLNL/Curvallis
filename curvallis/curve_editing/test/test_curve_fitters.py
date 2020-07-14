@@ -225,7 +225,8 @@ class TestCurveFitters(ut.TestCase):
         hiP_xi, loP_xi = gammapoly._get_highP_lowP_x_indices(x)
         y = np.empty(1 if np.isscalar(x) else x.shape, np.float)
         if np.isscalar(x):
-            y = hiP_poly(gammapoly._get_highP_fit_x(x)) if hiP_xi.size else loP_poly(gammapoly._get_lowP_fit_x(x))
+            # function defaults to low pressure for rho0
+            y = loP_poly(gammapoly._get_lowP_fit_x(x)) if loP_xi.size else hiP_poly(gammapoly._get_highP_fit_x(x))
         else:
             y[hiP_xi] = hiP_poly(gammapoly._get_highP_fit_x(x[hiP_xi]))
             y[loP_xi] = loP_poly(gammapoly._get_lowP_fit_x(x[loP_xi]))
@@ -366,6 +367,12 @@ class TestCurveFitters(ut.TestCase):
         x = 7.5
         self._test_gammapoly_func(degree, r0, x)
 
+    def test_GammaPoly_func_density_scalar_rho0(self):
+        r0 = 5
+        degree = 3
+        x = r0
+        self._test_gammapoly_func(degree, r0, x)
+
     def test_GammaPoly_derivative_density_sans_rho0(self):
         r0 = 5
         degree = 3
@@ -503,6 +510,12 @@ class TestCurveFitters(ut.TestCase):
         ri = np.searchsorted(x, r0)
         if x[ri] != r0:      # add rho0 if it's not there
             np.insert(x, ri, r0)
+        self._test_gammapoly_func(degree, r0, x, rho_is_density=False)
+
+    def test_GammaPoly_func_volume_scalar(self):
+        r0 = 5
+        degree = 3
+        x = 5
         self._test_gammapoly_func(degree, r0, x, rho_is_density=False)
 
     def test_GammaPoly_derivative_volume_sans_rho0(self):
