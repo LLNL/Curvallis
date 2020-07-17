@@ -1,4 +1,4 @@
-import re, warnings
+import contextlib, io, re, warnings
 import unittest as ut
 from collections import namedtuple
 
@@ -20,6 +20,7 @@ class TestCurveFitters(ut.TestCase):
 
     def _replace_if_zero(self, val):
         return val if val != 0 else np.spacing(1)
+
 
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
     #   Factory tests
@@ -61,7 +62,7 @@ class TestCurveFitters(ut.TestCase):
 
     def test_Factory_make_object_of_class_GammaPoly(self):
         degree = self._get_random_degree()
-        gpoly = cf.factory.make_object_of_class(cf.GammaPoly.name_prefix+str(degree), self._make_poly_args(rho0=5))
+        gpoly = cf.factory.make_object_of_class(cf.GammaPoly.name_prefix+str(degree), self._make_gammapoly_args())
         self.assertEqual(type(gpoly), cf.GammaPoly)
         self.assertEqual(gpoly._order, degree, 'GammaPoly object has wrong degree')
         self.assertEqual(gpoly._hiP_fitter._order, degree, 'GammaPoly high pressure fitter has wrong degree')
@@ -172,6 +173,7 @@ class TestCurveFitters(ut.TestCase):
     def _get_default_gammapoly_args(self):
         gpoly_args = self._get_default_poly_args()
         gpoly_args['rho0'] = 1
+        gpoly_args['overlap'] = 2
         return gpoly_args
 
     def _make_gammapoly_args(self, **kwargs):
@@ -182,10 +184,7 @@ class TestCurveFitters(ut.TestCase):
     def _make_GammaPoly(self, degree, rho_is_density=True, **kwargs):
         return cf.GammaPoly(self._make_gammapoly_args(**kwargs), 'gammapoly{0}'.format(degree), rho_is_density)
 
-    def _make_random_GammaPoly(self, rho_is_density=True, **kwargs):
-        return self._make_GammaPoly(self._get_random_degree(), rho_is_density, **kwargs)
-
-    def _make_gammapoly_and_points(self, degree, rho0, x_min=0.1, x_max=100, num_pts=0, rho_is_density=True):
+    def _make_gammapoly_and_points(self, degree, rho0, x_min=0.1, x_max=100, num_pts=0, rho_is_density=True, **kwargs):
         """ Generates two 1-D polynomials of the specified degree (one for high pressure, the other for low)
             as well as a number of points to fit to those curves
             most parameters are analogous to those in _make_poly_and_points
@@ -206,9 +205,10 @@ class TestCurveFitters(ut.TestCase):
         if num_pts <= 0:
             num_pts = degree ** 2 + degree
         # this object will be discarded -- creating it just to use existing well-tested logic re: hi/lo pressure regimes
-        gammapoly = self._make_GammaPoly(degree, rho_is_density, rho0=rho0)
+        gammapoly = self._make_GammaPoly(degree, rho_is_density, rho0=rho0, **kwargs)
         x = np.concatenate((get_regime_x(x_min, rho0, num_pts), get_regime_x(rho0, x_max, num_pts)))
         hiP_xi, loP_xi = gammapoly._get_highP_lowP_x_indices(x)
+        # the gammapoly._get_[high|low]P_fit_x calls should ensure that overlap is handled properly
         hiP_poly, hiP_fitxy = self._make_poly_and_setpoints(degree, gammapoly._get_highP_fit_x(x[hiP_xi]))
         loP_poly, loP_fitxy = self._make_poly_and_setpoints(degree, gammapoly._get_lowP_fit_x(x[loP_xi]))
         hiP_y = [y for (fitx, y) in hiP_fitxy]
@@ -272,7 +272,7 @@ class TestCurveFitters(ut.TestCase):
         self.assertEqual(cf.GammaPoly.name_prefix, 'gammapoly')
 
     def test_GammaPoly_name_prefix_obj(self):
-        p = self._make_random_GammaPoly()
+        p = self._make_GammaPoly(self._get_random_degree())
         self.assertEqual(p.name_prefix, 'gammapoly')
 
     def test_GammaPoly___init___order(self):
@@ -285,14 +285,14 @@ class TestCurveFitters(ut.TestCase):
     ## if using density (rho_is_density=True), higher pressure should correspond to higher density
 
     def test_GammaPoly__get_highP_lowP_x_indices_density_sans_rho0(self):
-        p = self._make_random_GammaPoly(rho0=3.5)
+        p = self._make_GammaPoly(self._get_random_degree(), rho0=3.5)
         x = np.arange(10)
         hiPi, loPi = p._get_highP_lowP_x_indices(x)
         np.testing.assert_equal(hiPi, np.arange(4, 10), 'High pressure indices are incorrect')
         np.testing.assert_equal(loPi, np.arange(4), 'Low pressure indices are incorrect')
 
     def test_GammaPoly__get_highP_lowP_x_indices_density_with_rho0(self):
-        p = self._make_random_GammaPoly(rho0=3)
+        p = self._make_GammaPoly(self._get_random_degree(), rho0=3)
         x = np.arange(10)
         hiPi, loPi = p._get_highP_lowP_x_indices(x)
         # confirm rho0 point is in both sets of indices
@@ -300,49 +300,132 @@ class TestCurveFitters(ut.TestCase):
         np.testing.assert_equal(loPi, np.arange(4), 'Low pressure indices are incorrect')
 
     def test_GammaPoly__get_highP_lowP_x_indices_density_all_lowP(self):
-        p = self._make_random_GammaPoly(rho0=11)
+        p = self._make_GammaPoly(self._get_random_degree(), rho0=11)
         x = np.arange(10)
         hiPi, loPi = p._get_highP_lowP_x_indices(x)
         self.assertEqual(hiPi.size, 0, 'There should be no high pressure points')
         np.testing.assert_equal(loPi, x, 'All indices should be in the low pressure regime')
 
     def test_GammaPoly__get_highP_lowP_x_indices_density_all_highP(self):
-        p = self._make_random_GammaPoly(rho0=-1)
+        p = self._make_GammaPoly(self._get_random_degree(), rho0=-1)
         x = np.arange(10)
         hiPi, loPi = p._get_highP_lowP_x_indices(x)
         np.testing.assert_equal(hiPi, x, 'All indices should be in the high pressure regime')
         self.assertEqual(loPi.size, 0, 'There should be no low pressure points')
 
     def test_GammaPoly__get_highP_fit_x_density(self):
-        r0 = 3
-        p = self._make_random_GammaPoly(rho0=r0)
+        r0 = 3;
+        p = self._make_GammaPoly(self._get_random_degree(), rho0=r0)
         x = np.arange(4, 10)
         fit_x = p._get_highP_fit_x(x)
         np.testing.assert_equal(fit_x, np.divide(x, r0), 'High pressure density should do polynomial fit in x/rho0')
 
     def test_GammaPoly__get_lowP_fit_x_density(self):
         r0 = 5
-        p = self._make_random_GammaPoly(rho0=r0)
+        p = self._make_GammaPoly(self._get_random_degree(), rho0=r0)
         x = np.arange(r0)
         fit_x = p._get_lowP_fit_x(x)
         np.testing.assert_equal(fit_x, np.divide(r0, x), 'Low pressure density should do polynomial fit in rho0/x')
 
-    def test_GammaPoly__get_highP_lowP_fit_points_density(self):
+    def test_GammaPoly__get_highP_lowP_fit_points_density_no_overlap_with_points(self):
         r0 = 5
-        p = self._make_random_GammaPoly(rho0=r0)
+        p = self._make_GammaPoly(self._get_random_degree(), rho0=r0, overlap=0)
         data = [(0, 1), (2, 4), (3, 8), (6, 7), (8, 6)]
         hiP_points, loP_points = p._get_highP_lowP_fit_points(data)
         np.testing.assert_equal(hiP_points, np.array([(6/r0, 7), (8/r0, 6)]), 'High pressure points are incorrect')
         np.testing.assert_equal(loP_points, np.array([(np.inf, 1), (r0/2, 4), (r0/3, 8)]), 'Low pressure points are incorrect')
 
+    def test_GammaPoly__get_highP_lowP_fit_points_density_no_overlap_no_highP_points(self):
+        r0 = 10
+        p = self._make_GammaPoly(self._get_random_degree(), rho0=r0, overlap=0)
+        data = [(0, 1), (2, 4), (3, 8), (6, 7), (8, 6)]
+        hiP_points, loP_points = p._get_highP_lowP_fit_points(data)
+        self.assertFalse(len(hiP_points) > 0, "High pressure points are incorrect")
+        np.testing.assert_equal(loP_points, np.array([(np.inf, 1), (r0/2, 4), (r0/3, 8), (r0/6, 7), (r0/8, 6)]),
+                                'Low pressure points are incorrect')
+
+    def test_GammaPoly__get_highP_lowP_fit_points_density_no_overlap_no_lowP_points(self):
+        r0 = 1.5
+        p = self._make_GammaPoly(self._get_random_degree(), rho0=r0, overlap=0)
+        data = [(2, 4), (3, 8), (6, 7), (8, 6)]
+        hiP_points, loP_points = p._get_highP_lowP_fit_points(data)
+        np.testing.assert_equal(hiP_points, np.array([(2/r0, 4), (3/r0, 8), (6/r0, 7), (8/r0, 6)]),
+                                'High pressure points are incorrect')
+        self.assertFalse(len(loP_points) > 0, 'Low pressure points are incorrect')
+
+    def test_GammaPoly__get_highP_lowP_fit_points_density_overlap_no_highP_points(self):
+        r0 = 10
+        p = self._make_GammaPoly(self._get_random_degree(), rho0=r0, overlap=2)
+        data = [(0, 1), (2, 4), (3, 8), (6, 7), (8, 6)]
+        hiP_points, loP_points = p._get_highP_lowP_fit_points(data)
+        self.assertFalse(len(hiP_points) > 0, "There should be no high pressure points")
+        np.testing.assert_equal(loP_points, np.array([(np.inf, 1), (r0 / 2, 4), (r0 / 3, 8), (r0 / 6, 7), (r0 / 8, 6)]),
+                                'Low pressure points are incorrect')
+
+    def test_GammaPoly__get_highP_lowP_fit_points_density_overlap_no_lowP_points(self):
+        r0 = 1.5
+        p = self._make_GammaPoly(self._get_random_degree(), rho0=r0, overlap=2)
+        data = [(2, 4), (3, 8), (6, 7), (8, 6)]
+        hiP_points, loP_points = p._get_highP_lowP_fit_points(data)
+        np.testing.assert_equal(hiP_points, np.array([(2 / r0, 4), (3 / r0, 8), (6 / r0, 7), (8 / r0, 6)]),
+                                'High pressure points are incorrect')
+        self.assertFalse(len(loP_points) > 0, 'There should be no low pressure points')
+
+    def test_GammaPoly__get_highP_lowP_fit_points_density_overlap_insufficient_points(self):
+        r0 = 5
+        p = self._make_GammaPoly(self._get_random_degree(), rho0=r0, overlap=3)
+        data = [(2, 4), (3, 8), (6, 7), (8, 6)]
+        hiP_points, loP_points = p._get_highP_lowP_fit_points(data)
+        np.testing.assert_equal(hiP_points, np.array([(2 / r0, 4), (3 / r0, 8), (6 / r0, 7), (8 / r0, 6)]),
+                                'High pressure points are incorrect')
+        np.testing.assert_equal(loP_points, np.array([(r0 / 2, 4), (r0 / 3, 8), (r0 / 6, 7), (r0 / 8, 6)]),
+                                'Low pressure points are incorrect')
+
+    def test_GammaPoly__get_highP_lowP_fit_points_density_overlap_equal_points(self):
+        r0 = 5
+        p = self._make_GammaPoly(self._get_random_degree(), rho0=r0, overlap=2)
+        data = [(2, 4), (3, 8), (6, 7), (8, 6)]
+        hiP_points, loP_points = p._get_highP_lowP_fit_points(data)
+        np.testing.assert_equal(hiP_points, np.array([(2/r0, 4), (3 / r0, 8), (6 / r0, 7), (8 / r0, 6)]),
+                                'High pressure points are incorrect')
+        np.testing.assert_equal(loP_points, np.array([(r0/2, 4), (r0/3, 8), (r0/6, 7), (r0/8, 6)]),
+                                'Low pressure points are incorrect')
+
+    def test_GammaPoly__get_highP_lowP_fit_points_density_overlap_extra_points(self):
+        r0 = 5
+        p = self._make_GammaPoly(self._get_random_degree(), rho0=r0, overlap=1)
+        data = [(0, 1), (2, 4), (3, 8), (6, 7), (8, 6)]
+        hiP_points, loP_points = p._get_highP_lowP_fit_points(data)
+        np.testing.assert_equal(hiP_points, np.array([(3 / r0, 8), (6 / r0, 7), (8 / r0, 6)]),
+                                'High pressure points are incorrect')
+        np.testing.assert_equal(loP_points, np.array([(np.inf, 1), (r0/2, 4), (r0/3, 8), (r0/6, 7)]),
+                                'Low pressure points are incorrect')
+
     def test_GammaPoly_fit_to_points_density(self):
         r0 = 5
         degree = 3
-        gammapoly, hiP_poly, hiP_pts, loP_poly, loP_pts = self._make_gammapoly_and_points(degree, r0, x_min=1, x_max=10)
+        gammapoly, hiP_poly, hiP_pts, loP_poly, loP_pts = \
+            self._make_gammapoly_and_points(degree, r0, x_min=1, x_max=10, overlap=0)
         points = np.concatenate((loP_pts, hiP_pts))
         gammapoly.fit_to_points(points)
         np.testing.assert_array_almost_equal(gammapoly._hiP_fitter._f.c, hiP_poly.c, decimal=0, err_msg='Bad high pressure fit')
         np.testing.assert_array_almost_equal(gammapoly._loP_fitter._f.c, loP_poly.c, decimal=0, err_msg='Bad low pressure fit')
+
+    def test_GammaPoly_fit_to_points_density_print(self):
+        r0 = 5
+        degree = 3
+        gammapoly, hiP_poly, hiP_pts, loP_poly, loP_pts = \
+            self._make_gammapoly_and_points(degree, r0, x_min=1, x_max=10, overlap=0)
+        points = np.concatenate((loP_pts, hiP_pts))
+        # capture stdout
+        stream = io.StringIO()
+        with contextlib.redirect_stdout(stream):
+            gammapoly.fit_to_points(points)
+        output = stream.getvalue().split('\n')      # for some reason readline wasn't working properly
+        self.assertEqual(output[0], 'High pressure fit, where x = {0}/{0}{1}'.format(cf.rho, cf.naught))
+        self.assertEqual(output[4], 'Low pressure fit, where x = {0}{1}/{0}'.format(cf.rho, cf.naught))
+        stream.close()
+
 
     def test_GammaPoly_func_density_sans_rho0(self):
         r0 = 5
@@ -426,14 +509,14 @@ class TestCurveFitters(ut.TestCase):
 
     def test_GammaPoly__get_highP_lowP_x_indices_volume_sans_rho0(self):
         # if using volume, high pressure should correspond to low unit volume
-        p = self._make_random_GammaPoly(rho_is_density=False, rho0=3.5)
+        p = self._make_GammaPoly(self._get_random_degree(), rho_is_density=False, rho0=3.5)
         x = np.arange(10)
         hiPi, loPi = p._get_highP_lowP_x_indices(x)
         np.testing.assert_equal(hiPi, np.arange(4), 'High pressure indices are incorrect')
         np.testing.assert_equal(loPi, np.arange(4, 10), 'Low pressure indices are incorrect')
 
     def test_GammaPoly__get_highP_lowP_x_indices_volume_with_rho0(self):
-        p = self._make_random_GammaPoly(rho_is_density=False, rho0=3)
+        p = self._make_GammaPoly(self._get_random_degree(), rho_is_density=False, rho0=3)
         x = np.arange(10)
         hiPi, loPi = p._get_highP_lowP_x_indices(x)
         # confirm rho0 point is in both sets of indices
@@ -441,14 +524,14 @@ class TestCurveFitters(ut.TestCase):
         np.testing.assert_equal(loPi, np.arange(3, 10), 'Low pressure indices are incorrect')
 
     def test_GammaPoly__get_highP_lowP_x_indices_volume_all_lowP(self):
-        p = self._make_random_GammaPoly(rho_is_density=False, rho0=-1)
+        p = self._make_GammaPoly(self._get_random_degree(), rho_is_density=False, rho0=-1)
         x = np.arange(10)
         hiPi, loPi = p._get_highP_lowP_x_indices(x)
         self.assertEqual(hiPi.size, 0, 'There should be no high pressure points')
         np.testing.assert_equal(loPi, x, 'All indices should be in the low pressure regime')
 
     def test_GammaPoly__get_highP_lowP_x_indices_volume_all_highP(self):
-        p = self._make_random_GammaPoly(rho_is_density=False, rho0=11)
+        p = self._make_GammaPoly(self._get_random_degree(), rho_is_density=False, rho0=11)
         x = np.arange(10)
         hiPi, loPi = p._get_highP_lowP_x_indices(x)
         np.testing.assert_equal(hiPi, x, 'All indices should be in the high pressure regime')
@@ -456,14 +539,14 @@ class TestCurveFitters(ut.TestCase):
 
     def test_GammaPoly__get_highP_fit_x_volume(self):
         r0 = 5
-        p = self._make_random_GammaPoly(rho_is_density=False, rho0=r0)
+        p = self._make_GammaPoly(self._get_random_degree(), rho_is_density=False, rho0=r0)
         x = np.arange(0, 5)
         fit_x = p._get_highP_fit_x(x)
         np.testing.assert_equal(fit_x, np.divide(r0, x), 'High pressure volume should do polynomial fit in V0/x')
 
-    def test_GammaPoly__get_highP_lowP_fit_points_volume(self):
+    def test_GammaPoly__get_highP_lowP_fit_points_volume_no_overlap(self):
         r0 = 5
-        p = self._make_random_GammaPoly(rho_is_density=False, rho0=r0)
+        p = self._make_GammaPoly(self._get_random_degree(), rho_is_density=False, rho0=r0, overlap=0)
         data = [(0, 1), (2, 4), (3, 8), (6, 7), (8, 6)]
         hiP_points, loP_points = p._get_highP_lowP_fit_points(data)
         np.testing.assert_equal(hiP_points, np.array([(np.inf, 1), (r0/2, 4), (r0/3, 8)]), 'High pressure points are incorrect')
@@ -472,11 +555,25 @@ class TestCurveFitters(ut.TestCase):
     def test_GammaPoly_fit_to_points_volume(self):
         r0 = 5; degree = 3
         gammapoly, hiP_poly, hiP_pts, loP_poly, loP_pts = \
-            self._make_gammapoly_and_points(degree, r0, x_min=1, x_max=10, rho_is_density=False)
+            self._make_gammapoly_and_points(degree, r0, x_min=1, x_max=10, rho_is_density=False, overlap=0)
         points = np.concatenate((loP_pts, hiP_pts))  # order of points shouldn't matter
         gammapoly.fit_to_points(points)
         np.testing.assert_array_almost_equal(gammapoly._hiP_fitter._f.c, hiP_poly.c, decimal=0, err_msg='Bad high pressure fit')
         np.testing.assert_array_almost_equal(gammapoly._loP_fitter._f.c, loP_poly.c, decimal=0, err_msg='Bad low pressure fit')
+
+    def test_GammaPoly_fit_to_points_volume_print(self):
+        r0 = 5; degree = 3
+        gammapoly, hiP_poly, hiP_pts, loP_poly, loP_pts = \
+            self._make_gammapoly_and_points(degree, r0, x_min=1, x_max=10, rho_is_density=False, overlap=0)
+        points = np.concatenate((loP_pts, hiP_pts))
+        # capture stdout
+        stream = io.StringIO()
+        with contextlib.redirect_stdout(stream):
+            gammapoly.fit_to_points(points)
+        output = stream.getvalue().split('\n')  # for some reason readline wasn't working properly
+        self.assertEqual(output[0], 'High pressure fit, where x = V{0}/V'.format(cf.naught))
+        self.assertEqual(output[4], 'Low pressure fit, where x = V/V{0}'.format(cf.naught))
+        stream.close()
 
     def test_GammaPoly_fit_to_points_func_volume_sans_rho0(self):
         r0 = 5

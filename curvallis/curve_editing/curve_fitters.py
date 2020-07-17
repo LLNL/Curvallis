@@ -34,6 +34,8 @@ import re
 
 _min_polynomial_degree = 1
 _max_polynomial_degree = 12
+rho = '\u03c1'
+naught = '\u2080'
 
 def define_args(parser):
     fitter_args = parser.add_argument_group(
@@ -2166,6 +2168,7 @@ class GammaPoly(PolyBase):
         self._order = int(name[len(self.name_prefix):])
         self._is_first_fit = True
         self.rho0 = args.rho0
+        self._overlap = args.overlap
         # create two fitters: one for high P data and one for low P data
         fname = '{0}{1}'.format(Poly_Original.name_prefix, self._order)
         self._hiP_fitter = Poly_Original(args, fname)
@@ -2201,21 +2204,56 @@ class GammaPoly(PolyBase):
         return np.divide(*x1_x2)    # use numpy to correctly handle divide by 0
 
     def _get_highP_lowP_fit_points(self, points):
+        """ Gets high pressure and low pressure points for fitting
+        x values in points are converted to the appropriate expression depending on whether x is density or volume
+        Includes some overlap with the other domain as dictated by the overlap parameter
+
+        :param points: numpy array of (x,y) points to fit, sorted by x
+                    and with x in terms of density or volume as indicated by the rho_is_density arg
+        :return: Two arrays of (fit_x, y) 2-tuples, where fit_x is in terms of some ratio with the reference density
+                    the first array gives points for the high pressure fit
+                    the second array gives points for the low pressure fit
+        """
+        def get_overlap_point_count(pt_count):
+            return self._overlap if pt_count > self._overlap else pt_count
+        def add_points_to_end(orig_points_idx, points_to_add_idx, point_count):
+            # append the first point_count points from points_to_add to the end of original_points
+            return np.append(orig_points_idx, points_to_add_idx[0:point_count]) if point_count else orig_points_idx
+        def add_points_to_beginning(orig_points_idx, points_to_add_idx, point_count):
+            # insert the first point_count points from points_to_add at the beginning of original_points
+            return np.insert(orig_points_idx, 0, points_to_add_idx[-1 * point_count:]) if point_count else orig_points_idx
+
         points = np.array(points)  # wrap for easier indexing; if already a numpy.ndarray, this won't do anything
         hiP_idx, loP_idx = self._get_highP_lowP_x_indices([x for (x,y) in points])
-        hiP_fit_pts = [(self._get_highP_fit_x(x), y) for (x, y) in points[hiP_idx]]
-        # for low pressure, fit a polynomial in rho0/rho or V/V0
-        loP_fit_pts = [(self._get_lowP_fit_x(x), y) for (x, y) in points[loP_idx]]
+        # add overlap points to non-empty domains
+        add_hi2lo_ct = get_overlap_point_count(len(hiP_idx)) if len(loP_idx) else 0
+        add_lo2hi_ct = get_overlap_point_count(len(loP_idx)) if len(hiP_idx) else 0
+        if self._rho_is_density:    # x values are in density (high pressure means high density)
+            upd_hiP_idx = add_points_to_beginning(hiP_idx, loP_idx, add_lo2hi_ct)
+            upd_loP_idx = add_points_to_end(loP_idx, hiP_idx, add_hi2lo_ct)  # must make second object since hiP_idx changed
+        else:                       # x values are in unit volume (high pressure means low unit volume)
+            upd_hiP_idx = add_points_to_end(hiP_idx, loP_idx, add_lo2hi_ct)
+            upd_loP_idx = add_points_to_beginning(loP_idx, hiP_idx, add_hi2lo_ct)
+        hiP_fit_pts = np.array([(self._get_highP_fit_x(x), y) for (x, y) in points[upd_hiP_idx]])
+        loP_fit_pts = np.array([(self._get_lowP_fit_x(x), y) for (x, y) in points[upd_loP_idx]])
         return hiP_fit_pts, loP_fit_pts
 
     def guess_coefficients(self, points):
         pass
 
     def fit_to_points(self, points):
+        def _get_fit_description(is_hiP):
+            out = '{0} pressure fit, where x = {1}'
+            if self._rho_is_density:
+                x = rho+'/'+rho+naught if is_hiP else rho+naught+'/'+rho
+            else:
+                x = 'V'+naught+'/V' if is_hiP else 'V/V'+naught
+            return out.format('High' if is_hiP else 'Low', x)
+
         highP_points, lowP_points = self._get_highP_lowP_fit_points(points)
-        print('High pressure fit')
+        print(_get_fit_description(True))
         self._hiP_fitter.fit_to_points(highP_points)
-        print('Low pressure fit')
+        print(_get_fit_description(False))
         self._loP_fitter.fit_to_points(lowP_points)
         self._is_first_fit = False
 
