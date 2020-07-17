@@ -227,16 +227,19 @@ class Factory(object):
     """
     def __init__(self):
         self._classes = dict()
+        self._poly_classes = dict()  # classes that expect users to specify polynomial order in the fit_type name
 
     def register(self, name, classs):
         assert name not in self._classes
         self._classes[name] = classs
+        if issubclass(classs, PolyBase):
+            self._poly_classes[classs.name_prefix] = classs
 
     def get_sorted_fit_names(self):
         names = list(self._classes)
 
         #Only allows polynomials up to 12 to avoid crashing
-        for pre in [Poly_Original.name_prefix, GammaPoly.name_prefix]:
+        for pre in self._poly_classes.keys():
             for i in range(_min_polynomial_degree, _max_polynomial_degree+1):
                 names.append(pre+str(i))
             names.remove(pre)
@@ -256,7 +259,7 @@ class Factory(object):
         return names
 
     def make_object_of_class(self, name, args):
-        r = re.compile('({0}|{1})\d+'.format(Poly_Original.name_prefix, GammaPoly.name_prefix))
+        r = re.compile('({0})\d+'.format('|'.join(self._poly_classes.keys())))
         polymatch = r.match(name)
         if polymatch:
             return self._classes[polymatch.group(1)](args, name)
@@ -267,6 +270,19 @@ class Factory(object):
 
 factory = Factory()
 
+class MetaPoly(ABCMeta):
+    @property
+    def name_prefix(cls):
+        return cls._name_prefix
+
+class PolyBase(object, metaclass=MetaPoly):
+    """
+    Base class for fitters that specify polynomial order in the fit_type name
+    Must be defined before any call to factory.register()
+    """
+    @property
+    def name_prefix(self):
+        return type(self).name_prefix
 
 class Base_Fit_Class(object):
     """ Call fit to (re-)calculate the parameters for the function, which are
@@ -1538,15 +1554,7 @@ def _print_polynomial(coeffs):
 
 # Old polynomial fit calculator:
 
-class MetaPoly(ABCMeta):
-    @property
-    def name_prefix(cls):
-        return cls._name_prefix
 
-class PolyBase(object, metaclass=MetaPoly):
-    @property
-    def name_prefix(self):
-        return type(self).name_prefix
 
 class Poly_Original(PolyBase):
     _name_prefix = 'poly'
@@ -2279,6 +2287,15 @@ class GammaPoly(PolyBase):
         return self._eval(x, self._hiP_fitter.integral, self._loP_fitter.integral)
 
 factory.register (GammaPoly.name_prefix, GammaPoly)
+
+class GammaPolyV(GammaPoly):
+    _name_prefix = 'gammapolyv'
+
+    def __init__(self, args, name):
+        super().__init__(args, name, rho_is_density=False)
+
+factory.register(GammaPolyV.name_prefix, GammaPolyV)
+
 
 
 
