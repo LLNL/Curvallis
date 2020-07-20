@@ -120,7 +120,7 @@ Options can be entered by either command line or initialization file. All option
 
    - **--overlap _int_ (Default: 2)**
 
-   Specify how many points to overlap on region edges for calculating fitted curves. Regions themselves can't overlap, but points in other regions can be used for fitting so that fit curves align better at boundary areas. If there aren't enough points in a region for the overlap, the total number of points in that region will be used instead.
+   Specify how many points to overlap on region edges for calculating fitted curves, or between high and low pressure regimes for a gammapoly or gammapolyv fit. Regions themselves can't overlap, but points in other regions can be used for fitting so that fit curves align better at boundary areas. If there aren't enough points in a region for the overlap, the total number of points in that region will be used instead.
 
    - **--numpoints _int_ (Default: 5)**
 
@@ -213,7 +213,7 @@ Options can be entered by either command line or initialization file. All option
 
    - **--v_axis**
 
-   Use "v" as the x axis instead of "rho". When using this option fit curves will not fit the data correctly. This essentially makes x = 1/x for each input point.
+   Use "v" as the x axis instead of "rho". When using this option fit curves will not fit the data correctly. This essentially makes x = 1/x for each input point.  DO NOT USE THIS OPTION with a gammapoly or gammapoly fit.
 
 ### View arguments
 **View arguments** determine what starts out displayed on the screen. For example, "x_max" could be set to 200 when the data extends to 2000 and the default view will be from the minimum data point to 200. If only some of these options are set, the others are determined by the minimum and maximum x and y values of the data.
@@ -240,7 +240,7 @@ Options can be entered by either command line or initialization file. All option
    - **--fit_type _fit_ _fit_ ... (Default: poly5)**
 
    Select an equation to fit to the data points for each region. For example, if you have three regions, "--fit_type none poly5 birch3" would set no equation for the first region, "poly5" for the second region, and "birch3" for the third region. Regions are ordered from smallest to greatest x value. If a fit type is not specified for any region, then the default "poly5" equation will be used. This means if there are five regions, but only three fit types, the the last two regions will be set to "poly5". The available equations are:
-    anton, ap1, ap2, bardeen, birch2, birch3, birch4, ebirch3, ebirch4, emurnaghan, evinet, johnson, kumari, log, log2, murnaghan, none, poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11, poly12, sandiapc, shank, vinet, highp.
+    anton, ap1, ap2, bardeen, birch2, birch3, birch4, ebirch3, ebirch4, emurnaghan, evinet, gammapoly[1-12] (when fitting gamma as a function of density), gammapolyv[1-12] (fitting gamma as a function of unit volume), johnson, kumari, log, log2, murnaghan, none, poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11, poly12, sandiapc, shank, vinet, highp.
     Options starting with an "e" are energy equations, "poly_n_" are nth degree polynomials, and the rest are pressure. Only some of these equations have been thoroughly tested to check if they work properly. These are:
     birch2, birch3, birch4, ebirch3, ebirch4, emurnaghan, evinet, murnaghan, none, all polys, vinet.
     When inputting this argument in a configuration file, make sure to enclose all options in brackets.
@@ -272,7 +272,7 @@ Options can be entered by either command line or initialization file. All option
 
    - **--rho0_guess _positive float_**
 
-   Set an initial guess for equilibrium density (rho0) or fixed guess if using the fitter "sandiapc".
+   Set an initial guess for equilibrium density (rho0) or fixed guess if using one of the following fitters: sandiapc, gammapoly[1-12], gammapolyv[1-12].  For gammapoly fits, rho0_guess is in density.  For gammapolyv fits, rho0_guess is in unit volume.
 
    - **--scale_derivative_by _float_ (Default: 1000)**
 
