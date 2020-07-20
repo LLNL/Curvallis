@@ -15,6 +15,7 @@ Setup file for curvallis
 @author: Eric Heinke (sudo-Eric)
 """
 
+from curvallis.version import version as VERSION_STRING
 from sys import version_info as version
 from sys import argv
 import subprocess
@@ -30,7 +31,7 @@ def vprint(message): # For verbose output
     if(args.verbose):
         print(message)
 def version_info(): # Version information
-    return ("Curvallis readiness tool version " + version_number + " (" + version_string + ")")
+    return ("Curvallis readiness tool version " + VERSION_STRING)
 def decode_python_version(ver): # Decode python version
     tmp = ""
     new_ver = []
@@ -115,8 +116,6 @@ def check_pip():
 
 # Start initial variables
 ##################################################
-version_number = "1.3"
-version_string = "6/14/2020"
 modules_needed = []
 py_ver = [0,0,0,"()"]
 # Format for modules: ["module_name","module_version"] where "0" means latest version.

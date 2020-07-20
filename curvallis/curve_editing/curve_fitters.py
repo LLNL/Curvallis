@@ -30,6 +30,7 @@ import scipy.interpolate as interp
 from pylab import polyfit
 import math
 import bisect
+from curvallis.version import version as VERSION_STRING
 
 def define_args(parser):
     fitter_args = parser.add_argument_group(

@@ -15,6 +15,7 @@ Setup file for curvallis
 @author: Eric Heinke (sudo-Eric)
 """
 
+from curvallis.version import version as VERSION_STRING
 from sys import version_info as version
 from sys import argv
 import subprocess
@@ -36,7 +37,7 @@ def display_help(): # Help message
     print("\t\tenvironment in (leave blank for current directory)")
     exit()
 def version_info(): # Version information
-    return ("Virtual python environment tools version " + version_number + " (" + version_string + ")")
+    return ("Virtual python environment tools version " + VERSION_STRING)
 def check_pip():
     try:
         subprocess.check_output([sys.executable,"-m" "pip","--version"])
@@ -95,8 +96,6 @@ def install_venv():
 
 # Start initial variables
 ##################################################
-version_number = "1.3"
-version_string = "6/14/2020"
 py_ver = [version.major,version.minor,version.micro,version.releaselevel]
 ##################################################
 # End initial variables

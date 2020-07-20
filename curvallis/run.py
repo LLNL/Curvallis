@@ -32,8 +32,7 @@ from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 from matplotlib.widgets import RectangleSelector
 from curvallis.curve_editing import curve_fitters, io, lines, regions, configargparse
 from math import log10
-
-VERSION_STRING = '2020-06-02 03:13PM'
+from curvallis.version import version as VERSION_STRING
 
 # Overwrite Panning and Zooming Functions
 PAN_ENABLED = False

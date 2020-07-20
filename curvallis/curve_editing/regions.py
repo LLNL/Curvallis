@@ -21,6 +21,7 @@ from pylab import polyfit
 import numpy as np
 from operator import itemgetter
 from math import log10
+from curvallis.version import version as VERSION_STRING
 
 _INFINITY = float ('inf')
 
