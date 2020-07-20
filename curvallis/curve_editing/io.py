@@ -265,7 +265,7 @@ def process_args (parser, args):
                      'predefined_in']
         num_set = 0
         for arg in arg_names:
-            if args.__dict__[arg] != parser.get_default(arg):
+            if getattr(args, arg) != parser.get_default(arg):
                 num_set += 1
         if num_set != 1:
             parser.error('must set exactly one of: %s' % arg_names)
@@ -276,7 +276,7 @@ def process_args (parser, args):
         arg_names = ['out_eos_file_base', 'output_file_name']
         num_set = 0
         for arg in arg_names:
-            if args.__dict__[arg] != parser.get_default(arg):
+            if getattr(args, arg) != parser.get_default(arg):
                 num_set += 1
         if num_set > 1:
             parser.error('must set no more than one of: %s' % arg_names)
@@ -294,9 +294,10 @@ def process_args (parser, args):
             be forced to enter the constant "rho0" instead of
             Curvallis gussing it.
         """
-        r = re.compile(cf.GammaPoly.name_prefix+'\d+')
+        r = re.compile('('+'|'.join([cf.GammaPoly.name_prefix, cf.GammaPolyV.name_prefix])+')\d+')
         if args.rho0 is None and ("sandiapc" in args.fit_type or list(filter(r.match, args.fit_type))):
-            parser.error('If using fitter "sandiapc" or "gammapoly", you must give a value for "rho0_guess".')
+            parser.error('If using fitter "sandiapc", "{0}", or "{1}", you must give a value for "rho0_guess".'.format(
+                cf.GammaPoly.name_prefix, cf.GammaPolyV.name_prefix))
 
     def check_region_divisions():
         """ Prevent the user from trying to define regions with both the

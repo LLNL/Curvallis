@@ -1,11 +1,13 @@
 import contextlib, io, re, warnings
 import unittest as ut
-from collections import namedtuple
 
 import numpy as np
 
+print('__file__={0:<35} | __name__={1:<20} | __package__={2:<20}'.format(__file__,__name__,str(__package__)))
+
+
 from curvallis.curve_editing import curve_fitters as cf
-import curvallis.curve_editing.test.test_utilities as util
+import test_utilities as util
 
 
 class TestCurveFitters(ut.TestCase):
