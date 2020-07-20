@@ -14,7 +14,7 @@ Scipy can be difficult to install, so it may have to be installed manually if th
 To install this program, type "python setup.py" into a terminal in the directory containing 'setup.py'.
 Run 'python setup.py --help' for more instalation options.
 
-For those adding features to Curvallis there is a versioning system for automaticly updating the version string of Curvallis. To enable or update this feature add the "--versioning" argument to the setup program.
+For those adding features to Curvallis there is a versioning system for automatically updating the version string of Curvallis. To enable or update this feature add the "--versioning" argument to the setup program. You should only need to run the versioning setup once and the feature will be enabled for your local repository indefinitely.
 
 Virtual Python Environments
 ---------------------------
