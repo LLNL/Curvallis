@@ -116,7 +116,7 @@ def write_hook(hook_code):
     for line in hook_code:
         hook.write(line + "\n")
     hook.close()
-
+    subprocess.check_call(["chmod","+x","./.git/hooks/pre-commit"])
 def update_hook(hook_code):
     pre_commit_file = open(".git/hooks/pre-commit",'r')
     old_hook = []
