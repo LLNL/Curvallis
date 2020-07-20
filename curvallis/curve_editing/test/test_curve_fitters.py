@@ -5,6 +5,7 @@ from collections import namedtuple
 import numpy as np
 
 from curvallis.curve_editing import curve_fitters as cf
+import curvallis.curve_editing.test.test_utilities as util
 
 
 class TestCurveFitters(ut.TestCase):
@@ -13,10 +14,6 @@ class TestCurveFitters(ut.TestCase):
 
     def tearDown(self):
         warnings.resetwarnings()
-
-    def _make_args(self, **kwargs):
-        Args = namedtuple('Args', kwargs.keys())
-        return Args(*kwargs.values())
 
     def _replace_if_zero(self, val):
         return val if val != 0 else np.spacing(1)
@@ -95,7 +92,7 @@ class TestCurveFitters(ut.TestCase):
         """ use **kwargs to overwrite or add to defaults from _get_default_poly_args """
         poly_args = self._get_default_poly_args()
         poly_args.update(**kwargs)
-        return self._make_args(**poly_args)
+        return util.make_args(**poly_args)
 
     def _make_poly_and_points(self, degree, x_min=0, x_max=100, num_pts=0):
         """ Generates a random polynomial of the specified degree and a number of points along that curve
@@ -186,7 +183,7 @@ class TestCurveFitters(ut.TestCase):
     def _make_gammapoly_args(self, **kwargs):
         gpoly_args = self._get_default_gammapoly_args()
         gpoly_args.update(**kwargs)     # will overwrite any defaults
-        return self._make_args(**gpoly_args)
+        return util.make_args(**gpoly_args)
 
     def _make_GammaPoly(self, degree, rho_is_density=True, **kwargs):
         return cf.GammaPoly(self._make_gammapoly_args(**kwargs), 'gammapoly{0}'.format(degree), rho_is_density)
