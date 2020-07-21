@@ -8,7 +8,7 @@ Curvallis has the following dependencies which should be installed automatically
 
 matplotlib, Tkinter, numpy, scipy, argparse
 
-Scipy can be difficult to install, so it may have to be installed manually if the installer fails. This installer has been tested using Python v 2.7.17, Python v 3.6.9, and Python v 3.8.1.
+Scipy can be difficult to install, so it may have to be installed manually if the installer fails. Although the installer has been tested using Python v 2.7.17, Python v 3.6.9, and Python v 3.8.1, the program itself requires Python 3.
 
 To install this program, type "python setup.py" into a terminal in the directory containing 'setup.py'.
 Run 'python setup.py --help' for more instalation options.
