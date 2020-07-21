@@ -307,14 +307,14 @@ class TestCurveFitters(ut.TestCase):
         p = self._make_GammaPoly(self._get_random_degree(), rho0=r0)
         x = np.arange(4, 10)
         fit_x = p._get_highP_fit_x(x)
-        np.testing.assert_equal(fit_x, np.divide(x, r0), 'High pressure density should do polynomial fit in x/rho0')
+        np.testing.assert_equal(fit_x, np.divide(x, r0), 'High pressure density should do polynomial fit in rho/rho0')
 
     def test_GammaPoly__get_lowP_fit_x(self):
         r0 = 5
         p = self._make_GammaPoly(self._get_random_degree(), rho0=r0)
         x = np.arange(r0)
         fit_x = p._get_lowP_fit_x(x)
-        np.testing.assert_equal(fit_x, np.divide(r0, x), 'Low pressure density should do polynomial fit in rho0/x')
+        np.testing.assert_equal(fit_x, np.divide(r0, x), 'Low pressure density should do polynomial fit in rho0/rho')
 
     def test_GammaPoly__get_highP_lowP_fit_points_no_overlap_with_points(self):
         r0 = 5
@@ -583,14 +583,14 @@ class TestCurveFitters(ut.TestCase):
         gpv = self._make_GammaPolyV(self._get_random_degree(), rho0=r0)
         x = np.arange(0, 5)
         fit_x = gpv._get_highP_fit_x(x)
-        np.testing.assert_equal(fit_x, np.divide(r0, x), 'High pressure volume should do polynomial fit in V0/x')
+        np.testing.assert_equal(fit_x, np.divide(r0, x), 'High pressure volume should do polynomial fit in V0/V')
 
     def test_GammaPolyV__get_lowP_fit_x(self):
         r0 = 5
         gpv = self._make_GammaPolyV(self._get_random_degree(), rho0=r0)
         x = np.arange(0, 5)
         fit_x = gpv._get_lowP_fit_x(x)
-        np.testing.assert_equal(fit_x, np.divide(x, r0), 'Low pressure volume should do polynomial fit in V0/x')
+        np.testing.assert_equal(fit_x, np.divide(x, r0), 'Low pressure volume should do polynomial fit in V/V0')
 
     def test_GammaPolyV__get_highP_lowP_fit_points_no_overlap_with_points(self):
         r0 = 5
