@@ -7,7 +7,7 @@ Reference [Curvallis enhancement request 5](https://github.com/LLNL/Curvallis/is
 ## GammaPoly
 The GammaPoly fitter tries to fit the Gr&#252;neisen parameter (gamma) as a function of density (rho) using separate 
 polynomials (both of the same degree) for high and low pressure regimes.  To determine whether any particular density is 
-high or low pressure, it uses a reference density rho0, which is set with parameter `rho0_guess`.  Low 
+high or low pressure, it uses a reference density rho0, which must be set with parameter `rho0_guess`.  Low 
 pressure values are where rho <= rho0 and high pressure values are where rho >= rho0.  Note that if rho0 is included in 
 the data set, the point will be used by both fitters.  The plotted value for rho0 will be that of the low pressure fit.
 
