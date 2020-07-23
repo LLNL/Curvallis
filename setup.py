@@ -143,6 +143,11 @@ def update_hook(hook_code):
 
 # Start initial variables
 ##################################################
+<<<<<<< HEAD
+=======
+version_number = "1.3"
+version_string = "7/17/2020"
+>>>>>>> 14acf9a0dcd49128a2f428d485f9e1a24502c7d5
 modules_needed = []
 py_ver = [0,0,0,"()"]
 # Format for modules: ["module_name","module_version"] where "0" means latest version.
@@ -178,7 +183,7 @@ if(not(args.environment == None)):
     subprocess.check_call([sys.executable, "venv_tools.py"] + args.environment)
     exit()
 if(args.level < 1 or args.level > 3):
-    print("Instalation level must be between 1 and 3.")
+    print("Installation level must be between 1 and 3.")
     exit()
 if(args.python == None):
     py_ver = [version.major,version.minor,version.micro,version.releaselevel]
@@ -258,7 +263,7 @@ for module in modules_needed:
 
 # Begin module installer
 ##################################################
-print("Beginning instalation...")
+print("Beginning installation...")
 for i in modules_needed:
     install_package(i[0],i[1])
 print("Done.")

@@ -13,12 +13,17 @@
 from abc import ABCMeta, abstractmethod
 import copy
 import os
+import re
 from operator import itemgetter
 import numpy as np
 import pprint
 import curvallis.curve_editing.eos_data_io as eos_data_io
 import curvallis.curve_editing.configargparse as configargparse
+<<<<<<< HEAD
 from curvallis.version import version as VERSION_STRING
+=======
+import curvallis.curve_editing.curve_fitters as cf
+>>>>>>> 14acf9a0dcd49128a2f428d485f9e1a24502c7d5
 
 """ Supports getting point data into and out of the curve_editor.  Can read from
 a file, generate, or provide predefined points.  Can write to file(s).
@@ -263,7 +268,7 @@ def process_args (parser, args):
                      'predefined_in']
         num_set = 0
         for arg in arg_names:
-            if args.__dict__[arg] != parser.get_default(arg):
+            if getattr(args, arg) != parser.get_default(arg):
                 num_set += 1
         if num_set != 1:
             parser.error('must set exactly one of: %s' % arg_names)
@@ -274,7 +279,7 @@ def process_args (parser, args):
         arg_names = ['out_eos_file_base', 'output_file_name']
         num_set = 0
         for arg in arg_names:
-            if args.__dict__[arg] != parser.get_default(arg):
+            if getattr(args, arg) != parser.get_default(arg):
                 num_set += 1
         if num_set > 1:
             parser.error('must set no more than one of: %s' % arg_names)
@@ -287,14 +292,15 @@ def process_args (parser, args):
             parser.error('Both --in_eos_file_base and --out_eos_file_base '
                          'must be set, or neither must be set.')
 
-    def check_sandiapc_rho0():
-        """ If the fitter sandiapc is selected, the user must
+    def check_required_rho0():
+        """ If any fitter is sandiapc or gammapoly, the user must
             be forced to enter the constant "rho0" instead of
             Curvallis gussing it.
         """
-        if args.rho0 is None and "sandiapc" in args.fit_type:
-            parser.error('If using the fitter "sandiapc" you must '
-                         'give a value for "rho0_guess".')
+        r = re.compile('('+'|'.join([cf.GammaPoly.name_prefix, cf.GammaPolyV.name_prefix])+')\d+')
+        if args.rho0 is None and ("sandiapc" in args.fit_type or list(filter(r.match, args.fit_type))):
+            parser.error('If using fitter "sandiapc", "{0}", or "{1}", you must give a value for "rho0_guess".'.format(
+                cf.GammaPoly.name_prefix, cf.GammaPolyV.name_prefix))
 
     def check_region_divisions():
         """ Prevent the user from trying to define regions with both the
@@ -318,7 +324,7 @@ def process_args (parser, args):
     check_input_arg()
     check_output_arg()
     check_eos_args()
-    check_sandiapc_rho0()
+    check_required_rho0()
     check_region_divisions()
     check_numpoints()
 
