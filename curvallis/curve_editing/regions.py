@@ -198,6 +198,9 @@ class _Line_Set_With_Fit(lines.Line_Set):
         x_values = self._calc_x_values(x_first, x_last, point_count, logarithmic)
         y_values = []
 
+        # TODO: fix this so it's not in a loop - should be able to leverage numpy to do all operations as arrays
+        #       .... probably will require adding tests for every fitter :(
+        #       also fix in derivative and integral functions
         if (self._fitter2 == 'none'):
             for x in x_values:
                 y_values.append(self._fitter.func(x))

@@ -30,6 +30,12 @@ import scipy.interpolate as interp
 from pylab import polyfit
 import math
 import bisect
+import re
+
+_min_polynomial_degree = 1
+_max_polynomial_degree = 12
+rho = '\u03c1'
+naught = '\u2080'
 
 def define_args(parser):
     fitter_args = parser.add_argument_group(
@@ -221,18 +227,22 @@ class Factory(object):
     """
     def __init__(self):
         self._classes = dict()
+        self._poly_classes = dict()  # classes that expect users to specify polynomial order in the fit_type name
 
     def register(self, name, classs):
         assert name not in self._classes
         self._classes[name] = classs
+        if issubclass(classs, PolyBase):
+            self._poly_classes[classs.name_prefix] = classs
 
     def get_sorted_fit_names(self):
         names = list(self._classes)
 
         #Only allows polynomials up to 12 to avoid crashing
-        for i in range(0, 12):
-            names.append('poly'+str(i+1))
-        names.remove('poly')
+        for pre in self._poly_classes.keys():
+            for i in range(_min_polynomial_degree, _max_polynomial_degree+1):
+                names.append(pre+str(i))
+            names.remove(pre)
 
         names.sort()
         return names
@@ -240,7 +250,7 @@ class Factory(object):
     def get_sorted_refine_fit_names(self):
         names = []
         for i in range(0, 12):
-            names.append('poly'+str(i+1))
+            names.append(Poly_Original.name_prefix+str(i+1))
         for i in range(3, 12):
             names.append('eseries'+str(i+1))
         names.append('eseries')
@@ -249,8 +259,10 @@ class Factory(object):
         return names
 
     def make_object_of_class(self, name, args):
-        if name[:4] == 'poly':
-            return self._classes[name[:4]](args, name)
+        r = re.compile('({0})\d+'.format('|'.join(self._poly_classes.keys())))
+        polymatch = r.match(name)
+        if polymatch:
+            return self._classes[polymatch.group(1)](args, name)
         elif name[:7] == 'eseries':
             return self._classes[name[:7]](args, name)
         else:
@@ -258,6 +270,19 @@ class Factory(object):
 
 factory = Factory()
 
+class MetaPoly(ABCMeta):
+    @property
+    def name_prefix(cls):
+        return cls._name_prefix
+
+class PolyBase(object, metaclass=MetaPoly):
+    """
+    Base class for fitters that specify polynomial order in the fit_type name
+    Must be defined before any call to factory.register()
+    """
+    @property
+    def name_prefix(self):
+        return type(self).name_prefix
 
 class Base_Fit_Class(object):
     """ Call fit to (re-)calculate the parameters for the function, which are
@@ -1529,13 +1554,17 @@ def _print_polynomial(coeffs):
 
 # Old polynomial fit calculator:
 
-class Poly_Original(object):
+
+
+class Poly_Original(PolyBase):
+    _name_prefix = 'poly'
+
     """ This is substantially different from the rest of the fit classes above,
     but presents the same public methods as Base_Fit_Class:
     """
     def __init__(self, args, name):
 #        self._order = args.polynomial_order
-        self._order = int(name[4:])
+        self._order = int(name[len(self.name_prefix):])
         self._f = None
         self._is_first_fit = True
         self.derivative_scale = args.derivative_scale
@@ -1543,6 +1572,14 @@ class Poly_Original(object):
         self.integral_scale = args.integral_scale
         self.x_integral_ref = args.x_integral_ref
         self.y_integral_ref = args.y_integral_ref
+
+    def _set_poly(self, coeffs):
+        # Create a polynomial function using the coefficients, to be used to
+        # calculate a new curve:
+        self._f = np.poly1d(coeffs)
+        self._der = np.polyder(self._f)
+        self._int = np.polyint(self._f)
+        self._scnd_der = np.polyder(self._der)
 
     def fit_to_points(self, points):
         """ Calculate the coefficients and create the polynomial function.
@@ -1573,12 +1610,7 @@ class Poly_Original(object):
 
         _print_polynomial(coeffs)
 
-        # Create a polynomial function using the coefficients, to be used to
-        # calculate a new curve:
-        self._f =  np.poly1d(coeffs)
-        self._der = np.polyder(self._f)
-        self._int = np.polyint(self._f)
-        self._scnd_der = np.polyder(self._der)
+        self._set_poly(coeffs)
 
     def guess_coefficients(self, points):
         pass
@@ -1597,7 +1629,7 @@ class Poly_Original(object):
                (self._int(x) +
                 (self.y_integral_ref - self._int(self.x_integral_ref)))
 
-factory.register ('poly', Poly_Original)
+factory.register (Poly_Original.name_prefix, Poly_Original)
 
 
 #--------------------------------------------------------------------------------
@@ -2122,4 +2154,149 @@ class GammaV(Base_Fit_Class):
         raise RuntimeError("NOT YET IMPLEMENTED")
 
 factory.register ('gammaV', GammaV)
+
+
+class GammaPoly(PolyBase):
+    """
+    Fits gamma as a function of density (rho) or volume
+    Separate polynomials are fitted for high pressure versus low pressure data (relative to some reference rho0)
+        High pressure means high density or low volume
+        Low pressure means low density or high volume
+    """
+    _name_prefix = 'gammapoly'
+
+    # TODO: wire in rho_is_density so external app can use.  Maybe just subclass GammaV and pass False to __init__?
+    def __init__(self, args, name, rho_is_density=True):
+        """
+
+        :param args:
+        :param name:
+        :param rho_is_density: If True, x values and rho0 are densities.  If False, x values and rho0 are unit volumes.
+        """
+        self._order = int(name[len(self.name_prefix):])
+        self._is_first_fit = True
+        self.rho0 = args.rho0
+        self._overlap = args.overlap
+        # create two fitters: one for high P data and one for low P data
+        fname = '{0}{1}'.format(Poly_Original.name_prefix, self._order)
+        self._hiP_fitter = Poly_Original(args, fname)
+        self._loP_fitter = Poly_Original(args, fname)
+        self._highP_f = None
+        self._lowP_f = None
+        # rho_is_density indicates whether x values and rho0 are density (True) or volume (False)
+        self._rho_is_density = rho_is_density
+
+    def _get_highP_lowP_x_indices(self, x):
+        """
+        Separates independent variable into high pressure and low pressure regimes
+        If self.rho0 is present, it will be in both
+        """
+        # determine the correct comparison function for (x, rho0) depending on whether using density or volume
+        hiP_comp = np.greater_equal if self._rho_is_density else np.less_equal
+        loP_comp = np.less_equal if self._rho_is_density else np.greater_equal
+        hiP_indices = np.flatnonzero(hiP_comp(x, self.rho0))
+        loP_indices = np.flatnonzero(loP_comp(x, self.rho0))
+        return hiP_indices, loP_indices
+
+    def _get_highP_fit_x(self, x):
+        """ for high pressure points, fit a polynomial in rho/rho0 if rho_is_density, or V0/V (the reciprocal) otherwise
+        """
+        x1_x2 = (x, self.rho0) if self._rho_is_density else (self.rho0, x)
+        return np.divide(*x1_x2)    # use numpy to correctly handle divide by 0
+
+    def _get_lowP_fit_x(self, x):
+        """ for low pressure points, fit a polynomial in rho0/rho if rho_is_density, or V/V0 (the reciprocal) otherwise
+        """
+        # use np.divide to handle divide by zero
+        x1_x2 = (self.rho0, x) if self._rho_is_density else (x, self.rho0)
+        return np.divide(*x1_x2)    # use numpy to correctly handle divide by 0
+
+    def _get_highP_lowP_fit_points(self, points):
+        """ Gets high pressure and low pressure points for fitting
+        x values in points are converted to the appropriate expression depending on whether x is density or volume
+        Includes some overlap with the other domain as dictated by the overlap parameter
+
+        :param points: numpy array of (x,y) points to fit, sorted by x
+                    and with x in terms of density or volume as indicated by the rho_is_density arg
+        :return: Two arrays of (fit_x, y) 2-tuples, where fit_x is in terms of some ratio with the reference density
+                    the first array gives points for the high pressure fit
+                    the second array gives points for the low pressure fit
+        """
+        def get_overlap_point_count(pt_count):
+            return self._overlap if pt_count > self._overlap else pt_count
+        def add_points_to_end(orig_points_idx, points_to_add_idx, point_count):
+            # append the first point_count points from points_to_add to the end of original_points
+            return np.append(orig_points_idx, points_to_add_idx[0:point_count]) if point_count else orig_points_idx
+        def add_points_to_beginning(orig_points_idx, points_to_add_idx, point_count):
+            # insert the first point_count points from points_to_add at the beginning of original_points
+            return np.insert(orig_points_idx, 0, points_to_add_idx[-1 * point_count:]) if point_count else orig_points_idx
+
+        points = np.array(points)  # wrap for easier indexing; if already a numpy.ndarray, this won't do anything
+        hiP_idx, loP_idx = self._get_highP_lowP_x_indices([x for (x,y) in points])
+        # add overlap points to non-empty domains
+        add_hi2lo_ct = get_overlap_point_count(len(hiP_idx)) if len(loP_idx) else 0
+        add_lo2hi_ct = get_overlap_point_count(len(loP_idx)) if len(hiP_idx) else 0
+        if self._rho_is_density:    # x values are in density (high pressure means high density)
+            upd_hiP_idx = add_points_to_beginning(hiP_idx, loP_idx, add_lo2hi_ct)
+            upd_loP_idx = add_points_to_end(loP_idx, hiP_idx, add_hi2lo_ct)  # must make second object since hiP_idx changed
+        else:                       # x values are in unit volume (high pressure means low unit volume)
+            upd_hiP_idx = add_points_to_end(hiP_idx, loP_idx, add_lo2hi_ct)
+            upd_loP_idx = add_points_to_beginning(loP_idx, hiP_idx, add_hi2lo_ct)
+        hiP_fit_pts = np.array([(self._get_highP_fit_x(x), y) for (x, y) in points[upd_hiP_idx]])
+        loP_fit_pts = np.array([(self._get_lowP_fit_x(x), y) for (x, y) in points[upd_loP_idx]])
+        return hiP_fit_pts, loP_fit_pts
+
+    def guess_coefficients(self, points):
+        pass
+
+    def fit_to_points(self, points):
+        def _get_fit_description(is_hiP):
+            out = '{0} pressure fit, where x = {1}'
+            if self._rho_is_density:
+                x = rho+'/'+rho+naught if is_hiP else rho+naught+'/'+rho
+            else:
+                x = 'V'+naught+'/V' if is_hiP else 'V/V'+naught
+            return out.format('High' if is_hiP else 'Low', x)
+
+        highP_points, lowP_points = self._get_highP_lowP_fit_points(points)
+        print(_get_fit_description(True))
+        self._hiP_fitter.fit_to_points(highP_points)
+        print(_get_fit_description(False))
+        self._loP_fitter.fit_to_points(lowP_points)
+        self._is_first_fit = False
+
+    def _eval(self, x, hiP_fn, loP_fn):
+        x = np.asarray([x] if np.isscalar(x) else x)
+        hiP_idx, loP_idx = self._get_highP_lowP_x_indices(x)
+        y = np.empty(x.shape, np.float)
+        y[hiP_idx] = hiP_fn(self._get_highP_fit_x(x[hiP_idx]))
+        y[loP_idx] = loP_fn(self._get_lowP_fit_x(x[loP_idx]))
+        return y
+
+    def func(self, x):
+        # TODO: if rho0 is among values of x, will return lowP fit.  Make this configurable?
+        return self._eval(x, self._hiP_fitter.func, self._loP_fitter.func)
+
+    def derivative(self, x):
+        return self._eval(x, self._hiP_fitter.derivative, self._loP_fitter.derivative)
+
+    def second_derivative(self, x):
+        return self._eval(x, self._hiP_fitter.second_derivative, self._loP_fitter.second_derivative)
+
+    def integral(self, x):
+        return self._eval(x, self._hiP_fitter.integral, self._loP_fitter.integral)
+
+factory.register (GammaPoly.name_prefix, GammaPoly)
+
+class GammaPolyV(GammaPoly):
+    _name_prefix = 'gammapolyv'
+
+    def __init__(self, args, name):
+        super().__init__(args, name, rho_is_density=False)
+
+factory.register(GammaPolyV.name_prefix, GammaPolyV)
+
+
+
+
 
