@@ -31,7 +31,7 @@ def vprint(message): # For verbose output
     if(args.verbose):
         print(message)
 def version_info(): # Version information
-    return ("Curvallis readiness tool version " + VERSION_STRING)
+    return ("Curvallis readiness tool version: " + VERSION_STRING)
 def decode_python_version(ver): # Decode python version
     tmp = ""
     new_ver = []
@@ -143,11 +143,6 @@ def update_hook(hook_code):
 
 # Start initial variables
 ##################################################
-<<<<<<< HEAD
-=======
-version_number = "1.3"
-version_string = "7/17/2020"
->>>>>>> 14acf9a0dcd49128a2f428d485f9e1a24502c7d5
 modules_needed = []
 py_ver = [0,0,0,"()"]
 # Format for modules: ["module_name","module_version"] where "0" means latest version.

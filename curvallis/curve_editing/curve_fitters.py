@@ -30,16 +30,13 @@ import scipy.interpolate as interp
 from pylab import polyfit
 import math
 import bisect
-<<<<<<< HEAD
-from curvallis.version import version as VERSION_STRING
-=======
 import re
+from curvallis.version import version as VERSION_STRING
 
 _min_polynomial_degree = 1
 _max_polynomial_degree = 12
 rho = '\u03c1'
 naught = '\u2080'
->>>>>>> 14acf9a0dcd49128a2f428d485f9e1a24502c7d5
 
 def define_args(parser):
     fitter_args = parser.add_argument_group(

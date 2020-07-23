@@ -19,11 +19,8 @@ import numpy as np
 import pprint
 import curvallis.curve_editing.eos_data_io as eos_data_io
 import curvallis.curve_editing.configargparse as configargparse
-<<<<<<< HEAD
-from curvallis.version import version as VERSION_STRING
-=======
 import curvallis.curve_editing.curve_fitters as cf
->>>>>>> 14acf9a0dcd49128a2f428d485f9e1a24502c7d5
+from curvallis.version import version as VERSION_STRING
 
 """ Supports getting point data into and out of the curve_editor.  Can read from
 a file, generate, or provide predefined points.  Can write to file(s).

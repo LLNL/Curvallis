@@ -37,7 +37,7 @@ def display_help(): # Help message
     print("\t\tenvironment in (leave blank for current directory)")
     exit()
 def version_info(): # Version information
-    return ("Virtual python environment tools version " + VERSION_STRING)
+    return ("Virtual python environment tools version: " + VERSION_STRING)
 def check_pip():
     try:
         subprocess.check_output([sys.executable,"-m" "pip","--version"])
