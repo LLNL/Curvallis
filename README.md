@@ -13,6 +13,8 @@ Scipy can be difficult to install, so it may have to be installed manually if th
 To install this program, type "python setup.py" into a terminal in the directory containing 'setup.py'.
 Run 'python setup.py --help' for more instalation options.
 
+For those adding features to Curvallis there is a versioning system for automatically updating the version string of Curvallis. To enable or update this feature add the "--versioning" argument to the setup program. You should only need to run the versioning setup once and the feature will be enabled for your local repository indefinitely.
+
 ## Virtual Python Environments
 
 Virtual python environments are a great way to create new instances of python. Virtual python environments act like a normal installation of python except they are completely isolated from your systems main python installation. This separation means that the virtual environment has its own executable, pip package manager, and packages.

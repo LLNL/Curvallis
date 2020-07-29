@@ -26,14 +26,13 @@ import math
 import matplotlib
 matplotlib.use('TkAgg')
 import tkinter
-from tkinter import Tk, Label, Button, Entry
+from tkinter import Tk, Label, Button, Entry, ttk
 from matplotlib import pyplot, rcParams
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 from matplotlib.widgets import RectangleSelector
 from curvallis.curve_editing import curve_fitters, io, lines, regions, configargparse
 from math import log10
-
-VERSION_STRING = '2020-06-02 03:13PM'
+from curvallis.version import version as VERSION_STRING
 
 # Overwrite Panning and Zooming Functions
 PAN_ENABLED = False
@@ -813,7 +812,11 @@ class CurveInteractor(object):
             textbox.lift()
             textbox.focus_force()
             return
-        mpl_lines = [
+        # These are the blocks of lines that will be desplayed in the key mappings window.
+        # The first line in every block (excluding the last one) is the title of the block
+        line_blocks = [
+        [  # MatPlotLib
+            "Matplotlib Keys:",
             'Drag points to update line',
             'Press t to toggle original line on and off [default: off]',
             'Press b to toggle points on and off [default: on]',
@@ -825,8 +828,8 @@ class CurveInteractor(object):
             'Press <shift> I to decrease figure margins',
             'Press <shift> H to increase size of background markers',
             'Press <shift> J to decrease size of background markers'
-        ]
-        cur_lines = [
+        ], [  # Curvallis
+            "Curvallis Keys:",
             'Press q then q again to quit',
             'Press w to write the the current points to a file',
             'Press u to undo the last point manipulation',
@@ -835,8 +838,7 @@ class CurveInteractor(object):
             'Press <shift> X for integral smoothing',
             'Press <shift> B for B-spline smoothing',
             'Press <shift> V for acute repair smoothing'
-        ]
-        post_lines = [
+        ], [  # Post Keymapping Lines
             'Make sure focus is on the plotting window and the cursor is',
             'also in the plotting window when using these keys.',
             '',
@@ -844,54 +846,93 @@ class CurveInteractor(object):
             '',
             'More key mappings can be found at:',
             'https://github.com/LLNL/Curvallis#interactive-commands'
-        ]
-        max_length = 0
-        for i in (mpl_lines + cur_lines + post_lines):
-            if(len(i) > max_length):
-                max_length = len(i)
-        max_length += 2
-        horizontal_line = '=' * max_length
-        def placelines(window,lines,spacing,offset_x,offset_y,text_font):
+        ]]
+        ##################################################
+        def placelines(window, lines, text_font):
             for i in range(len(lines)):
-                l = tkinter.Label(window, text=lines[i], font=text_font)
-                l.place(x=offset_x, y=offset_y + (spacing * i))
-        # Creating textbox
-        textbox = tkinter.Tk()
-        # Line Spacing
-        spacing = 20
-        # Font and font size (change to "TkFixedFont" if possible)
+                l = tkinter.Label(window, text=lines[i], font=text_font).pack(anchor='w')
+
+        def total_number_of_lines():
+            total_lines = 0
+            for block in line_blocks:
+                total_lines += len(block)
+            total_lines -= len(line_blocks) - 1
+            return total_lines
+
+        def get_headder_space():
+            return (len(line_blocks) * 3) - 1
+
+        def get_longest_line_width(extra_spacing):
+            max_length = 0
+            for block in line_blocks:
+                for line in block:
+                    if (len(line) > max_length):
+                        max_length = len(line)
+            max_length += extra_spacing
+            return max_length
+        ##################################################
+        # Calculate size of horizontal deviding line
+        horizontal_line = '=' * get_longest_line_width(2)
+        # Font and font size (MUST use fixed width font / constant width font)
         text_font = ("Courier", 12)
+        # Scrollbar width
+        scrollbar_width = 20 # not fully working
+        # Calculate the width of the window
+        max_window_width = 10 * get_longest_line_width(2)
         # Window Size (width, height, x_offset, y_offset)
-        window_size = (10 * max_length, ((8 + len(mpl_lines) + len(cur_lines) + len(post_lines)) * spacing), 30, 30)
+        window_size = (max_window_width, ((get_headder_space() + total_number_of_lines()) * 22.5), 30, 30)
+        # Create Textbox
+        textbox = tkinter.Tk()
         # Host system screen resolution
         host_screen = (textbox.winfo_screenwidth(), textbox.winfo_screenheight())
-        # Check if window can fit on screen
-        if(window_size[0] > (host_screen[0]*0.4)):
-            print("error: window too wide")
+        # Check if window can fit on screen (40% of width, 80% of height)
+        if (window_size[0] > (host_screen[0] * 0.4)):
+            window_size = ((host_screen[0] * 0.4), host_screen[1], window_size[2], window_size[3])
+            print("error: window too wide\nkey mappings window excedes 40% of screen")
             return
-        if (window_size[1] > (host_screen[1]*0.8)):
-            window_size = (window_size[0], int(host_screen[1]*0.8), window_size[2], window_size[3])
-            print("error: window too tall")
+        if (window_size[1] > (host_screen[1] * 0.8)):
+            window_size = (window_size[0], int(host_screen[1] * 0.8), window_size[2], window_size[3])
         # width x height + x_offset + y_offset:
-        textbox.geometry("%dx%d+%d+%d" % (window_size[0], window_size[1], window_size[2], window_size[3]))
-        # Disable window resizing
-        textbox.resizable(False, False)
+        textbox.geometry(
+            "%dx%d+%d+%d" % (window_size[0] + scrollbar_width, window_size[1], window_size[2], window_size[3]))
+        # Enable / Disable window resizing (Horizontal, Vertical)
+        textbox.resizable(False, True)
+        # Set function for when window is closed
         textbox.protocol("WM_DELETE_WINDOW", on_closing)
+        # Set title of window
         textbox.title("Key Mappings")
-        ##### Matplotlib Keys #####
-        t1 = tkinter.Label(textbox, text=horizontal_line + "\nMatplotlib Keys:\n" + horizontal_line, font=text_font)
-        t1.place(x=0, y=0)
-        placelines(textbox, mpl_lines, spacing, 20, 3*spacing, text_font)
-        ##### Curvallis Keys #####
-        t2 = tkinter.Label(textbox, text=horizontal_line + "\nCurvallis Keys:\n" + horizontal_line, font=text_font)
-        t2.place(x=0, y=(len(mpl_lines) + 3) * spacing)
-        placelines(textbox, cur_lines, spacing, 20, (len(mpl_lines)+6)*spacing, text_font)
-        ##### Other keys/lines #####
-        t3 = tkinter.Label(textbox, text=horizontal_line, font=text_font)
-        t3.place(x=0, y=(len(mpl_lines)+len(cur_lines)+6)*spacing)
-        placelines(textbox, post_lines, spacing, 0, (len(mpl_lines)+len(cur_lines)+7)*spacing, text_font)
-        t4 = tkinter.Label(textbox, text=horizontal_line, font=text_font)
-        t4.place(x=0, y=(len(mpl_lines) + len(cur_lines) + len(post_lines) + 7) * spacing)
+        # Generate scrollbar
+        style = ttk.Style().configure("Vertical.TScrollbar", arrowsize=scrollbar_width)
+        container = ttk.Frame(textbox)
+        canvas = tkinter.Canvas(container, width=window_size[0], height=window_size[1])
+        scrollbar = ttk.Scrollbar(container, orient="vertical", command=canvas.yview, cursor="sb_v_double_arrow",
+                                  style="Vertical.TScrollbar")
+        scrollable_frame = ttk.Frame(canvas)
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        # Generate textboxes and place them in window
+        lines_from_top = 0
+        for i in range(len(line_blocks) - 1):
+            block = line_blocks[i]
+            t = tkinter.Label(scrollable_frame, text=horizontal_line + "\n" + block[0] + "\n" + horizontal_line,
+                              font=text_font).pack()
+            placelines(scrollable_frame, block[1:len(block)], text_font)
+            lines_from_top += len(block) + 2
+        block = line_blocks[-1]
+        t = tkinter.Label(scrollable_frame, text=horizontal_line, font=text_font).pack()
+        placelines(scrollable_frame, block, text_font)
+        t = tkinter.Label(scrollable_frame, text=horizontal_line, font=text_font).pack()
+        # Place items in window
+        container.pack(fill="both", expand=True)
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        # Declare that the help window has been created
         keymap_window_open = True
 
     # END Callback support======================================================

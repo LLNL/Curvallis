@@ -17,6 +17,7 @@ import scipy
 import scipy.interpolate
 import scipy.misc
 import scipy.integrate
+from curvallis.version import version as VERSION_STRING
 
 
 class TriLocalSmoother(object):

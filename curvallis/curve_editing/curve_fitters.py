@@ -31,6 +31,7 @@ from pylab import polyfit
 import math
 import bisect
 import re
+from curvallis.version import version as VERSION_STRING
 
 _min_polynomial_degree = 1
 _max_polynomial_degree = 12

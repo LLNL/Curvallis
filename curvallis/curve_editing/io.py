@@ -17,10 +17,10 @@ import re
 from operator import itemgetter
 import numpy as np
 import pprint
-
 import curvallis.curve_editing.eos_data_io as eos_data_io
 import curvallis.curve_editing.configargparse as configargparse
 import curvallis.curve_editing.curve_fitters as cf
+from curvallis.version import version as VERSION_STRING
 
 """ Supports getting point data into and out of the curve_editor.  Can read from
 a file, generate, or provide predefined points.  Can write to file(s).
