@@ -29,10 +29,11 @@ import tkinter
 from tkinter import Tk, Label, Button, Entry, ttk
 from matplotlib import pyplot, rcParams
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
-from matplotlib.widgets import RectangleSelector
+from matplotlib import widgets
 from curvallis.curve_editing import curve_fitters, io, lines, regions, configargparse
 from math import log10
 from curvallis.version import version as VERSION_STRING
+
 
 # Overwrite Panning and Zooming Functions
 PAN_ENABLED = False
@@ -169,7 +170,7 @@ class CurveInteractor(object):
         self._register_callbacks()
         self._print_keymap()
         # Create rectangle selector for selecting multiple points
-        self._selector = RectangleSelector(self._ax, self.line_select_callback,
+        self._selector = widgets.RectangleSelector(self._ax, self.line_select_callback,
                                            drawtype='box', useblit=True,
                                            button=[1, 3],  # don't use middle button
                                            spancoords='pixels')
@@ -485,28 +486,35 @@ class CurveInteractor(object):
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")
-            elif event.key == 'H':
+            elif event.key == 'H':                  # If "H" pressed
                 #Increase background point marker size
                 for i in range(len(self._background_line)):
                     self._background_line[i].set_marker_size(self._background_line[i].get_marker_size() * 1.25)
                 self._canvas.draw()
-            elif event.key == 'J':
+            elif event.key == 'J':                  # If "J" pressed
                 #Decrease background point marker size
                 for i in range(len(self._background_line)):
                     self._background_line[i].set_marker_size(self._background_line[i].get_marker_size() * 0.8)
                 self._canvas.draw()
-            elif event.key == 'i':
+            elif event.key == 'i':                  # If "i" pressed
                 #Increase the margins of the pyplot figure and decrease tightness
                 self._figure_padding += 0.1
                 self._figure.tight_layout(pad=self._figure_padding)
                 self._canvas.draw()
-            elif event.key == 'I':
+            elif event.key == 'I':                  # If "I" pressed
                 #Decrease the margins of the pyplot figure and increase tightness
                 self._figure_padding -= 0.1
                 if self._figure_padding < 0:
                     self._figure_padding = 0
                 self._figure.tight_layout(pad=self._figure_padding)
                 self._canvas.draw()
+            elif event.key == 'delete':             # If "delete" pressed
+                if(self._move_set == True):
+                    print("Not implemented yet.")
+                else:
+                    print("Block selection is not enabled.")
+                    # fit_type
+
 
     def xlim_changed_callback(self, event):
         """ xlim is changed by a zoom or a pan
@@ -534,7 +542,7 @@ class CurveInteractor(object):
         self._ymax = max(y1, y2)
 
         self._regions.attempt_get_set(self._xmin, self._xmax, self._ymin, 
-                                      self._ymax, eclick.x, eclick.y)  
+                                      self._ymax, eclick.x, eclick.y)
         self._canvas.draw()
 
     def _register_callbacks(self):

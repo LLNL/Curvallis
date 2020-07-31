@@ -359,6 +359,8 @@ class Base_Fit_Class(object):
         self._set_coefficients(new_coefficients)
 #        print("curve_fit parameters out = ", new_coefficients)
         self._print_coefficients()
+        print("")
+
 
 
     @staticmethod

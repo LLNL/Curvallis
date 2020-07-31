@@ -1397,6 +1397,9 @@ class Regions(object):
         return self._moving_point_region_index is not None
 
     def _print_move_point_begin(self):
+        # Display what type of fitter
+        print("Fitter type: " + str(self._fitter[self._moving_point_region_index]))
+        # Display region and starting coordinates of point being moved
         print ('Moving point: %s ' % (self.moving_point_info()))
 
     def _print_move_point_end(self):
