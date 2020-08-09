@@ -33,7 +33,7 @@ from matplotlib import widgets
 from curvallis.curve_editing import curve_fitters, io, lines, regions, configargparse
 from math import log10
 from curvallis.version import version as VERSION_STRING
-
+from curvallis.curve_editing.window import _generate_window
 
 # Overwrite Panning and Zooming Functions
 PAN_ENABLED = False
@@ -508,12 +508,12 @@ class CurveInteractor(object):
                     self._figure_padding = 0
                 self._figure.tight_layout(pad=self._figure_padding)
                 self._canvas.draw()
-            elif event.key == 'delete':             # If "delete" pressed
+            """elif event.key == 'delete':             # If "delete" pressed
                 if(self._move_set == True):
                     print("Not implemented yet.")
                 else:
                     print("Block selection is not enabled.")
-                    # fit_type
+                _generate_window()"""
 
 
     def xlim_changed_callback(self, event):
@@ -835,7 +835,24 @@ class CurveInteractor(object):
             'Press i to enlarge figure margins',
             'Press <shift> I to decrease figure margins',
             'Press <shift> H to increase size of background markers',
-            'Press <shift> J to decrease size of background markers'
+            'Press <shift> J to decrease size of background markers',
+            '',
+            'Home/Reset	h or r or home',
+            'Back	c or left arrow or backspace',
+            'Forward	v or right arrow',
+            'Pan/Zoom	p',
+            'Zoom-to-rect	o',
+            'Save	ctrl + s',
+            'Toggle fullscreen	f or ctrl + f',
+            'Close plot	ctrl + w',
+            'Close all plots	shift + w',
+            'Constrain pan/zoom to x axis	hold x when panning/zooming with mouse',
+            'Constrain pan/zoom to y axis	hold y when panning/zooming with mouse',
+            'Preserve aspect ratio	hold CONTROL when panning/zooming with mouse',
+            'Toggle major grids	g when mouse is over an axes',
+            'Toggle minor grids	G when mouse is over an axes',
+            'Toggle x axis scale (log/linear)	L or k when mouse is over an axes',
+            'Toggle y axis scale (log/linear)	l when mouse is over an axes'
         ], [  # Curvallis
             "Curvallis Keys:",
             'Press q then q again to quit',
