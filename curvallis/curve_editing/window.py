@@ -1,4 +1,4 @@
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Copyright (c) 2016, Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Paul Minner <minner.paul@gmail.com>
@@ -8,7 +8,7 @@
 # This file is part of Curvallis.
 # For details, see https://github.com/llnl/Curvallis.
 # Please also Curvallis/LICENSE.
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
 Windowing system for curvallis
@@ -19,129 +19,121 @@ from curvallis.version import version as VERSION_STRING
 from tkinter import ttk
 import tkinter
 
-fitting_window_open = False
 
-def _generate_window():
-    """
-    Set up interface for displaying fitting information
-    """
-    global fitting_window_open
+class WindowedDisplay(object):
+    """WindowedDisplay generates a display window that shows blocks of information
+    separated by a horizontal line and optionally a header."""
 
-    def on_closing():
-        global fitting_window_open
-        fitting_window_open = False
-        main_window.destroy()
+    def __init__(self, info_blocks, block_headers, window_name="WindowedDisplay", resizeable=None):
+        if resizeable is None:
+            resizeable = [False, False]
+        self._main_window_open = False
+        self._info_blocks = info_blocks
+        self._block_headers = block_headers
+        self._resizeable = resizeable
+        self._window_name = window_name
+        self._main_window = None
 
-    if (fitting_window_open):
-        global main_window
-        main_window.lift()
-        main_window.focus_force()
-        return
+    def display_main_window(self):
+        def on_closing():
+            self._main_window_open = False
+            self._main_window.destroy()
 
-    info_blocks = [
-        [
-            'Fitter type: none',
-            'Moving point: region 0, \nat: 1.506464681207422E+01, -8.986979761105912E+12',
-            'to: 1.458308225514779E+01, 7.536867438430522E+14'
-        ], [
-            'Fitter type: poly3',
-            'Moving point: region 1, \nat: 6.870196867832244E+01, 4.190320426764570E+13',
-            'to: 6.705440132823236E+01, 6.569662922040228E+14',
-            'Calculated polynomial is:',
-            '-1.010E+09 * x**3 +1.678E+11 * x**2 -5.598E+12 * x**1 +4.349E+13'
-        ], [
-            'Fitter type: ebirch3',
-            'Moving point: region 2, \nat: 1.189499107923780E+02, 1.186430432031626E+14',
-            'to: 1.622801285349414E+02, 9.084394664654992E+14',
-            'B0 = 479956838652108.9;',
-            'Bp = 4.012249080480707;',
-            'rho0 = 19.848030178310996;',
-            'E0 = 1952.2421183931094;'
-        ]]
+        if (self._main_window_open):
+            self._main_window.lift()
+            self._main_window.focus_force()
+            return
 
-    ##################################################
-    def placelines(window, lines, text_font):
-        for i in range(len(lines)):
-            l = tkinter.Label(window, text=lines[i], font=text_font).pack(anchor='w')
+        ##################################################
+        def place_lines(window, lines, text_font):
+            for i in range(len(lines)):
+                tkinter.Label(window, text=lines[i], font=text_font).pack(anchor='w')
 
-    def longest_number_of_lines():
-        total_lines = 0
-        for block in info_blocks:
-            total_lines += len(block)
-        return total_lines
+        def longest_number_of_lines():
+            total_lines = 0
+            for block in self._info_blocks:
+                total_lines += len(block)
+            total_lines -= len(self._info_blocks) - 1
+            return total_lines
 
-    def get_longest_line_width(extra_spacing):
-        # Need to add check for lines containing '\n'
-        max_length = 0
-        for block in info_blocks:
-            for line in block:
-                if (len(line) > max_length):
-                    max_length = len(line)
-        max_length += extra_spacing
-        return max_length
+        def get_header_space():
+            header_space = 0
+            for i in self._block_headers:
+                if (len(i) > 0):
+                    header_space += 1
+            return header_space + 1
 
-    ##################################################
-    # Calculate size of vertical deviding line
-    vertical_line = '|'
-    vertical_line += '\n|' * (longest_number_of_lines()-1)
-    # Font and font size (MUST use fixed width font / constant width font)
-    text_font = ("Courier", 12)
-    # Scrollbar width
-    scrollbar_width = 20  # not fully working
-    # Calculate the width of the window
-    window_width = 10 * get_longest_line_width(2)
-    # Window Size (width, height, x_offset, y_offset)
-    window_size = (window_width, ((1 + longest_number_of_lines()) * 22.5), 30, 30)
-    # Create Textbox
-    main_window = tkinter.Tk()
-    # Host system screen resolution
-    host_screen = (main_window.winfo_screenwidth(), main_window.winfo_screenheight())
-    # Check if window can fit on screen (40% of width, 80% of height)
-    if (window_size[0] > (host_screen[0] * 0.8)):
-        window_size = ((host_screen[0] * 0.8), host_screen[1], window_size[2], window_size[3])
-        print("error: window too wide\nkey mappings window excedes 40% of screen")
-        return
-    if (window_size[1] > (host_screen[1] * 0.5)):
-        window_size = (window_size[0], int(host_screen[1] * 0.5), window_size[2], window_size[3])
-    # width x height + x_offset + y_offset:
-    main_window.geometry(
-        "%dx%d+%d+%d" % (window_size[0] + scrollbar_width, window_size[1], window_size[2], window_size[3]))
-    # Enable / Disable window resizing (Horizontal, Vertical)
-    main_window.resizable(True, True)
-    # Set function for when window is closed
-    main_window.protocol("WM_DELETE_WINDOW", on_closing)
-    # Set title of window
-    main_window.title("Fitter Info")
-    # Generate scrollbar
-    style = ttk.Style().configure("Horizontal.TScrollbar", arrowsize=scrollbar_width)
-    container = ttk.Frame(main_window)
-    canvas = tkinter.Canvas(container, width=window_size[0], height=window_size[1])
-    scrollbar = ttk.Scrollbar(container, orient="horizontal", command=canvas.xview, cursor="sb_h_double_arrow",
-                              style="Horizontal.TScrollbar")
-    scrollable_frame = ttk.Frame(canvas)
-    scrollable_frame.bind(
-        "<Configure>",
-        lambda e: canvas.configure(
-            scrollregion=canvas.bbox("all")
+        def get_longest_line_width(extra_spacing):
+            max_length = 0
+            for block in self._info_blocks:
+                for line in block:
+                    if (len(line) > max_length):
+                        max_length = len(line)
+            max_length += extra_spacing
+            return max_length
+
+        ##################################################
+        # Calculate size of horizontal dividing line
+        horizontal_line = '=' * get_longest_line_width(2)
+        # Font and font size (MUST use fixed width font / constant width font)
+        text_font = ("Courier", 12)
+        # Scrollbar width
+        scrollbar_width = 20  # not fully working
+        # Window Size (width, height, x_offset, y_offset)
+        window_size = (
+            (10 * get_longest_line_width(2)), ((get_header_space() + longest_number_of_lines()) * 22.5), 30, 30)
+        # Create Textbox
+        self._main_window = tkinter.Tk()
+        # Host system screen resolution
+        host_screen = (self._main_window.winfo_screenwidth(), self._main_window.winfo_screenheight())
+        # Check if window can fit on screen (40% of width, 80% of height)
+        if (window_size[0] > (host_screen[0] * 0.4)):
+            window_size = ((host_screen[0] * 0.4), host_screen[1], window_size[2], window_size[3])
+            print("error: window too wide\nkey mappings window exceeds 40% of screen")
+            return
+        if (window_size[1] > (host_screen[1] * 0.8)):
+            window_size = (window_size[0], int(host_screen[1] * 0.8), window_size[2], window_size[3])
+        # width x height + x_offset + y_offset:
+        self._main_window.geometry(
+            "%dx%d+%d+%d" % (window_size[0] + scrollbar_width, window_size[1], window_size[2], window_size[3]))
+        # Enable / Disable window resizing (Horizontal, Vertical)
+        self._main_window.resizable(self._resizeable[0], self._resizeable[1])
+        # Set function for when window is closed
+        self._main_window.protocol("WM_DELETE_WINDOW", on_closing)
+        # Set title of window
+        self._main_window.title(self._window_name)
+        # Generate scrollbar
+        ttk.Style().configure("Vertical.TScrollbar", arrowsize=scrollbar_width)
+        container = ttk.Frame(self._main_window)
+        canvas = tkinter.Canvas(container, width=window_size[0], height=window_size[1])
+        scrollbar = ttk.Scrollbar(container, orient="vertical", command=canvas.yview, cursor="sb_v_double_arrow",
+                                  style="Vertical.TScrollbar")
+        scrollable_frame = ttk.Frame(canvas)
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
         )
-    )
-    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-    canvas.configure(xscrollcommand=scrollbar.set)
-    # Generate textboxes and place them in window
-    lines_from_top = 0
-    for i in range(len(info_blocks)):
-        block = info_blocks[i]
-        t = tkinter.Label(scrollable_frame, text=vertical_line + "\n" + block[0] + "\n" + vertical_line,
-                          font=text_font).pack()
-        placelines(scrollable_frame, block[1:len(block)], text_font)
-        lines_from_top += len(block) + 2
-    '''block = info_blocks[-1]
-    t = tkinter.Label(scrollable_frame, text=vertical_line, font=text_font).pack()
-    placelines(scrollable_frame, block, text_font)
-    t = tkinter.Label(scrollable_frame, text=vertical_line, font=text_font).pack()'''
-    # Place items in window
-    container.pack(fill="both", expand=True)
-    canvas.pack(side="top", fill="both", expand=True)
-    scrollbar.pack(side="bottom", fill="x")
-    # Declare that the help window has been created
-    fitting_window_open = True
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        # Generate textboxes and place them in window
+        lines_from_top = 0
+        for i in range(len(self._info_blocks)):
+            block = self._info_blocks[i]
+            header = self._block_headers[i]
+            if (len(header) > 0):
+                tkinter.Label(scrollable_frame, text=horizontal_line + "\n" + block[0] + "\n" + horizontal_line,
+                              font=text_font).pack()
+                lines_from_top += 2
+            else:
+                tkinter.Label(scrollable_frame, text=horizontal_line, font=text_font).pack()
+            place_lines(scrollable_frame, block[1:len(block)], text_font)
+            lines_from_top += len(block) + 1
+        tkinter.Label(scrollable_frame, text=horizontal_line, font=text_font).pack()
+        # Place items in window
+        container.pack(fill="both", expand=True)
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        # Declare that the help window has been created
+        self._main_window_open = True
