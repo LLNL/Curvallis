@@ -30,7 +30,7 @@ from matplotlib import widgets
 from curvallis.curve_editing import curve_fitters, io, lines, regions, configargparse
 from math import log10
 from curvallis.version import version as VERSION_STRING
-from curvallis.curve_editing.window import WindowedDisplay
+from curvallis.window import WindowedDisplay
 
 matplotlib.use('TkAgg')
 
@@ -409,8 +409,8 @@ class CurveInteractor(object):
             if (self.key_mappings_window == None):  # Display key mapping
                 self.key_mappings_window = WindowedDisplay(self.key_mappings_window_text(),
                                                            self.key_mappings_window_header(),
-                                                           "Key Mappings",
-                                                           [False, True])
+                                                           "Key Mappings", [False, True],
+                                                           0.40, 0.8, [True,False])
             self.key_mappings_window.display_main_window()
         elif event.inaxes:
             if event.key == 't':  # If 't' pressed
@@ -836,6 +836,24 @@ class CurveInteractor(object):
     def key_mappings_window_text():
         return [
             [  # MatPlotLib Keys
+                'Press h or r to reset to home view',
+                'Press p to toggle pan/zoom mode [left mouse: pan, right mouse: zoom]',
+                'Press o to toggle Zoom-to-rectangle',
+                'Press <ctrl> s to save a screenshot of the MarPlotLib display',
+                'Press f or <ctrl> f to toggle fullscreen',
+                'Press <ctrl> w to immediately quit',
+                #'Constrain pan/zoom to x axis	hold x when panning/zooming with mouse',
+                #'Constrain pan/zoom to y axis	hold y when panning/zooming with mouse',
+                #'Preserve aspect ratio	hold CONTROL when panning/zooming with mouse',
+                'Press g to toggle major grids when mouse is over plot',
+                'Press <shift> G to toggle minor grids when mouse is over plot',
+                'Press <shift> L or k to toggle x axis scale (log/linear)',
+                '\twhen mouse is over plot',
+                #'Press l to toggle y axis scale (log/linear) when mouse is over plot'
+            ], [  # Curvallis Keys
+                'Press q twice to quit',
+                'Press w to write the the current points to a file',
+                'Press u to undo the last point manipulation',
                 'Drag points to update line',
                 'Press t to toggle original line on and off [default: off]',
                 'Press b to toggle points on and off [default: on]',
@@ -847,27 +865,6 @@ class CurveInteractor(object):
                 'Press <shift> I to decrease figure margins',
                 'Press <shift> H to increase size of background markers',
                 'Press <shift> J to decrease size of background markers',
-                '',
-                'Home/Reset	h or r or home',
-                'Back	c or left arrow or backspace',
-                'Forward	v or right arrow',
-                'Pan/Zoom	p',
-                'Zoom-to-rect	o',
-                'Save	ctrl + s',
-                'Toggle fullscreen	f or ctrl + f',
-                'Close plot	ctrl + w',
-                'Close all plots	shift + w',
-                'Constrain pan/zoom to x axis	hold x when panning/zooming with mouse',
-                'Constrain pan/zoom to y axis	hold y when panning/zooming with mouse',
-                'Preserve aspect ratio	hold CONTROL when panning/zooming with mouse',
-                'Toggle major grids	g when mouse is over an axes',
-                'Toggle minor grids	G when mouse is over an axes',
-                'Toggle x axis scale (log/linear)	L or k when mouse is over an axes',
-                'Toggle y axis scale (log/linear)	l when mouse is over an axes'
-            ], [  # Curvallis Keys
-                'Press q then q again to quit',
-                'Press w to write the the current points to a file',
-                'Press u to undo the last point manipulation',
                 'Press <shift> Q to enter an equation to plot',
                 'Press <shift> Z for trilocal smoothing',
                 'Press <shift> X for integral smoothing',
@@ -877,7 +874,7 @@ class CurveInteractor(object):
                 'Make sure focus is on the plotting window and the cursor is',
                 'also in the plotting window when using these keys.',
                 '',
-                'Press "m" to show these keys again',
+                'Press "F1" or "m" to show these keys again',
                 '',
                 'More key mappings can be found at:',
                 'https://github.com/LLNL/Curvallis#interactive-commands'

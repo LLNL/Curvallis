@@ -24,14 +24,20 @@ class WindowedDisplay(object):
     """WindowedDisplay generates a display window that shows blocks of information
     separated by a horizontal line and optionally a header."""
 
-    def __init__(self, info_blocks, block_headers, window_name="WindowedDisplay", resizeable=None):
+    def __init__(self, info_blocks, block_headers, window_name="WindowedDisplay", resizeable=None,
+                 max_window_width=0.4, max_window_height=0.8, window_size_errors=None):
         if resizeable is None:
             resizeable = [False, False]
+        if window_size_errors is None:
+            window_size_errors = [False, False]
         self._main_window_open = False
         self._info_blocks = info_blocks
         self._block_headers = block_headers
         self._resizeable = resizeable
         self._window_name = window_name
+        self.max_window_width = max_window_width
+        self.max_window_height = max_window_height
+        self.window_size_errors = window_size_errors
         self._main_window = None
 
     def display_main_window(self):
@@ -87,12 +93,20 @@ class WindowedDisplay(object):
         # Host system screen resolution
         host_screen = (self._main_window.winfo_screenwidth(), self._main_window.winfo_screenheight())
         # Check if window can fit on screen (40% of width, 80% of height)
-        if (window_size[0] > (host_screen[0] * 0.4)):
-            window_size = ((host_screen[0] * 0.4), host_screen[1], window_size[2], window_size[3])
-            print("error: window too wide\nkey mappings window exceeds 40% of screen")
-            return
-        if (window_size[1] > (host_screen[1] * 0.8)):
-            window_size = (window_size[0], int(host_screen[1] * 0.8), window_size[2], window_size[3])
+        if (window_size[0] > (host_screen[0] * self.max_window_width)):
+            window_size = ((host_screen[0] * self.max_window_width), host_screen[1], window_size[2], window_size[3])
+            if(self.window_size_errors[0]):
+                print("Error: window too wide")
+                print(self._window_name + " window exceeds " + str(self.max_window_width*100) + "% of screen.")
+                self._main_window.destroy()
+                return
+        if (window_size[1] > (host_screen[1] * self.max_window_height)):
+            window_size = (window_size[0], int(host_screen[1] * self.max_window_height), window_size[2], window_size[3])
+            if(self.window_size_errors[1]):
+                print("Error: window too tall")
+                print(self._window_name + " window exceeds " + str(self.max_window_height*100) + "% of screen.")
+                self._main_window.destroy()
+                return
         # width x height + x_offset + y_offset:
         self._main_window.geometry(
             "%dx%d+%d+%d" % (window_size[0] + scrollbar_width, window_size[1], window_size[2], window_size[3]))
@@ -118,18 +132,15 @@ class WindowedDisplay(object):
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
         # Generate textboxes and place them in window
-        lines_from_top = 0
         for i in range(len(self._info_blocks)):
             block = self._info_blocks[i]
             header = self._block_headers[i]
             if (len(header) > 0):
-                tkinter.Label(scrollable_frame, text=horizontal_line + "\n" + block[0] + "\n" + horizontal_line,
+                tkinter.Label(scrollable_frame, text=horizontal_line + "\n" + header + "\n" + horizontal_line,
                               font=text_font).pack()
-                lines_from_top += 2
             else:
                 tkinter.Label(scrollable_frame, text=horizontal_line, font=text_font).pack()
-            place_lines(scrollable_frame, block[1:len(block)], text_font)
-            lines_from_top += len(block) + 1
+            place_lines(scrollable_frame, block, text_font)
         tkinter.Label(scrollable_frame, text=horizontal_line, font=text_font).pack()
         # Place items in window
         container.pack(fill="both", expand=True)
