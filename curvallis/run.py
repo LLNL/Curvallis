@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Copyright (c) 2016, Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
@@ -10,7 +10,6 @@
 # For details, see https://github.com/llnl/Curvallis.
 # Please also Curvallis/LICENSE.
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
 """
 Created on Fri Mar 13 15:34:13 2015
@@ -27,14 +26,13 @@ import math
 import matplotlib
 matplotlib.use('TkAgg')
 import tkinter
+from tkinter import Tk, Label, Button, Entry, ttk
 from matplotlib import pyplot, rcParams
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 from matplotlib.widgets import RectangleSelector
 from curvallis.curve_editing import curve_fitters, io, lines, regions, configargparse
-from tkinter import Tk, Label, Button, Entry
 from math import log10
-
-VERSION_STRING = '2020-06-02 03:13PM'
+from curvallis.version import version as VERSION_STRING
 
 # Overwrite Panning and Zooming Functions
 PAN_ENABLED = False
@@ -132,6 +130,12 @@ class CurveInteractor(object):
             help='Do not use any config file, even if a default is provided',
             action='store_true')
         # config_file default is implicitly 'config_file.ini'
+        parser.add_argument(
+            '--x_label', action='store', nargs=1,
+            default='X', help='Set name of x axis label.')
+        parser.add_argument(
+            '--y_label', action='store', nargs=1,
+            default='Y', help='Set name of y axis label.')
         io.define_args(parser)
         regions.define_args(parser)
         curve_fitters.define_args(parser)
@@ -184,8 +188,8 @@ class CurveInteractor(object):
         self._figure.tight_layout(pad=self._figure_padding)
         # Make axes ticks update and stay detailed
         self._ax.minorticks_on()
-        self._ax.set_xlabel('X')
-        self._ax.set_ylabel('Y')
+        self._ax.set_xlabel(self._args.x_label[0])
+        self._ax.set_ylabel(self._args.y_label[0])
 #        self._background_line = lines.Line(
 #            self._ax, lines.line_attributes['background_points'])
         self._background_line = []
@@ -373,38 +377,37 @@ class CurveInteractor(object):
 
     def key_press_callback(self, event):
         """ Whenever a key is pressed"""
-        print ('Pressed %s' % event.key) #Display name of pressed key
-        if self._quit_pending:                  #If a quit is pending
-            if event.key == 'q':                #and 'q' is pressed
-                print ('Quitting.')             #quit
+        print ('Pressed %s' % event.key) # Display name of pressed key
+        if self._quit_pending:                  # If a quit is pending
+            if event.key == 'q':                # and 'q' is pressed
+                print ('Quitting.')             # quit
                 exit(0)
-            else:                               #Else:
-                self._quit_pending = False      #cancel quit pending
+            else:                               # Else:
+                self._quit_pending = False      # cancel quit pending
                 print ('Quit cancelled.')
-        elif event.key == 'q':                  #If 'q' pressed
-                                                #Display pending quit
+        elif event.key == 'q':                  # If 'q' pressed
+                                                # Display pending quit
             print ('Quit requested.  Press q again to quit, any other key to cancel.')
             self._quit_pending = True
-        elif event.key == 'm':                  #If 'm' pressed
-            self._print_keymap()                #Display key mapping
-        elif event.key == 'M':
+        elif event.key == 'm' or event.key == 'f1':# If 'm' or 'F1' pressed
+            self._print_keymap()                # Display key mapping
             self._display_key_mappings()
         elif event.inaxes:
-            if event.key == 't':              #If 't' pressed
-                                                #Toggle viewing of original line
+            if event.key == 't':                # If 't' pressed
+                                                # Toggle viewing of original line
                 self._regions.toggle_original_line_visibility()
                 self._canvas.draw()
-            elif event.key == 'b':              #If 'b' pressed
-                                                #Toggle points on/off
+            elif event.key == 'b':              # If 'b' pressed
+                                                # Toggle points on/off
                 self._regions.toggle_points()
                 self._canvas.draw()
-            elif event.key == 'w':              #If 'w' pressed
-                                                #Write the current points to a file
+            elif event.key == 'w':              # If 'w' pressed
+                                                # Write the current points to a file
                 self._regions.write_output_files()
-            elif event.key == 'y':              #If 'y' pressed
-                                                #Toggle the ability to move points on the x axis (and y axis?)
+            elif event.key == 'y':              # If 'y' pressed
+                                                # Toggle the ability to move points on the x axis (and y axis?)
                 self._regions.toggle_allow_xy_move()
-            elif event.key == 'a':              #If 'a' pressed
+            elif event.key == 'a':              # If 'a' pressed
                                                 # Toggle adding/removing points
                 if self._args.in_eos_file_base is not None:
                     # Don't allow for multi line data
@@ -415,8 +418,8 @@ class CurveInteractor(object):
                         print ("Add/Remove Mode Enabled")
                     else:
                         print ("Add/Remove Mode Disabled")
-            elif event.key == 'e':              #If 'e' pressed
-                                                #Toggle moving blocks of points
+            elif event.key == 'e':              # If 'e' pressed
+                                                # Toggle moving blocks of points
                 if self._move_set == True:
                     self._regions.cancel_move_set()
                     self._move_set = False
@@ -432,34 +435,34 @@ class CurveInteractor(object):
                     else:
                         self._selector.set_active(False)
                         print ("Block Select Disabled")
-            elif event.key == 'Q':              #If 'Q' pressed
-                self._get_equation()            #Get equation from user to plot
-            elif event.key == 'u':              #If 'u' pressed
-                                                #Undo the last point manipulation
+            elif event.key == 'Q':              # If 'Q' pressed
+                self._get_equation()            # Get equation from user to plot
+            elif event.key == 'u':              # If 'u' pressed
+                                                # Undo the last point manipulation
                 self._regions.undo()
                 self._canvas.draw()
-            elif event.key == 'Z':              #If 'Z' pressed
-                if self._move_set == True:      #Run TriLocal Smoothing
+            elif event.key == 'Z':              # If 'Z' pressed
+                if self._move_set == True:      # Run TriLocal Smoothing
                     self._regions.smooth_data("trilocal", self._xmin, self._xmax, 
                                               self._ymin, self._ymax)
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")
-            elif event.key == 'X':              #If 'X' pressed
-                if self._move_set == True:      #Run Integral Smoothing
+            elif event.key == 'X':              # If 'X' pressed
+                if self._move_set == True:      # Run Integral Smoothing
                     self._regions.smooth_data("integral", self._xmin, self._xmax, 
                                               self._ymin, self._ymax)
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")
-            elif event.key == 'V':              #If 'V' pressed
-                if self._move_set == True:      #Run Acute Repair Smoothing
+            elif event.key == 'V':              # If 'V' pressed
+                if self._move_set == True:      # Run Acute Repair Smoothing
                     self._regions.smooth_data("acute", self._xmin, self._xmax, 
                                               self._ymin, self._ymax)
                     self._canvas.draw()
                 else:
                     print ("Select a region to smooth by pressing 'e'.")
-            elif event.key == 'k' or event.key == 'L':#If 'k' or 'L' pressed
+            elif event.key == 'k' or event.key == 'L':# If 'k' or 'L' pressed
                 # Set graph x scale
                 if self._ax.get_xscale() == 'linear':
                     self._ax.set_xscale('log')
@@ -468,7 +471,7 @@ class CurveInteractor(object):
                 self._set_xlim_ylim()
                 self._set_logscale()
                 self._canvas.draw()
-            elif event.key == 'l':                  #If 'l' pressed
+            elif event.key == 'l':                  # If 'l' pressed
                 # Set graph y scale
                 if self._ax.get_yscale() == 'linear':
                     self._ax.set_yscale('log')
@@ -476,8 +479,8 @@ class CurveInteractor(object):
                     self._ax.set_yscale('linear')
                 self._set_xlim_ylim()
                 self._canvas.draw()
-            elif event.key == 'B':                  #If "B" pressed
-                if self._move_set == True:          #Run B-Spline Smoothing
+            elif event.key == 'B':                  # If "B" pressed
+                if self._move_set == True:          # Run B-Spline Smoothing
                     self._regions.smooth_data("bspline", self._xmin, self._xmax, self._ymin, self._ymax)
                     self._canvas.draw()
                 else:
@@ -805,22 +808,28 @@ class CurveInteractor(object):
             keymap_window_open = False
             textbox.destroy()
         if(keymap_window_open):
-            print("Key mapping window already open.")
+            global textbox
+            textbox.lift()
+            textbox.focus_force()
             return
-        mpl_lines = [
+        # These are the blocks of lines that will be desplayed in the key mappings window.
+        # The first line in every block (excluding the last one) is the title of the block
+        line_blocks = [
+        [  # MatPlotLib
+            "Matplotlib Keys:",
             'Drag points to update line',
             'Press t to toggle original line on and off [default: off]',
             'Press b to toggle points on and off [default: on]',
             'Press y to toggle xy move capability on and off',
-            'Press a to toggle adding and removing points with left and right',
-            '\t click respectively [default: off]',
+            'Press a to toggle adding and removing points with left ',
+            '\tand right click respectively [default: off]',
             'Press e to toggle selecting a block of points',
             'Press i to enlarge figure margins',
             'Press <shift> I to decrease figure margins',
             'Press <shift> H to increase size of background markers',
             'Press <shift> J to decrease size of background markers'
-        ]
-        cur_lines = [
+        ], [  # Curvallis
+            "Curvallis Keys:",
             'Press q then q again to quit',
             'Press w to write the the current points to a file',
             'Press u to undo the last point manipulation',
@@ -829,46 +838,101 @@ class CurveInteractor(object):
             'Press <shift> X for integral smoothing',
             'Press <shift> B for B-spline smoothing',
             'Press <shift> V for acute repair smoothing'
-        ]
-        post_lines = [
+        ], [  # Post Keymapping Lines
             'Make sure focus is on the plotting window and the cursor is',
             'also in the plotting window when using these keys.',
             '',
-            'Press "<SHIFT> M" to show these keys again',
+            'Press "m" to show these keys again',
             '',
             'More key mappings can be found at:',
             'https://github.com/LLNL/Curvallis#interactive-commands'
-        ]
-        horizontal_line = "============================================="
-        def placelines(window,lines,spacing,offset_x,offset_y):
+        ]]
+        ##################################################
+        def placelines(window, lines, text_font):
             for i in range(len(lines)):
-                l = tkinter.Label(window, text=lines[i])
-                l.place(x=offset_x, y=offset_y + (spacing * i))
-        # Line Spacing
-        spacing = 20
+                l = tkinter.Label(window, text=lines[i], font=text_font).pack(anchor='w')
+
+        def total_number_of_lines():
+            total_lines = 0
+            for block in line_blocks:
+                total_lines += len(block)
+            total_lines -= len(line_blocks) - 1
+            return total_lines
+
+        def get_headder_space():
+            return (len(line_blocks) * 3) - 1
+
+        def get_longest_line_width(extra_spacing):
+            max_length = 0
+            for block in line_blocks:
+                for line in block:
+                    if (len(line) > max_length):
+                        max_length = len(line)
+            max_length += extra_spacing
+            return max_length
+        ##################################################
+        # Calculate size of horizontal deviding line
+        horizontal_line = '=' * get_longest_line_width(2)
+        # Font and font size (MUST use fixed width font / constant width font)
+        text_font = ("Courier", 12)
+        # Scrollbar width
+        scrollbar_width = 20 # not fully working
+        # Calculate the width of the window
+        max_window_width = 10 * get_longest_line_width(2)
         # Window Size (width, height, x_offset, y_offset)
-        window_size = (500, ((8 + len(mpl_lines) + len(cur_lines) + len(post_lines)) * spacing), 30, 30)
+        window_size = (max_window_width, ((get_headder_space() + total_number_of_lines()) * 22.5), 30, 30)
+        # Create Textbox
         textbox = tkinter.Tk()
+        # Host system screen resolution
+        host_screen = (textbox.winfo_screenwidth(), textbox.winfo_screenheight())
+        # Check if window can fit on screen (40% of width, 80% of height)
+        if (window_size[0] > (host_screen[0] * 0.4)):
+            window_size = ((host_screen[0] * 0.4), host_screen[1], window_size[2], window_size[3])
+            print("error: window too wide\nkey mappings window excedes 40% of screen")
+            return
+        if (window_size[1] > (host_screen[1] * 0.8)):
+            window_size = (window_size[0], int(host_screen[1] * 0.8), window_size[2], window_size[3])
         # width x height + x_offset + y_offset:
-        textbox.geometry(str(window_size[0]) + "x" + str(window_size[1]) + "+" + str(window_size[2]) + "+" + str(window_size[3]))
-        # Disable window resizing
-        textbox.resizable(False, False)
+        textbox.geometry(
+            "%dx%d+%d+%d" % (window_size[0] + scrollbar_width, window_size[1], window_size[2], window_size[3]))
+        # Enable / Disable window resizing (Horizontal, Vertical)
+        textbox.resizable(False, True)
+        # Set function for when window is closed
         textbox.protocol("WM_DELETE_WINDOW", on_closing)
+        # Set title of window
         textbox.title("Key Mappings")
-        ##### Matplotlib Keys #####
-        t1 = tkinter.Label(textbox, text=horizontal_line + "\nMatplotlib Keys:\n" + horizontal_line)
-        t1.place(x=0, y=0)
-        placelines(textbox, mpl_lines, spacing, 20, 3*spacing)
-        ##### Curvallis Keys #####
-        t2 = tkinter.Label(textbox, text=horizontal_line + "\nCurvallis Keys:\n" + horizontal_line)
-        t2.place(x=0, y=(len(mpl_lines) + 3) * spacing)
-        placelines(textbox, cur_lines, spacing, 20, (len(mpl_lines)+6)*spacing)
-        ##### Other keys/lines #####
-        t3 = tkinter.Label(textbox, text=horizontal_line)
-        t3.place(x=0, y=(len(mpl_lines)+len(cur_lines)+6)*spacing)
-        placelines(textbox, post_lines, spacing, 0, (len(mpl_lines)+len(cur_lines)+7)*spacing)
-        t4 = tkinter.Label(textbox, text=horizontal_line)
-        t4.place(x=0, y=(len(mpl_lines) + len(cur_lines) + len(post_lines) + 7) * spacing)
+        # Generate scrollbar
+        style = ttk.Style().configure("Vertical.TScrollbar", arrowsize=scrollbar_width)
+        container = ttk.Frame(textbox)
+        canvas = tkinter.Canvas(container, width=window_size[0], height=window_size[1])
+        scrollbar = ttk.Scrollbar(container, orient="vertical", command=canvas.yview, cursor="sb_v_double_arrow",
+                                  style="Vertical.TScrollbar")
+        scrollable_frame = ttk.Frame(canvas)
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        # Generate textboxes and place them in window
+        lines_from_top = 0
+        for i in range(len(line_blocks) - 1):
+            block = line_blocks[i]
+            t = tkinter.Label(scrollable_frame, text=horizontal_line + "\n" + block[0] + "\n" + horizontal_line,
+                              font=text_font).pack()
+            placelines(scrollable_frame, block[1:len(block)], text_font)
+            lines_from_top += len(block) + 2
+        block = line_blocks[-1]
+        t = tkinter.Label(scrollable_frame, text=horizontal_line, font=text_font).pack()
+        placelines(scrollable_frame, block, text_font)
+        t = tkinter.Label(scrollable_frame, text=horizontal_line, font=text_font).pack()
+        # Place items in window
+        container.pack(fill="both", expand=True)
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        # Declare that the help window has been created
         keymap_window_open = True
 
     # END Callback support======================================================

@@ -13,6 +13,7 @@
 # Using OrderedDict to make output sections, and isotherms come out in the same
 # order they were read in, to support comparison of outputs diring unit  testing.
 from collections import OrderedDict
+from curvallis.version import version as VERSION_STRING
 
 """This module provides input and output and a data structure for MEOS EOS
  output data.

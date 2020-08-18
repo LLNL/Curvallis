@@ -13,6 +13,7 @@
 import numpy as np
 from operator import itemgetter
 import math
+from curvallis.version import version as VERSION_STRING
 
 # These line attributes are declared here at the top of the file so they are
 # easy to find and change:

@@ -1,38 +1,39 @@
-Curvallis
-=========
+# Curvallis
 
 Curvallis is a plotting program written in Python 3 using MatPlotLib to visualize and modify experimental equation of state data. It does this by plotting individual isotherms as lines. Data can be either 1d or 2d, meaning there can be 1 or many isotherms plotted at once. Data points on these lines can be moved around, and new points can be added or removed. 1d data can have different equations fitted to them, which best fit the data. Some popular equations are currently Nth degree polynomials and Equations of State, but more exist and any equation can be added. Manipulating data points causes this fitted line to be recalculated and redisplayed. The manipulated data points, the fitted line, and calculated derivatives can be written to a file.
 
-Installation
-------------
+## Installation
+
 Curvallis has the following dependencies which should be installed automatically by the installer:
 
 matplotlib, Tkinter, numpy, scipy, argparse
 
-Scipy can be difficult to install, so it may have to be installed manually if the installer fails. This installer has been tested using Python v 2.7.17, Python v 3.6.9, and Python v 3.8.1.
+Scipy can be difficult to install, so it may have to be installed manually if the installer fails. Although the installer has been tested using Python v 2.7.17, Python v 3.6.9, and Python v 3.8.1, the program itself requires Python 3.
 
 To install this program, type "python setup.py" into a terminal in the directory containing 'setup.py'.
 Run 'python setup.py --help' for more instalation options.
 
-Virtual Python Environments
----------------------------
+For those adding features to Curvallis there is a versioning system for automatically updating the version string of Curvallis. To enable or update this feature add the "--versioning" argument to the setup program. You should only need to run the versioning setup once and the feature will be enabled for your local repository indefinitely.
+
+## Virtual Python Environments
+
 Virtual python environments are a great way to create new instances of python. Virtual python environments act like a normal installation of python except they are completely isolated from your systems main python installation. This separation means that the virtual environment has its own executable, pip package manager, and packages.
 It is recommended to create a virtual python environment in the following circumstances:
  - When one wants to have a program isolated from their main installation
  - When there are two or more programs that require conflicting packages or different versions of the same package
  - When an isolated python environment is desired
 
-Running
--------
+## Running
+
 Once installed, typing "curvallis" into a terminal should run the program at any location. The program can also be run if it's not installed. Just run curvallis.py. If you run the program this way, make sure you have manually installed all dependencies. 
 
 To get started, the examples directory contains example configuration files and example data files. To test the configuration files, go to the examples directory and type "curvallis --config_file _config-file-name_". Each config file has an explanation of what its commands are doing.
 
-Options
-=======
+## Options
 
 Options can be entered by either command line or initialization file. All options can be entered either way. The default initialization file is named curve_editor.ini, so the program will automatically read all arguments out of this file if it is in the same directory as the program is being run from. To read a different ini file, use the --config_file option. Command line arguments and ini files can be used simultaneously. If there are conflicting arguments, the command line arguments get priority. To input an option by command line, put --_name_ _value_ _value_ .... For example to use the fit_type option type: --fit_type poly5 poly4. To input options using the ini file, don't include the dashes. If there are multiple values for the option, enclose them in brackets as well. You can also put "=" or ":" instead of a space between _name_ and _value_. More details about how configuration files work can be found in the "Configuration File Syntax" section in this document.
 
+### Optional arguments
 **Optional arguments** are options which aren't required to be given in order to run the program. This is either because there are default values or that option doesn't need to be specified at all. Options outside of this group may be optional as well, but these are the miscellaneous options which don't fit into another group. Here is a list of all options in this category:
 
    - **-h, --help**
@@ -143,6 +144,7 @@ Options can be entered by either command line or initialization file. All option
 
    Specify the angle to use for acute repair smoothing. The smoother will remove any angles less than this value in degrees.
 
+### Input arguments
 **Input arguments** specify different input data sources. Exactly one must be specified.
 
    - **--in_eos_file_base _base path_**
@@ -161,12 +163,14 @@ Options can be entered by either command line or initialization file. All option
 
    Use the internal predefined data as source data. Used for developer testing.
 
+### Output arguments
 **Output arguments** specify where changed data is written to. Use only one of these.
 
    - **--out_eos_file_base _base path_**
 
    Use the file name "_base path_.dat" when writing out the moved data points for 2d, eos data. This option must be set if "--in_eos_file_base" is set.
 
+### Shift, Limit, and Point Exclusion arguments
 **Shift, Limit, and Point Exclusion arguments** alter the appearance of input data. None of these options are required to be set.
 
    - **--decimate _count_**
@@ -213,6 +217,7 @@ Options can be entered by either command line or initialization file. All option
 
    Use "v" as the x axis instead of "rho". When using this option fit curves will not fit the data correctly. This essentially makes x = 1/x for each input point.
 
+### View arguments
 **View arguments** determine what starts out displayed on the screen. For example, "x_max" could be set to 200 when the data extends to 2000 and the default view will be from the minimum data point to 200. If only some of these options are set, the others are determined by the minimum and maximum x and y values of the data.
 
    - **--x_max _num_**
@@ -231,6 +236,7 @@ Options can be entered by either command line or initialization file. All option
 
    Set the minimum y value for the window.
 
+### Curve fitter arguments
 **Curve fitter arguments** select and parameter the curve fitter formulas. The main options here are "fit_type" and "refine_fit", which specify which equations are fitted to the data. Most other options are coefficient guesses for the equations. Sometimes, the algorithm which attempts to fit equations to the data fails because it can't find a good fit. If the user has an estimate as to what the value a certain coefficient in the equation should equal, the guess options will allow them to enter that, and the algorithm will have a better chance of finding a good fit. Guess arguments take floating point numbers.
 
    - **--fit_type _fit_ _fit_ ... (Default: poly5)**
@@ -306,8 +312,7 @@ Options can be entered by either command line or initialization file. All option
 
    Set an initial guess for gamma (gamma0).
 
-Interactive Commands
-====================
+## Interactive Commands
 
 **Interactive commands** can be inputted while the plotter is running. When using these commands, make sure the display's focus is on the plotting window and not the terminal. If these commands are entered while focus is on the terminal, nothing will happen. Also make sure the cursor is in the plotting window. If it isn't, nothing will happen. Some of these commands can also be triggered by the buttons on the bottom left of the plotting window screen. Commands with an asterisk next to them are defaults from the "matplotlib" library and their functionality could change depending on the version of "matplotlib" installed. See the [matplotlib documentation](https://matplotlib.org/3.2.1/users/navigation_toolbar.html#navigation-keyboard-shortcuts) for more information on these default commands.
 
@@ -423,13 +428,12 @@ Interactive Commands
 
    Smooth data using acute repair smoothing. The user must select a region to smooth by pressing "e" and selecting a rectangular region.
 
-Input Files
-===========
+## Input Files
 
 There are two different types of input files accepted. One type only plots a single line (1d data), while the other type plots multiple lines of data (2d data). Different arguments must be used to read the different types of input data, and the format of the data is different between the two types. The types' styles, formats, and differences are explained below.
 
-1d Data
--------
+### 1d Data
+
 1d data files plot a single line. Single line data can include a fit type, which is an equation fitted to the data and displayed by a red line. The default fit type is a fifth degree polynomial, but the argument "--fit_type none" will specify no equation. 1d data also allows the user to add and remove points from the line. Use the "--input_file" argument to read in 1d data. 1d data and 2d data can't be read in at the same time since only one input file can be read. To specify the name of the output file of moved points, use the argument "--output_file_name". The default name is "moved_points_out.dat". 1d data files are very simple to write because they are only two columns of data. The data can be integers or floating point values. The space between the columns can be any length. Lines can be ignored for comments by typing a "#" before the data. Here are some examples of correct data:
  
     #This is a comment
@@ -442,8 +446,8 @@ There are two different types of input files accepted. One type only plots a sin
 
     2.874444E+02  5.67E-03
 
-2d Data
--------
+### 2d Data
+
 2d data files plot multiple lines. They are more specific in format than 1d data. 2d data doesn't allow the argument "fit_types" nor the ability to add or remove points. Only existing points can be modified. Use the "--in_eos_file_base" option, followed by the name of the input file, to read in an input file. The user is required to specify an output file name for moved points as well. To do this, use the "--out_eos_file_base option". There is no default name, which is why this option must be specified when reading in 2d data. To start a 2d data file, you must specify an eos function (section name), the number of isotherms in that eos function (number of lines in the section), and the number of data points in each isotherm/line, which looks something like this: 
 
 Pc 100 95 
@@ -484,8 +488,7 @@ In this example, there are two sections: "Pc" and "Ec". Both sections have 2 iso
 
     6.7 3.44
 
-Configuration File Syntax
-=========================
+## Configuration File Syntax
 
 Some format details:
 
@@ -529,7 +532,6 @@ To specify an argument with multiple values or with a type of "list":
 
 - [section]
 
-Example Configuration File
---------------------------
+### Example Configuration File
 
 See "[examples/config-complete-list.ini](https://github.com/LLNL/Curvallis/blob/master/examples/config-complete-list.ini)" for an example configuration file.

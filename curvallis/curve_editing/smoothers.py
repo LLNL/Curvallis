@@ -17,6 +17,7 @@ import scipy
 import scipy.interpolate
 import scipy.misc
 import scipy.integrate
+from curvallis.version import version as VERSION_STRING
 
 
 class TriLocalSmoother(object):
@@ -336,7 +337,7 @@ class BSplineSmoother(object):
         # The detail of the curve. Higher values give greater accuracy but slower operation. The reverse is also true.
         # It is recommended to keep detail
         self.detail = detail
-    def applySmooth(self, datax, datay, unknown1, unknown2):
+    def applySmooth(self, datax, datay, xmin, xmax):
         # l= number of input data points
         l = len(datax)
         if(l < 4):

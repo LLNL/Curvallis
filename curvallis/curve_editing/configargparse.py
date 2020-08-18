@@ -17,9 +17,7 @@ import re
 import sys
 import types
 from io import StringIO
-
-__version__ = "0.9.3"
-
+from curvallis.version import version as VERSION_STRING
 
 ACTION_TYPES_THAT_DONT_NEED_A_VALUE = {argparse._StoreTrueAction,
     argparse._StoreFalseAction, argparse._CountAction,
