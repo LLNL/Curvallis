@@ -51,6 +51,10 @@ class WindowedDisplay(object):
             self._main_window.focus_force()
             return
 
+        if not(len(self._block_headers) == len(self._info_blocks)):
+            self.window_error("Text length mismatch error",
+                              "The lengths of the text headers and the text blocks do not match", True)
+
         # Calculate size of horizontal dividing line
         horizontal_line = '=' * self._get_longest_line_width(2)
         # Font and font size (MUST use fixed width font / constant width font)
@@ -164,18 +168,12 @@ class WindowedDisplay(object):
         # Check if window can fit on screen (40% of width, 80% of height)
         if window_width > (host_screen[0] * self.max_window_width):
             window_width = int(host_screen[0] * self.max_window_width)
-            if self.window_size_errors[0]:
-                print("Error: window too wide")
-                print(self._window_name + " window exceeds " + str(self.max_window_width * 100) + "% of screen.")
-                self._main_window.destroy()
-                return
+            self.window_error("Window too wide", self._window_name + " window exceeds " +
+                              str(self.max_window_width * 100) + "% of screen.", self.window_size_errors[0])
         if window_height > (host_screen[1] * self.max_window_height):
             window_height = int(host_screen[1] * self.max_window_height)
-            if self.window_size_errors[1]:
-                print("Error: window too tall")
-                print(self._window_name + " window exceeds " + str(self.max_window_height * 100) + "% of screen.")
-                self._main_window.destroy()
-                return
+            self.window_error("Window too tall", self._window_name + " window exceeds " +
+                              str(self.max_window_height * 100) + "% of screen.", self.window_size_errors[1])
         self.set_window_size(window_width + self.scrollbar_width, window_height)
 
     def redraw(self):
@@ -183,6 +181,12 @@ class WindowedDisplay(object):
             self._main_window.destroy()
             self._main_window_open = False
             self.display_main_window()
+
+    def window_error(self, error, error_message, fatal=False):
+        print("Error: " + error)
+        print(error_message)
+        if fatal:
+            self._main_window.destroy()
 
 ########################################################################################################################
 def key_mappings_window_header():
@@ -235,7 +239,7 @@ def key_mappings_window_text():
             'Press "F1" to show these keys again',
             '',
             'More key mappings can be found at:',
-            'https://github.com/LLNL/Curvallis#interactive-commands'
+            'https://github.com/LLNL/Curvallis#interactive-commands',
         ]]
 
 
