@@ -1,4 +1,4 @@
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Copyright (c) 2016, Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Paul Minner <minner.paul@gmail.com>
@@ -8,11 +8,12 @@
 # This file is part of Curvallis. 
 # For details, see https://github.com/llnl/Curvallis.
 # Please also Curvallis/LICENSE.
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 from __future__ import print_function
 import copy
 
+from curvallis.version import version as VERSION_STRING
 import curvallis.curve_editing.curve_fitters as curve_fitters
 import curvallis.curve_editing.io as io
 import curvallis.curve_editing.lines as lines
@@ -21,9 +22,10 @@ from pylab import polyfit
 import numpy as np
 from operator import itemgetter
 from math import log10
-from curvallis.version import version as VERSION_STRING
+from curvallis.window import fitter_info_window
 
-_INFINITY = float ('inf')
+_INFINITY = float('inf')
+
 
 # TODO: recalculate the equation for a region when a point is moved in that region and then plot the region
 
@@ -136,7 +138,8 @@ def define_args(parser):
 class _Line_Set_With_Fit(lines.Line_Set):
     """ Has own fitter object, plus various fit curve lines
     """
-    def __init__(self, name, ax, fitter,fitter2,  ghost_set, x_low_limit, 
+
+    def __init__(self, name, ax, fitter, fitter2, ghost_set, x_low_limit,
                  x_high_limit, allow_xy_move, args, is_eos_data):
         super(_Line_Set_With_Fit, self).__init__(name, ax, allow_xy_move, is_eos_data)
         self._args = args
@@ -170,22 +173,22 @@ class _Line_Set_With_Fit(lines.Line_Set):
             x_last = log10(x_last)
             x_count = int((x_last - x_first) * self._args.points_per_decade)
 
-        #If only one point is asked for, return x_first to avoid
-        #a 'division by 0' error in the for loop below
+        # If only one point is asked for, return x_first to avoid
+        # a 'division by 0' error in the for loop below
         if x_count == 1:
             if self._logscale or logarithmic:
-                x_first = pow(10,x_first)
+                x_first = pow(10, x_first)
             return [x_first]
 
         result = []
         x_range = x_last - x_first
         for i in range(x_count):
             # Calculate each x without any cumulative errors:
-            portion = float(i) / float(x_count-1)
+            portion = float(i) / float(x_count - 1)
             x = x_first + (portion * x_range)
 
             if self._logscale == True or logarithmic:
-                result.append(pow(10,x))
+                result.append(pow(10, x))
             else:
                 result.append(x)
         return result
@@ -261,7 +264,6 @@ class _Line_Set_With_Fit(lines.Line_Set):
 
         return [[x_values[i], y_values[i]] for i in range(len(x_values))]
 
-
     def get_ghost_points(self):
         return self._ghost_set
 
@@ -310,7 +312,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
         Call after calling calculate_fit, and whenever xlim changes.
         """
 
-        if not self._is_eos_data and self.get_movable_point_count() >=2 and self._fitter != 'none':
+        if not self._is_eos_data and self.get_movable_point_count() >= 2 and self._fitter != 'none':
             # calculate new limits of view
             x_limit = self._ax.get_xlim()
 
@@ -331,15 +333,16 @@ class _Line_Set_With_Fit(lines.Line_Set):
             if self._x_view_high_limit == self._x_view_low_limit:
                 return
 
-            #Find logarithmic decades covered by new x-scale multiplied by points per decade
+            # Find logarithmic decades covered by new x-scale multiplied by points per decade
             if self._x_view_low_limit >= 1:
-                total_points = int(log10(self._x_view_high_limit / self._x_view_low_limit) * self._args.points_per_decade)
+                total_points = int(
+                    log10(self._x_view_high_limit / self._x_view_low_limit) * self._args.points_per_decade)
             else:
-                #It isn't mathematically accurate to just shift up the x-values,
-                #but you can't take the log of anything less than 1 for this to work
+                # It isn't mathematically accurate to just shift up the x-values,
+                # but you can't take the log of anything less than 1 for this to work
                 shift_up = 1 - self._x_view_low_limit
-                total_points = int(log10((self._x_view_high_limit+shift_up) / (self._x_view_low_limit+shift_up)) * self._args.points_per_decade)
-                
+                total_points = int(log10((self._x_view_high_limit + shift_up) / (
+                            self._x_view_low_limit + shift_up)) * self._args.points_per_decade)
 
             if total_points == 0:
                 return
@@ -374,11 +377,11 @@ class _Line_Set_With_Fit(lines.Line_Set):
         self.movable.undo()
         # Undo highlighting if in block select mode
         # Must do here to check if block select mode is active
-        if (self._in_set == True and self.movable._last_highlight != None 
-            and self.movable._last_highlight != []):
+        if (self._in_set == True and self.movable._last_highlight != None
+                and self.movable._last_highlight != []):
             self.movable._highlight.set_data(
-                    [data[0] for data in self.movable._last_highlight],
-                    [data[1] for data in self.movable._last_highlight])
+                [data[0] for data in self.movable._last_highlight],
+                [data[1] for data in self.movable._last_highlight])
         self.movable.draw()
 
         # Undo information for any fit curves as well
@@ -386,9 +389,8 @@ class _Line_Set_With_Fit(lines.Line_Set):
             self.fit_curve.undo()
             self.derivative_curve.undo()
             self.integral_curve.undo()
-        
 
-# Point movement ###############################################################
+    # Point movement ###############################################################
 
     def finish_move_point(self):
         """ Recalculate and redraw the fit curve.
@@ -403,6 +405,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
             self.plot_curves()
             self._update_points = False
 
+
 # END Point movement ###########################################################
 
 
@@ -410,7 +413,8 @@ class _Line_Sets(object):
     """
     Similar to io.Data_Sets.  One Line_Set object per named Data_Set.
     """
-    def __init__(self, names, ax, fitter, fitter2, ghost_sets, x_low_limit, 
+
+    def __init__(self, names, ax, fitter, fitter2, ghost_sets, x_low_limit,
                  x_high_limit, allow_xy_move, args, is_eos_data):
         self._args = args
         self._ax = ax
@@ -429,7 +433,7 @@ class _Line_Sets(object):
                 ax=self._ax,
                 fitter=self._fitter,
                 fitter2=self._fitter2,
-                ghost_set = self._ghost_sets._sets[name],
+                ghost_set=self._ghost_sets._sets[name],
                 name=name,
                 x_low_limit=self._x_low_limit,
                 x_high_limit=self._x_high_limit,
@@ -470,15 +474,16 @@ class _Line_Sets(object):
         """
         line_set = self._get_only_line_set()
 
-        #Find total amount of points needed through multiplying the
-        #logarithmic decades covered by x-value range by the points per decade
+        # Find total amount of points needed through multiplying the
+        # logarithmic decades covered by x-value range by the points per decade
         if self._x_low_limit >= 1:
             total_points = int(log10(self._x_high_limit / self._x_low_limit) * self._args.points_per_decade)
         else:
-            #It isn't mathematically accurate to just shift up the x-values,
-            #but you can't take the log of anything less than 1 for this to work
+            # It isn't mathematically accurate to just shift up the x-values,
+            # but you can't take the log of anything less than 1 for this to work
             shift_up = 1 - self._x_low_limit
-            total_points = int(log10((self._x_high_limit+shift_up) / (self._x_low_limit+shift_up)) * self._args.points_per_decade)
+            total_points = int(
+                log10((self._x_high_limit + shift_up) / (self._x_low_limit + shift_up)) * self._args.points_per_decade)
 
         if total_points == 0:
             return
@@ -496,14 +501,14 @@ class _Line_Sets(object):
         """
         line_set = self._get_only_line_set()
 
-        #Find logarithmic decades covered by x-value range
+        # Find logarithmic decades covered by x-value range
         if self._x_low_limit >= 1:
             decades_covered = log10(self._x_high_limit / self._x_low_limit)
         else:
-            #It isn't mathematically accurate to just shift up the x-values,
-            #but you can't take the log of anything less than 1 for this to work
+            # It isn't mathematically accurate to just shift up the x-values,
+            # but you can't take the log of anything less than 1 for this to work
             shift_up = 1 - self._x_low_limit
-            decades_covered = log10((self._x_high_limit+shift_up) / (self._x_low_limit+shift_up))
+            decades_covered = log10((self._x_high_limit + shift_up) / (self._x_low_limit + shift_up))
 
         # The current fit curve data is custom-generated for the current zoom's .
         # x range. Calculate the curve for the the movable line's full x range:
@@ -518,14 +523,14 @@ class _Line_Sets(object):
         """
         line_set = self._get_only_line_set()
 
-        #Find logarithmic decades covered by x-value range
+        # Find logarithmic decades covered by x-value range
         if self._x_low_limit >= 1:
             decades_covered = log10(self._x_high_limit / self._x_low_limit)
         else:
-            #It isn't mathematically accurate to just shift up the x-values,
-            #but you can't take the log of anything less than 1 for this to work
+            # It isn't mathematically accurate to just shift up the x-values,
+            # but you can't take the log of anything less than 1 for this to work
             shift_up = 1 - self._x_low_limit
-            decades_covered = log10((self._x_high_limit+shift_up) / (self._x_low_limit+shift_up))
+            decades_covered = log10((self._x_high_limit + shift_up) / (self._x_low_limit + shift_up))
 
         # The current fit curve data is custom-generated for the current zoom's .
         # x range. Calculate the curve for the the movable line's full x range:
@@ -536,7 +541,7 @@ class _Line_Sets(object):
             logarithmic=Logarithmic)
 
     def get_info(self, indent=''):
-        result  = indent + 'Line sets count: %s\n' % len(self._sets)
+        result = indent + 'Line sets count: %s\n' % len(self._sets)
         indent += '    '
         for name, line_set in self._sets.items():
             result += indent + 'Line set "%s":' % name
@@ -606,7 +611,7 @@ class _Line_Sets(object):
         for line_set in self._sets.values():
             line_set.undo()
 
-# Point movement ###############################################################
+    # Point movement ###############################################################
 
     def attempt_begin_move_point(self, event):
         """ Select the first line set where the cursor is within EPSILON of one
@@ -688,12 +693,15 @@ class _Line_Sets(object):
         for name, line_set in self._sets.items():
             line_set.remove_point(event)
 
+
 # END Point movement ###########################################################
+
 
 class _Region(object):
     """ A region is a subset in the X axis (a vertical slice) of the plotting
     area, with a separately calculated fit curve.
     """
+
     def __init__(self, id_in, ax, data_sets, ghost_sets, x_low_limit, x_high_limit, fitter,
                  fitter2, is_eos_data, allow_xy_move, args):
         """
@@ -706,19 +714,19 @@ class _Region(object):
         :param is_eos_data: Boolean
 
         """
-        self._args=args
+        self._args = args
         self._ax = ax
         self._is_eos_data = is_eos_data
         self._ghost_sets = ghost_sets
 
         if fitter != 'none':
             self._fitter = curve_fitters.factory.make_object_of_class(
-            name=fitter, args=args)
+                name=fitter, args=args)
         else:
             self._fitter = 'none'
         if fitter2 != 'none':
             self._fitter2 = curve_fitters.factory.make_object_of_class(
-            name=fitter2, args=args)
+                name=fitter2, args=args)
         else:
             self._fitter2 = 'none'
 
@@ -730,19 +738,19 @@ class _Region(object):
         self._x_low_limit = x_low_limit
 
         self._line_sets = _Line_Sets(
-                names=data_sets.get_names(),
-                ax=ax,
-                fitter=self._fitter,
-                fitter2=self._fitter2,
-                ghost_sets=self._ghost_sets,
-                x_low_limit=x_low_limit,
-                x_high_limit=x_high_limit,
-                allow_xy_move=allow_xy_move,
-                args=self._args,
-                is_eos_data=self._is_eos_data)
+            names=data_sets.get_names(),
+            ax=ax,
+            fitter=self._fitter,
+            fitter2=self._fitter2,
+            ghost_sets=self._ghost_sets,
+            x_low_limit=x_low_limit,
+            x_high_limit=x_high_limit,
+            allow_xy_move=allow_xy_move,
+            args=self._args,
+            is_eos_data=self._is_eos_data)
         self._line_sets.plot_original_xy_data(data_sets)
         self._line_sets.plot_movable_xy_data(data_sets)
-        print (self.get_info())
+        print(self.get_info())
         self._line_sets.plot_boundary_line()
         print("Approximate Fit (No ghost points yet):")
         self.calculate_fit()
@@ -767,7 +775,7 @@ class _Region(object):
         return self._line_sets.get_data_sets()
 
     def get_info(self, indent=''):
-        result  = indent + 'REGION "%s" INFO:\n' % self._id
+        result = indent + 'REGION "%s" INFO:\n' % self._id
         indent += '    '
         result += indent + 'X Range: %.15E .. %.15E\n' % (self._x_low_limit, self._x_high_limit)
         result += self._line_sets.get_info(indent)
@@ -822,7 +830,7 @@ class _Region(object):
         self._line_sets.attempt_get_set(xmin, xmax, ymin, ymax)
 
     def begin_move_set(self, event):
-        #Set edges to keep points in region
+        # Set edges to keep points in region
         xmin, xmax = self._line_sets.find_set_span()
         if (xmin != None and xmax != None):
             line_set = list(self._line_sets._sets.values())[0]
@@ -843,12 +851,13 @@ class _Region(object):
     def move_set(self, event):
         """ Move set of points in the data and replot
         """
+
         def keep_x_in_region():
             line_set = list(self._line_sets._sets.values())[0]
 
             lowest = event.x - self._moving_set_min
             highest = event.x + self._moving_set_max
-            
+
             low_limit_disp = line_set.movable.points_to_display_space([[self._x_low_limit, 0]])[0][0]
             high_limit_disp = line_set.movable.points_to_display_space([[self._x_high_limit, 0]])[0][0]
 
@@ -861,7 +870,7 @@ class _Region(object):
         self._line_sets.move_set(event)
 
     def rotate_set(self, event, xmin, xmax, ymin, ymax):
-        #TODO: MAKE SURE SET STAYS IN REGION
+        # TODO: MAKE SURE SET STAYS IN REGION
         self._line_sets.rotate_set(event, xmin, xmax, ymin, ymax)
 
     def cancel_any_move_points(self):
@@ -876,6 +885,7 @@ class _Region(object):
     def move_point(self, event):
         """ Move the point in the data and replot the line.
         """
+
         def keep_x_in_region():
             event.xdata = max(event.xdata, self._x_low_limit)
             event.xdata = min(self._x_high_limit, event.xdata)
@@ -895,7 +905,7 @@ class _Region(object):
             return '(no moving point)'
 
     def move_point_in_progress(self):
-        return  self._line_sets.move_point_in_progress()
+        return self._line_sets.move_point_in_progress()
 
     def add_point(self, event):
         self._line_sets.add_point(event)
@@ -909,6 +919,7 @@ class _Region(object):
 class Regions(object):
     """ Manages all the regions in the plotting area.
     """
+
     def __init__(self, ax, args, input_data_sets, xy_limits, io_manager):
         """ Create the regions, their boundaries, their fit curve funcs,
         their fit curve plots, etc.
@@ -929,7 +940,7 @@ class Regions(object):
         self._moving_set_region_index = None
         self._data_sets = input_data_sets.get_copy()
         self._lowest_boundary_line = lines.Line(ax, lines.line_attributes['region_boundary'])
-        self._regions=list()
+        self._regions = list()
         self._xlim_callback_active = False
         self._x_max = xy_limits.x_max
         self._x_min = xy_limits.x_min
@@ -940,9 +951,9 @@ class Regions(object):
         else:
             region_count = 1
         self._create_regions(region_count)
-        print ("regions:")
+        print("regions:")
         self.calculate_fits()
-#        print ("regions:\n%s" % pprint.pformat(self.regions))
+        #        print ("regions:\n%s" % pprint.pformat(self.regions))
         self.plot_curves()
 
     def calculate_fits(self):
@@ -958,8 +969,8 @@ class Regions(object):
         """
 
         def ascending(mylist):
-            for i in range (0, len(mylist)-1):
-                if float(mylist[i]) > float(mylist[i+1]):
+            for i in range(0, len(mylist) - 1):
+                if float(mylist[i]) > float(mylist[i + 1]):
                     return False
             return True
 
@@ -976,33 +987,38 @@ class Regions(object):
             return result
 
         def input_x_boundaries():
-            #Check to see if user wants region boundaries by number of data points or by x-values
+            # Check to see if user wants region boundaries by number of data points or by x-values
             if self._args.region_data_points != None:
-                #Create as many regions as possible that contain the amount of data points as the user gave
+                # Create as many regions as possible that contain the amount of data points as the user gave
                 # in the Command Line argument 'region_data_points'
                 data = list(self._data_sets.get_name_set_items())[0][1]
 
-                assert len(data) >= self._args.region_data_points, "%E points wanted per region but an insufficient number of data points, %E, has been given" % (self._args.region_data_points, len(data))
+                assert len(
+                    data) >= self._args.region_data_points, "%E points wanted per region but an insufficient number of data points, %E, has been given" % (
+                self._args.region_data_points, len(data))
 
-                reg_count = int(len(data)/self._args.region_data_points)
-                result = [_INFINITY for unused in range(reg_count+1)]
+                reg_count = int(len(data) / self._args.region_data_points)
+                result = [_INFINITY for unused in range(reg_count + 1)]
                 result[0] = self._x_min
                 result[-1] = self._x_max
-                #Make equal-sized regions that have 'self._args.region_data_points' many data points in them
+                # Make equal-sized regions that have 'self._args.region_data_points' many data points in them
                 for i in range(1, reg_count):
-                    if len(data) > int(i*self._args.region_data_points+1):
-                        result[i] = float((data[i*self._args.region_data_points][0]+data[i*self._args.region_data_points+1][0])/2)
+                    if len(data) > int(i * self._args.region_data_points + 1):
+                        result[i] = float((data[i * self._args.region_data_points][0] +
+                                           data[i * self._args.region_data_points + 1][0]) / 2)
             else:
                 # Check boundaries were entered in ascending order
                 assert ascending(self._args.region_bound[0]), "Region boundaries must be entered in ascending order."
-                #Use the user-given numbers as the x-values for region boundaries
+                # Use the user-given numbers as the x-values for region boundaries
                 reg_count = region_count
                 result = [_INFINITY for unused in range(region_count + 1)]
                 result[0] = self._x_min
                 result[-1] = self._x_max
                 for i in range(1, region_count):
-                    result[i] = float(self._args.region_bound[0][i-1])
-                    assert self._x_min < result[i] < self._x_max, "Region boundaries are not in range of the data. (%E to %E)" % (self._x_min, self._x_max)
+                    result[i] = float(self._args.region_bound[0][i - 1])
+                    assert self._x_min < result[
+                        i] < self._x_max, "Region boundaries are not in range of the data. (%E to %E)" % (
+                    self._x_min, self._x_max)
             return result, reg_count
 
         if self._args.region_bound != None or self._args.region_data_points != None:
@@ -1013,17 +1029,17 @@ class Regions(object):
         for region_index in range(region_count):
             x_low = x_boundaries[region_index]
             x_high = x_boundaries[region_index + 1]
-            print ('Creating region %s for X range %.15E .. %.15E' %
-                   (region_index, x_low, x_high))
+            print('Creating region %s for X range %.15E .. %.15E' %
+                  (region_index, x_low, x_high))
             if len(self._fitter) > region_index:
                 myfitter = copy.copy(self._fitter[region_index])
             else:
-                #Default value for fitter
+                # Default value for fitter
                 myfitter = 'poly5'
             if len(self._fitter2) > region_index:
                 myfitter2 = copy.copy(self._fitter2[region_index])
             else:
-                #Default value for refine_fit (fitter2)
+                # Default value for refine_fit (fitter2)
                 myfitter2 = 'none'
             self._regions.append(
                 _Region(
@@ -1036,7 +1052,7 @@ class Regions(object):
                     fitter=myfitter,
                     fitter2=myfitter2,
                     is_eos_data=self._is_eos_data,
-                    allow_xy_move = self._allow_xy_move,
+                    allow_xy_move=self._allow_xy_move,
                     args=self._args))
         self._update_ghost_points()
 
@@ -1051,7 +1067,7 @@ class Regions(object):
         """
         assert not self._is_eos_data
 
-        #Get fit curve points logarithmically by region
+        # Get fit curve points logarithmically by region
         result = []
         for region in self._regions:
             result.extend(region.get_fit_curve_points(True))
@@ -1064,7 +1080,7 @@ class Regions(object):
         """
         assert not self._is_eos_data
 
-        #Get fit curve derivative points logarithmically by region
+        # Get fit curve derivative points logarithmically by region
         result = []
         for region in self._regions:
             result.extend(region.get_derivative_curve_points(True))
@@ -1077,7 +1093,7 @@ class Regions(object):
         """
         assert not self._is_eos_data
 
-        #Get fit curve second derivative points logarithmically by region
+        # Get fit curve second derivative points logarithmically by region
         result = []
         for region in self._regions:
             result.extend(region.get_second_derivative_curve_points(True))
@@ -1096,7 +1112,6 @@ class Regions(object):
             for name, region_data_set in region_data_sets.get_name_set_items():
                 result.add_or_append_to_set(name, region_data_set)
         return result
-
 
     def get_region_index(self, display_x, display_y):
         """ Given a point in display space, return the index of the region it
@@ -1142,7 +1157,7 @@ class Regions(object):
         self._allow_xy_move = not self._allow_xy_move
         for region in self._regions:
             region.set_allow_xy_move(self._allow_xy_move)
-        print ("Allow xy move: %s" % self._allow_xy_move)
+        print("Allow xy move: %s" % self._allow_xy_move)
 
     def toggle_original_line_visibility(self):
         for region in self._regions:
@@ -1153,13 +1168,13 @@ class Regions(object):
         Disable point markers on movable lines.
         """
         if (lines.line_attributes['movable']['marker'] != None or
-            lines.line_attributes['movable_no_curves']['marker'] != None):
+                lines.line_attributes['movable_no_curves']['marker'] != None):
             lines.line_attributes['movable']['marker'] = None
             lines.line_attributes['movable_no_curves']['marker'] = None
         else:
             lines.line_attributes['movable']['marker'] = 'o'
             lines.line_attributes['movable_no_curves']['marker'] = 'o'
-            
+
         for region in self._regions:
             region.replot()
 
@@ -1168,11 +1183,11 @@ class Regions(object):
         self._io_manager.write_movable_data_sets(data_sets)
         if not self._is_eos_data:
             fit_points = self._get_fit_curve_points()
-            filtered_points = [fit_points[0]] #don't miss the 1st point
+            filtered_points = [fit_points[0]]  # don't miss the 1st point
 
             # Remove any duplicate fit points at region boundaries
             for i in range(1, len(fit_points)):
-                if fit_points[i][0] != fit_points[i-1][0]:
+                if fit_points[i][0] != fit_points[i - 1][0]:
                     filtered_points.append(fit_points[i])
 
             io.write_point_file(self._args.curve_output_file_name,
@@ -1183,7 +1198,7 @@ class Regions(object):
                 # Remove any duplicate points at region boundaries
                 derivative_filtered = [derivative_points[0]]
                 for i in range(1, len(derivative_points)):
-                    if derivative_points[i][0] != derivative_points[i-1][0]:
+                    if derivative_points[i][0] != derivative_points[i - 1][0]:
                         derivative_filtered.append(derivative_points[i])
                 assert len(derivative_filtered) == len(filtered_points)
 
@@ -1192,67 +1207,70 @@ class Regions(object):
                 # Remove any duplicate points at region boundaries
                 scnd_derivative_filtered = [scnd_derivative_points[0]]
                 for i in range(1, len(scnd_derivative_points)):
-                    if scnd_derivative_points[i][0] != scnd_derivative_points[i-1][0]:
+                    if scnd_derivative_points[i][0] != scnd_derivative_points[i - 1][0]:
                         scnd_derivative_filtered.append(scnd_derivative_points[i])
                 assert len(scnd_derivative_filtered) == len(filtered_points)
 
             if self._args.print_E2P:
-                #Write the file 'E2P.dat' with the pressure curve (this
-                #assumes that the data given is energy data)
+                # Write the file 'E2P.dat' with the pressure curve (this
+                # assumes that the data given is energy data)
                 pressure_points = []
                 for i in range(len(filtered_points)):
-                    pressure_points.append((filtered_points[i][0], filtered_points[i][0]**2 * derivative_filtered[i][1]))
+                    pressure_points.append(
+                        (filtered_points[i][0], filtered_points[i][0] ** 2 * derivative_filtered[i][1]))
                 io.write_point_file(self._args.pressure_file_name, pressure_points)
 
             if self._args.print_P2B:
-                #Write the file 'P2B.dat' with the Bulk Modulus curve (this
-                #assumes that the data given is pressure data)
+                # Write the file 'P2B.dat' with the Bulk Modulus curve (this
+                # assumes that the data given is pressure data)
                 bulk_mod_points = []
                 for i in range(len(filtered_points)):
                     bulk_mod_points.append((filtered_points[i][0], filtered_points[i][0] * derivative_filtered[i][1]))
                 io.write_point_file(self._args.bulk_mod_file_name, bulk_mod_points)
 
             if self._args.print_P2Bprime:
-                #Write the file 'P2Bprime.dat' with the Bulk Modulus prime curve (this
-                #assumes that the data given is pressure data)
+                # Write the file 'P2Bprime.dat' with the Bulk Modulus prime curve (this
+                # assumes that the data given is pressure data)
                 bulk_mod_prime_points = []
                 for i in range(len(filtered_points)):
-                    bulk_mod_prime_points.append((filtered_points[i][0], 1 + (filtered_points[i][0] * scnd_derivative_filtered[i][1])/derivative_filtered[i][1]))
+                    bulk_mod_prime_points.append((filtered_points[i][0],
+                                                  1 + (filtered_points[i][0] * scnd_derivative_filtered[i][1]) /
+                                                  derivative_filtered[i][1]))
                 io.write_point_file(self._args.bulk_mod_prime_file_name, bulk_mod_prime_points)
 
             if self._args.print_theta2gamma:
-                #Write the file 'Theta2Gamma.dat' with the gamma curve (this
-                #assumes that the data given is theta data)
+                # Write the file 'Theta2Gamma.dat' with the gamma curve (this
+                # assumes that the data given is theta data)
                 gamma_points = []
                 for i in range(len(filtered_points)):
-                    gamma_points.append((filtered_points[i][0], filtered_points[i][0] * derivative_filtered[i][1] / filtered_points[i][1]))
+                    gamma_points.append((filtered_points[i][0],
+                                         filtered_points[i][0] * derivative_filtered[i][1] / filtered_points[i][1]))
                 io.write_point_file(self._args.gamma_file_name, gamma_points)
-
 
     def smooth_data(self, smooth_type, xmin, xmax, ymin, ymax):
         """
         Apply smoothing algorithm to all movable data lines.
         """
-        print ("Smoothing...")
+        print("Smoothing...")
         for region in self._regions:
             for line_set in region._line_sets._sets.values():
                 orig_line = line_set.movable.get_x_data_y_data()
                 line = []
                 line.append([])
                 line.append([])
-                #Only alter points in region
+                # Only alter points in region
                 orig_line = list(orig_line)
                 for i in range(0, len(orig_line[0])):
-                    #Find start of region
+                    # Find start of region
                     if ((xmin < orig_line[0][i] < xmax) and (ymin < orig_line[1][i] < ymax)):
                         start = i
                         break
                 for i in range(0, len(orig_line[0])):
-                    #Find end of region
+                    # Find end of region
                     if ((xmin < orig_line[0][i] < xmax) and (ymin < orig_line[1][i] < ymax)):
                         end = i
                 for i in range(0, len(orig_line[0])):
-                    #Store region points in line
+                    # Store region points in line
                     if ((xmin < orig_line[0][i] < xmax) and (ymin < orig_line[1][i] < ymax)):
                         line[0].append(orig_line[0][i])
                         line[1].append(orig_line[1][i])
@@ -1265,12 +1283,12 @@ class Regions(object):
                 elif (smooth_type == "bspline"):
                     smoother = smoothers.BSplineSmoother(5)
                 else:
-                    print ("Invalid smooth type")
+                    print("Invalid smooth type")
                     return
-                if(len(line[0]) < 1):       #When regions are being used,
-                    break                   #if a region does not contain any points, skip it.
+                if (len(line[0]) < 1):  # When regions are being used,
+                    break  # if a region does not contain any points, skip it.
                 smooth_line = smoother.applySmooth(list(line[0]), list(line[1]), line[0][0], line[0][-1])
-                #Add points outside of smoothed region
+                # Add points outside of smoothed region
                 for i in range(len(orig_line[0])):
                     if i < start or i > end:
                         smooth_line[0].insert(i, orig_line[0][i])
@@ -1287,14 +1305,13 @@ class Regions(object):
 
         self._update_ghost_points()
         self.check_move_point()
-        print ("Done")
+        print("Done")
 
     def undo(self):
         """ Undo the last point manipulation of any kind
         """
         for region in self._regions:
             region.undo()
-            
 
     # Point movement ###########################################################
 
@@ -1327,13 +1344,13 @@ class Regions(object):
         """
         self._update_ghost_points()
         self._regions[self._moving_set_region_index].check_move_point()
-        
+
         # Update adjacent regions if 1d data with fitted line
         if (self._args.in_eos_file_base == None):
             if (self._moving_set_region_index != 0):
-                self._regions[self._moving_set_region_index-1].check_move_point()
-            if (self._moving_set_region_index != len(self._regions)-1):
-                self._regions[self._moving_set_region_index+1].check_move_point()
+                self._regions[self._moving_set_region_index - 1].check_move_point()
+            if (self._moving_set_region_index != len(self._regions) - 1):
+                self._regions[self._moving_set_region_index + 1].check_move_point()
 
         # Re-order points
         self._regions[self._moving_set_region_index].finish_move_set()
@@ -1345,7 +1362,7 @@ class Regions(object):
             region = self._regions[self._moving_set_region_index]
             region.cancel_move_set()
             self._moving_set_region_index = None
-            print ("Block Select Disabled")    
+            print("Block Select Disabled")
 
     def move_set(self, event):
         self._regions[self._moving_set_region_index].move_set(event)
@@ -1371,9 +1388,9 @@ class Regions(object):
             # Update adjacent regions if 1d data with fitted line
             if (self._args.in_eos_file_base == None):
                 if (self._moving_point_region_index != 0):
-                    self._regions[self._moving_point_region_index-1].check_move_point()
-                if (self._moving_point_region_index != len(self._regions)-1):
-                    self._regions[self._moving_point_region_index+1].check_move_point()
+                    self._regions[self._moving_point_region_index - 1].check_move_point()
+                if (self._moving_point_region_index != len(self._regions) - 1):
+                    self._regions[self._moving_point_region_index + 1].check_move_point()
             self._moving_point_region_index = None
 
     def move_point(self, event):
@@ -1388,7 +1405,7 @@ class Regions(object):
 
     def moving_point_info(self, xy_only=False):
         if self.move_point_in_progress():
-            return self._regions[self._moving_point_region_index].\
+            return self._regions[self._moving_point_region_index]. \
                 moving_point_info(xy_only)
         else:
             return '(no moving point)'
@@ -1400,10 +1417,10 @@ class Regions(object):
         # Display what type of fitter
         print("Fitter type: " + str(self._fitter[self._moving_point_region_index]))
         # Display region and starting coordinates of point being moved
-        print ('Moving point: %s ' % (self.moving_point_info()))
+        print('Moving point: %s ' % (self.moving_point_info()))
 
     def _print_move_point_end(self):
-        print ('to: %s ' % (self.moving_point_info(xy_only=True)))
+        print('to: %s ' % (self.moving_point_info(xy_only=True)))
 
     def _update_ghost_points(self):
         '''Update points used to calculate fitted curve. 
@@ -1415,20 +1432,20 @@ class Regions(object):
 
         # Get changed points
         pointlist = []
-        for i in range (0, len (self._regions)):
+        for i in range(0, len(self._regions)):
             pointlist.append(
                 sorted(self._regions[i]._line_sets.get_data_sets().get_only_set()))
 
         # Pass list with N extra points on either side
-        for i in range(0, len (self._regions)):
+        for i in range(0, len(self._regions)):
             newlist = copy.copy(pointlist[i])
             for j in range(0, self._args.overlap):
                 if ((i != 0) and
-                    (len (pointlist[i-1]) > j)):
-                    newlist.insert(0, pointlist[i-1][-1-j])
-                if ((i != len (self._regions)-1) and
-                    (len (pointlist[i+1]) > j)):
-                    newlist.append(pointlist[i+1][j])
+                        (len(pointlist[i - 1]) > j)):
+                    newlist.insert(0, pointlist[i - 1][-1 - j])
+                if ((i != len(self._regions) - 1) and
+                        (len(pointlist[i + 1]) > j)):
+                    newlist.append(pointlist[i + 1][j])
 
             self._regions[i]._line_sets.update_ghost_points(newlist)
 
@@ -1453,4 +1470,13 @@ class Regions(object):
 
     # END Point movement #######################################################
 
+    def initialize_fitter_info_window(self):
+        #print(self._fitter)
+        headers = []
+        info_blocks = []
+        for i in range(len(self._fitter)):
+            headers.append("Region " + str(i))
+            info_blocks.append(["Fitter type: " + self._fitter[i]])
+        fitter_info_window.set_block_headers(headers)
+        fitter_info_window.set_info_blocks(info_blocks)
 

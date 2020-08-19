@@ -30,7 +30,7 @@ from matplotlib import widgets
 from curvallis.curve_editing import curve_fitters, io, lines, regions, configargparse
 from math import log10
 from curvallis.version import version as VERSION_STRING
-from curvallis.window import WindowedDisplay
+from curvallis.window import key_mappings_window, fitter_info_window
 
 matplotlib.use('TkAgg')
 
@@ -74,7 +74,6 @@ def new_home(self, *args, **kwargs):
 
 
 NavigationToolbar2.home = new_home
-keymap_window_open = False
 
 
 class CurveInteractor(object):
@@ -117,7 +116,6 @@ class CurveInteractor(object):
         self._ymin = None
         self._ymax = None
         self._last_click = None
-        self.key_mappings_window = None
 
     def _define_args(self):
         parser = configargparse.ArgumentParser(
@@ -180,6 +178,7 @@ class CurveInteractor(object):
             input_data_sets=self._input_data_sets,
             xy_limits=self._xy_limits,
             io_manager=self._io_manager)
+        self._regions.initialize_fitter_info_window()
         self._register_callbacks()
         # Create rectangle selector for selecting multiple points
         self._selector = widgets.RectangleSelector(self._ax, self.line_select_callback,
@@ -405,13 +404,11 @@ class CurveInteractor(object):
             # Display pending quit
             print('Quit requested.  Press q again to quit, any other key to cancel.')
             self._quit_pending = True
-        elif event.key == 'm' or event.key == 'f1':  # If 'm' or 'F1' pressed
-            if (self.key_mappings_window == None):  # Display key mapping
-                self.key_mappings_window = WindowedDisplay(self.key_mappings_window_text(),
-                                                           self.key_mappings_window_header(),
-                                                           "Key Mappings", [False, True],
-                                                           0.40, 0.8, [True,False])
-            self.key_mappings_window.display_main_window()
+        elif event.key == 'f1':  # If 'F1' pressed
+            key_mappings_window.display_main_window()
+        elif event.key == 'm':  # If 'm' pressed
+            # Display fitter information window
+            fitter_info_window.display_main_window()
         elif event.inaxes:
             if event.key == 't':  # If 't' pressed
                 # Toggle viewing of original line
@@ -527,11 +524,11 @@ class CurveInteractor(object):
                     self._figure_padding = 0
                 self._figure.tight_layout(pad=self._figure_padding)
                 self._canvas.draw()
-            elif event.key == 'delete':  # If "delete" pressed
+            """elif event.key == 'delete':  # If "delete" pressed
                 if (self._move_set == True):
                     print("Not implemented yet.")
                 else:
-                    print("Block selection is not enabled.")
+                    print("Block selection is not enabled.")"""
 
     def xlim_changed_callback(self, event):
         """ xlim is changed by a zoom or a pan
@@ -825,60 +822,6 @@ class CurveInteractor(object):
             plot.set_data([[xdata], [ydata]])
 
     # END Callback support======================================================
-
-    @staticmethod
-    def key_mappings_window_header():
-        return ["Matplotlib Keys:",
-                "Curvallis Keys:",
-                ""]
-
-    @staticmethod
-    def key_mappings_window_text():
-        return [
-            [  # MatPlotLib Keys
-                'Press h or r to reset to home view',
-                'Press p to toggle pan/zoom mode [left mouse: pan, right mouse: zoom]',
-                'Press o to toggle Zoom-to-rectangle',
-                'Press <ctrl> s to save a screenshot of the MarPlotLib display',
-                'Press f or <ctrl> f to toggle fullscreen',
-                'Press <ctrl> w to immediately quit',
-                #'Constrain pan/zoom to x axis	hold x when panning/zooming with mouse',
-                #'Constrain pan/zoom to y axis	hold y when panning/zooming with mouse',
-                #'Preserve aspect ratio	hold CONTROL when panning/zooming with mouse',
-                'Press g to toggle major grids when mouse is over plot',
-                'Press <shift> G to toggle minor grids when mouse is over plot',
-                'Press <shift> L or k to toggle x axis scale (log/linear)',
-                '\twhen mouse is over plot',
-                #'Press l to toggle y axis scale (log/linear) when mouse is over plot'
-            ], [  # Curvallis Keys
-                'Press q twice to quit',
-                'Press w to write the the current points to a file',
-                'Press u to undo the last point manipulation',
-                'Drag points to update line',
-                'Press t to toggle original line on and off [default: off]',
-                'Press b to toggle points on and off [default: on]',
-                'Press y to toggle xy move capability on and off',
-                'Press a to toggle adding and removing points with left ',
-                '\tand right click respectively [default: off]',
-                'Press e to toggle selecting a block of points',
-                'Press i to enlarge figure margins',
-                'Press <shift> I to decrease figure margins',
-                'Press <shift> H to increase size of background markers',
-                'Press <shift> J to decrease size of background markers',
-                'Press <shift> Q to enter an equation to plot',
-                'Press <shift> Z for trilocal smoothing',
-                'Press <shift> X for integral smoothing',
-                'Press <shift> B for B-spline smoothing',
-                'Press <shift> V for acute repair smoothing'
-            ], [  # Post Keymapping Lines
-                'Make sure focus is on the plotting window and the cursor is',
-                'also in the plotting window when using these keys.',
-                '',
-                'Press "F1" or "m" to show these keys again',
-                '',
-                'More key mappings can be found at:',
-                'https://github.com/LLNL/Curvallis#interactive-commands'
-            ]]
 
 
 if __name__ == '__main__':

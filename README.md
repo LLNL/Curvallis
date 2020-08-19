@@ -388,9 +388,13 @@ Options can be entered by either command line or initialization file. All option
 
    Undo the last data manipulation. This includes moving points, rotating points, adding points, and removing points. This does not undo screen changes, like zooming or panning. This will only undo the last change, no more previous changes are stored.
 
-   - **m**
+   - **F1**
 
-   Prints a list of all the interactive commands, as well as a quick description of what each does.
+   Displays a list of all the interactive commands, as well as a quick description of what each does.
+   
+   - **m**
+   
+   Displays a list of all of the fitter information for each region.
 
    - **i**
 
