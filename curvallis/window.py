@@ -19,6 +19,16 @@ from curvallis.version import version as VERSION_STRING
 from tkinter import ttk
 import tkinter
 
+show_window_errors = False
+
+
+def define_args(parser):
+    parser.add_argument("--show_window_errors", help="shows windowing errors when they occur", action="store_true")
+
+
+def process_args(args):
+    global show_window_errors
+    show_window_errors = args.show_window_errors
 
 class WindowedDisplay(object):
     """WindowedDisplay generates a display window that shows blocks of information
@@ -46,9 +56,8 @@ class WindowedDisplay(object):
             self._main_window_open = False
             self._main_window.destroy()
 
-        if (self._main_window_open):
-            self._main_window.lift()
-            self._main_window.focus_force()
+        if self._main_window_open:
+            self.bring_forward()
             return
 
         if not(len(self._block_headers) == len(self._info_blocks)):
@@ -177,14 +186,27 @@ class WindowedDisplay(object):
         self.set_window_size(window_width + self.scrollbar_width, window_height)
 
     def redraw(self):
-        if(self._main_window_open):
+        if self._main_window_open:
             self._main_window.destroy()
             self._main_window_open = False
             self.display_main_window()
+        else:
+            self.window_error("Redraw error", "Unable to redraw window that does not exist.")
+
+    def bring_forward(self):
+        if self._main_window_open:
+            self._main_window.lift()
+            self._main_window.focus_force()
+        else:
+            self.window_error("Window action error", "Unable to bring nonexistent window to front.")
+
+    def is_open(self):
+        return self._main_window_open
 
     def window_error(self, error, error_message, fatal=False):
-        print("Error: " + error)
-        print(error_message)
+        if show_window_errors:
+            print("Error: " + error)
+            print(error_message)
         if fatal:
             self._main_window.destroy()
 

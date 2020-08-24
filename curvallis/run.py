@@ -28,6 +28,7 @@ from matplotlib import pyplot, rcParams
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 from matplotlib import widgets
 from curvallis.curve_editing import curve_fitters, io, lines, regions, configargparse
+from curvallis import window
 from math import log10
 from curvallis.version import version as VERSION_STRING
 from curvallis.window import key_mappings_window, fitter_info_window
@@ -151,6 +152,8 @@ class CurveInteractor(object):
         io.define_args(parser)
         regions.define_args(parser)
         curve_fitters.define_args(parser)
+        window.define_args(parser)
+
         self._parser = parser
 
     # END Init support =========================================================
@@ -229,6 +232,7 @@ class CurveInteractor(object):
         fix_negative_scientific_notation_parms()
         self._args = self._parser.parse_args()
         io.process_args(self._parser, self._args)
+        window.process_args(self._args)
 
     def _set_xlim_ylim(self):
         """ Find the max and min x and y of the input values.

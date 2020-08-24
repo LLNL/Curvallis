@@ -135,6 +135,25 @@ def define_args(parser):
     )
 
 
+fitter_info_window_working_index = -1
+
+
+def update_fitter_info_window(index, reset_text, new_text):
+    global fitter_info_window_working_index
+    if index == -1:
+        index = fitter_info_window_working_index
+    else:
+        fitter_info_window_working_index = index
+    if index == -1:
+        return
+    info_blocks = fitter_info_window.get_info_blocks()
+    if reset_text:
+        info_blocks[index] = [info_blocks[index][0]]
+    lines = new_text.split('\n')
+    for line in lines:
+        info_blocks[index].append(line)
+
+
 class _Line_Set_With_Fit(lines.Line_Set):
     """ Has own fitter object, plus various fit curve lines
     """
@@ -342,7 +361,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
                 # but you can't take the log of anything less than 1 for this to work
                 shift_up = 1 - self._x_view_low_limit
                 total_points = int(log10((self._x_view_high_limit + shift_up) / (
-                            self._x_view_low_limit + shift_up)) * self._args.points_per_decade)
+                        self._x_view_low_limit + shift_up)) * self._args.points_per_decade)
 
             if total_points == 0:
                 return
@@ -995,7 +1014,7 @@ class Regions(object):
 
                 assert len(
                     data) >= self._args.region_data_points, "%E points wanted per region but an insufficient number of data points, %E, has been given" % (
-                self._args.region_data_points, len(data))
+                    self._args.region_data_points, len(data))
 
                 reg_count = int(len(data) / self._args.region_data_points)
                 result = [_INFINITY for unused in range(reg_count + 1)]
@@ -1018,7 +1037,7 @@ class Regions(object):
                     result[i] = float(self._args.region_bound[0][i - 1])
                     assert self._x_min < result[
                         i] < self._x_max, "Region boundaries are not in range of the data. (%E to %E)" % (
-                    self._x_min, self._x_max)
+                        self._x_min, self._x_max)
             return result, reg_count
 
         if self._args.region_bound != None or self._args.region_data_points != None:
@@ -1392,6 +1411,7 @@ class Regions(object):
                 if (self._moving_point_region_index != len(self._regions) - 1):
                     self._regions[self._moving_point_region_index + 1].check_move_point()
             self._moving_point_region_index = None
+            fitter_info_window.redraw()
 
     def move_point(self, event):
         """ Move the point in the data and redraw the line.
@@ -1418,9 +1438,13 @@ class Regions(object):
         print("Fitter type: " + str(self._fitter[self._moving_point_region_index]))
         # Display region and starting coordinates of point being moved
         print('Moving point: %s ' % (self.moving_point_info()))
+        update_fitter_info_window(self._moving_point_region_index, True,
+                                  'Moving point: %s ' % (self.moving_point_info()))
 
     def _print_move_point_end(self):
         print('to: %s ' % (self.moving_point_info(xy_only=True)))
+        update_fitter_info_window(self._moving_point_region_index, False,
+                                  'to: %s ' % (self.moving_point_info(xy_only=True)))
 
     def _update_ghost_points(self):
         '''Update points used to calculate fitted curve. 
@@ -1471,7 +1495,7 @@ class Regions(object):
     # END Point movement #######################################################
 
     def initialize_fitter_info_window(self):
-        #print(self._fitter)
+        # print(self._fitter)
         headers = []
         info_blocks = []
         for i in range(len(self._fitter)):
@@ -1479,4 +1503,3 @@ class Regions(object):
             info_blocks.append(["Fitter type: " + self._fitter[i]])
         fitter_info_window.set_block_headers(headers)
         fitter_info_window.set_info_blocks(info_blocks)
-
