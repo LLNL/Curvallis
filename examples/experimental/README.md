@@ -41,4 +41,25 @@ indicated by the `fit_type` name  (e.g. `fit_type gammapolyv3` will result in a 
 Example configuration and data files for this fitter are provided in this directory (v_gamma.ini, v_gamma.dat).  The 
 `rho0_guess` parameter in this config file is set to a value near the unit volume of the peak gamma value in the data 
 file.  Note that because unit volumes in this data set extend over 13 degrees of magnitude, it is recommended to use 
-Curvallis's interactive commands to view the resulting plot with a logarithmic scale on the x-axis.  
+Curvallis's interactive commands to view the resulting plot with a logarithmic scale on the x-axis.
+
+# B-spline fitting
+The Jupyter notebook "B-spline Fitting with Sparse Data" gives an overview of B-splines and describes the basic 
+functionality exposed in the SciPy library for Python.  The notebook can either be viewed in GitHub or run directly.  
+
+To run the notebook, first install the following:
+
+* [Python 3](https://www.python.org/downloads/)
+* Python libraries
+  * [numpy](https://numpy.org/install/)
+  * [scipy](https://scipy.org/install.html)
+  * [matplotlib](https://matplotlib.org/users/installing.html)
+* [Jupyter](https://jupyter.org/install)
+
+Copy the notebook .ipynb file to your computer, then navigate to the directory where the file is stored.
+Open a command window and run command `jupyter notebook`, which will start a local Jupyter server and will open the notebook 
+directory in a browser.  Click on the notebook to open it.  Click the Run button to run cells one at a time 
+(recommended), or the fast forward button to run all cells at once. 
+
+To close the notebook, use options on the File menu.  Then go to the command window and stop the server process using
+Ctrl+C, or use the command `jupyter notebook stop` in a separate command window.
