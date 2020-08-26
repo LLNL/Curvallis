@@ -135,6 +135,9 @@ class WindowedDisplay(object):
             for line in block:
                 if (len(line) > max_length):
                     max_length = len(line)
+        for line in self._block_headers:
+            if(len(line) > max_length):
+                max_length = len(line)
         max_length += extra_spacing
         return max_length
 

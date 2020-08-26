@@ -27,11 +27,11 @@ from tkinter import Tk, Label, Button, Entry
 from matplotlib import pyplot, rcParams
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 from matplotlib import widgets
+from curvallis.window import key_mappings_window, fitter_info_window
 from curvallis.curve_editing import curve_fitters, io, lines, regions, configargparse
 from curvallis import window
 from math import log10
 from curvallis.version import version as VERSION_STRING
-from curvallis.window import key_mappings_window, fitter_info_window
 
 matplotlib.use('TkAgg')
 
@@ -181,7 +181,6 @@ class CurveInteractor(object):
             input_data_sets=self._input_data_sets,
             xy_limits=self._xy_limits,
             io_manager=self._io_manager)
-        self._regions.initialize_fitter_info_window()
         self._register_callbacks()
         # Create rectangle selector for selecting multiple points
         self._selector = widgets.RectangleSelector(self._ax, self.line_select_callback,

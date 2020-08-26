@@ -14,6 +14,7 @@ from __future__ import print_function
 import copy
 
 from curvallis.version import version as VERSION_STRING
+from curvallis.window import fitter_info_window
 import curvallis.curve_editing.curve_fitters as curve_fitters
 import curvallis.curve_editing.io as io
 import curvallis.curve_editing.lines as lines
@@ -22,7 +23,6 @@ from pylab import polyfit
 import numpy as np
 from operator import itemgetter
 from math import log10
-from curvallis.window import fitter_info_window
 
 _INFINITY = float('inf')
 
@@ -139,16 +139,30 @@ fitter_info_window_working_index = -1
 
 
 def update_fitter_info_window(index, reset_text, new_text):
+    """ Updates the contents of the fitter info window. Updated contents
+        are not shown until the window is refreshed.
+    """
+    # index = -1: Use the same index as was last used
+    # index = -2: Set index to the largest valid index and clear block entirely
     global fitter_info_window_working_index
     if index == -1:
         index = fitter_info_window_working_index
+    elif index < 0:
+        pass
     else:
         fitter_info_window_working_index = index
-    if index == -1:
-        return
     info_blocks = fitter_info_window.get_info_blocks()
-    if reset_text:
-        info_blocks[index] = [info_blocks[index][0]]
+    if index == -1 or index < -2 or index >= len(info_blocks):
+        fitter_info_window.window_error("Display Variable Update Error",
+                                        "An attempt was made to access a display variable out of bounds.")
+        return
+    if (index >= 0):
+        if reset_text:
+            info_blocks[index] = [info_blocks[index][0]]
+    else:
+        index = -1
+        if reset_text:
+            info_blocks[index] = []
     lines = new_text.split('\n')
     for line in lines:
         info_blocks[index].append(line)
@@ -415,6 +429,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
         """ Recalculate and redraw the fit curve.
         """
         super(_Line_Set_With_Fit, self).finish_move_point()
+        update_fitter_info_window(-2, True, "")
         self.calculate_fit()
         self.plot_curves()
 
@@ -969,6 +984,7 @@ class Regions(object):
             region_count = len(self._args.region_bound[0]) + 1
         else:
             region_count = 1
+        self.initialize_fitter_info_window()
         self._create_regions(region_count)
         print("regions:")
         self.calculate_fits()
@@ -1495,11 +1511,12 @@ class Regions(object):
     # END Point movement #######################################################
 
     def initialize_fitter_info_window(self):
-        # print(self._fitter)
         headers = []
         info_blocks = []
         for i in range(len(self._fitter)):
             headers.append("Region " + str(i))
             info_blocks.append(["Fitter type: " + self._fitter[i]])
+        headers.append("Calculated polynomial is:")
+        info_blocks.append(["N/A"])
         fitter_info_window.set_block_headers(headers)
         fitter_info_window.set_info_blocks(info_blocks)

@@ -1646,14 +1646,20 @@ class old_CurveInteractor(object):
 def _print_polynomial(coeffs):
     print('Calculated polynomial is:')
     length = len(coeffs)
+    from curvallis.curve_editing.regions import update_fitter_info_window
+    calculated_polynomial = ""
     for index in range(0, length):
         x_order = length - index - 1
         if index == 0:
             print('%.3E * x**%d ' % (coeffs[index], x_order), end='')
+            calculated_polynomial += '%.3E * x**%d ' % (coeffs[index], x_order)
         elif x_order > 0:
             print('%+.3E * x**%d ' % (coeffs[index], x_order), end='')
+            calculated_polynomial += '%+.3E * x**%d ' % (coeffs[index], x_order)
         else:
             print('%+.3E' % coeffs[index])
+            calculated_polynomial += '%+.3E' % coeffs[index]
+    update_fitter_info_window(-2, False, calculated_polynomial)
     print()
 
 
