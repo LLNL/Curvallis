@@ -14,7 +14,7 @@ from __future__ import print_function
 import copy
 
 from curvallis.version import version as VERSION_STRING
-from curvallis.window import fitter_info_window
+from curvallis.window import fitter_info_window, update_fitter_info_window
 import curvallis.curve_editing.curve_fitters as curve_fitters
 import curvallis.curve_editing.io as io
 import curvallis.curve_editing.lines as lines
@@ -133,39 +133,6 @@ def define_args(parser):
         angle=90,
         interp="cubic",
     )
-
-
-fitter_info_window_working_index = -1
-
-
-def update_fitter_info_window(index, reset_text, new_text):
-    """ Updates the contents of the fitter info window. Updated contents
-        are not shown until the window is refreshed.
-    """
-    # index = -1: Use the same index as was last used
-    # index = -2: Set index to the largest valid index and clear block entirely
-    global fitter_info_window_working_index
-    if index == -1:
-        index = fitter_info_window_working_index
-    elif index < 0:
-        pass
-    else:
-        fitter_info_window_working_index = index
-    info_blocks = fitter_info_window.get_info_blocks()
-    if index == -1 or index < -2 or index >= len(info_blocks):
-        fitter_info_window.window_error("Display Variable Update Error",
-                                        "An attempt was made to access a display variable out of bounds.")
-        return
-    if (index >= 0):
-        if reset_text:
-            info_blocks[index] = [info_blocks[index][0]]
-    else:
-        index = -1
-        if reset_text:
-            info_blocks[index] = []
-    lines = new_text.split('\n')
-    for line in lines:
-        info_blocks[index].append(line)
 
 
 class _Line_Set_With_Fit(lines.Line_Set):

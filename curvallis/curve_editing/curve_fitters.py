@@ -32,13 +32,13 @@ import math
 import bisect
 import re
 from curvallis.window import fitter_info_window
+from curvallis.window import update_fitter_info_window
 from curvallis.version import version as VERSION_STRING
 
 _min_polynomial_degree = 1
 _max_polynomial_degree = 12
 rho = '\u03c1'
 naught = '\u2080'
-
 
 def define_args(parser):
     fitter_args = parser.add_argument_group(
@@ -167,7 +167,6 @@ def define_args(parser):
         cn=[1.0] * 12,  # 12 is maximum power of eseries
     )
 
-
 # ------------------------------------------------------------------------------
 # Supporting functions
 
@@ -291,7 +290,6 @@ class Factory(object):
 
 
 factory = Factory()
-
 
 class MetaPoly(ABCMeta):
     @property
@@ -631,7 +629,6 @@ class Birch_Murnaghan3(Pressure_Fit_Class):
         print("B0 = {};".format(self.k0))
         print("Bp = {};".format(self.k0_prime))
         print("rho0 = {};".format(self.rho0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
                                   ("rho0 = {};".format(self.rho0)))
 
@@ -699,7 +696,6 @@ class Birch_Murnaghan4(Pressure_Fit_Class):
         print("Bp = {};".format(self.k0_prime))
         print("Bpp = {};".format(self.k0_prime_prime))
         print("rho0 = {};".format(self.rho0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
                                   ("Bpp = {};\n".format(self.k0_prime_prime)) + ("rho0 = {};".format(self.rho0)))
 
@@ -786,7 +782,6 @@ class Vinet(Pressure_Fit_Class):
         print("B0 = {};".format(self.k0))
         print("Bp = {};".format(self.k0_prime))
         print("rho0 = {};".format(self.rho0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
                                   ("rho0 = {};".format(self.rho0)))
 
@@ -862,7 +857,6 @@ class Murnaghan(Pressure_Fit_Class):
         print("B0 = {};".format(self.k0))
         print("Bp = {};".format(self.k0_prime))
         print("rho0 = {};".format(self.rho0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
                                   ("rho0 = {};".format(self.rho0)))
 
@@ -928,7 +922,6 @@ class SandiaPC(Pressure_Fit_Class):
         print("k4 = {};".format(self.k4))
         print("k5 = {};".format(self.k5))
         print("rho0 = {};".format(self.rho0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("kneg1 = {};\n".format(self.kneg1)) + ("k0 = {};\n".format(self.kneg0)) +
                                   ("k1 = {};\n".format(self.k1)) + ("k2 = {};\n".format(self.k2)) +
                                   ("k3 = {};\n".format(self.k3)) + ("k4 = {};\n".format(self.k4)) +
@@ -1008,7 +1001,6 @@ class Anton_Schmidt(Pressure_Fit_Class):
         print("B0 = {};".format(self.k0))
         print("Bp = {};".format(self.k0_prime))
         print("rho0 = {};".format(self.rho0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
                                   ("rho0 = {};".format(self.rho0)))
 
@@ -1080,7 +1072,6 @@ class Bardeen(Pressure_Fit_Class):
         print("B0 = {};".format(self.k0))
         print("Bp = {};".format(self.k0_prime))
         print("rho0 = {};".format(self.rho0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
                                   ("rho0 = {};".format(self.rho0)))
 
@@ -1140,7 +1131,6 @@ class Birch_Murnaghan2(Pressure_Fit_Class):
     def _print_coefficients(self):
         print("B0 = {};".format(self.k0))
         print("rho0 = {};".format(self.rho0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("rho0 = {};".format(self.rho0)))
 
     @staticmethod
@@ -1196,7 +1186,6 @@ class Johnson_Holmquist(Pressure_Fit_Class):
         print("k3 = {};".format(self.k3))
         print("delta_p = {};".format(self.delta_p))
         print("rho0 = {};".format(self.rho0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("k1 = {};\n".format(self.k1)) + ("k2 = {};\n".format(self.k2)) +
                                   ("k3 = {};\n".format(self.k3)) + ("delta_p = {};\n".format(self.delta_p)) +
                                   ("rho0 = {};".format(self.rho0)))
@@ -1264,7 +1253,6 @@ class Kumari_Dass(Pressure_Fit_Class):
         print("Bp = {};".format(self.k0_prime))
         print("lam = {};".format(self.lam))
         print("rho0 = {};".format(self.rho0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
                                   ("lam = {};\n".format(self.lam)) + ("rho0 = {};".format(self.rho0)))
 
@@ -1330,7 +1318,6 @@ class Logarithmic2(Pressure_Fit_Class):
     def _print_coefficients(self):
         print("B0 = {};".format(self.k0))
         print("rho0 = {};".format(self.rho0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("rho0 = {};".format(self.rho0)))
 
     @staticmethod
@@ -1383,7 +1370,6 @@ class Logarithmic3(Pressure_Fit_Class):
         print("B0 = {};".format(self.k0))
         print("Bp = {};".format(self.k0_prime))
         print("rho0 = {};".format(self.rho0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
                                   ("rho0 = {};".format(self.rho0)))
 
@@ -1444,7 +1430,6 @@ class Shankar(Pressure_Fit_Class):
         print("B0 = {};".format(self.k0))
         print("Bp = {};".format(self.k0_prime))
         print("rho0 = {};".format(self.rho0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
                                   ("rho0 = {};".format(self.rho0)))
 
@@ -1513,7 +1498,6 @@ class Ap1(Pressure_Fit_Class):
         print("B0 = {};".format(self.k0))
         print("rho0 = {};".format(self.rho0))
         print("z = {};".format(self.z))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("rho0 = {};\n".format(self.rho0)) +
                                               ("z = {};".format(self.z)))
 
@@ -1584,7 +1568,6 @@ class Ap2(Pressure_Fit_Class):
         print("Bp = {};".format(self.k0_prime))
         print("rho0 = {};".format(self.rho0))
         print("z = {};".format(self.z))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
                                   ("rho0 = {};\n".format(self.rho0)) + ("z = {};".format(self.z)))
 
@@ -1646,7 +1629,6 @@ class old_CurveInteractor(object):
 def _print_polynomial(coeffs):
     print('Calculated polynomial is:')
     length = len(coeffs)
-    from curvallis.curve_editing.regions import update_fitter_info_window
     calculated_polynomial = ""
     for index in range(0, length):
         x_order = length - index - 1
@@ -1769,7 +1751,6 @@ class EBirch_Murnaghan3(Energy_Fit_Class):
         print("Bp = {};".format(self.k0_prime))
         print("rho0 = {};".format(self.rho0))
         print("E0 = {};".format(self.e0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
                                   ("rho0 = {};\n".format(self.rho0)) + ("E0 = {};".format(self.e0)))
 
@@ -1825,7 +1806,6 @@ class EBirch_Murnaghan4(Energy_Fit_Class):
         print("Bpp = {};".format(self.k0_prime_prime))
         print("rho0 = {};".format(self.rho0))
         print("E0 = {};".format(self.e0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
                                   ("Bpp = {};\n".format(self.k0_prime_prime)) + ("rho0 = {};\n".format(self.rho0)) +
                                   ("E0 = {};".format(self.e0)))
@@ -1882,7 +1862,6 @@ class EMurnaghan(Energy_Fit_Class):
         print("Bp = {};".format(self.k0_prime))
         print("rho0 = {};".format(self.rho0))
         print("E0 = {};".format(self.e0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
                                   ("rho0 = {};\n".format(self.rho0)) + ("E0 = {};".format(self.e0)))
 
@@ -1945,7 +1924,6 @@ class ESeries(Energy_Fit_Class):
         for i in range(0, int(self.order) - 3):
             print("C{} = {};".format(i + 4, self.cn[i]))
             fitter_info_text += ("C{} = {};\n".format(i + 4, self.cn[i]))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, fitter_info_window[0:len(fitter_info_text)-1])
 
     @staticmethod
@@ -2006,7 +1984,6 @@ class EVinet(Energy_Fit_Class):
         print("B0 = {};".format(self.k0))
         print("Bp = {};".format(self.k0_prime))
         print("rho0 = {};".format(self.rho0))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("E0 = {};\n".format(self.e0)) + ("B0 = {};\n".format(self.k0)) +
                                   ("Bp = {};\n".format(self.k0_prime)) + ("rho0 = {};".format(self.rho0)))
 
@@ -2073,7 +2050,6 @@ class EHighP(Energy_Fit_Class):
         print("c2 = {};".format(self.c2))
         print("c3 = {};".format(self.c3))
         print("c4 = {};".format(self.c4))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("rho0 = {};\n".format(self.rho0)) + ("c1 = {};\n".format(self.c1)) +
                                   ("c2 = {};\n".format(self.c2)) + ("c3 = {};\n".format(self.c3)) +
                                   ("c4 = {};".format(self.c4)))
@@ -2128,7 +2104,6 @@ class ThetaBP(Base_Fit_Class):
         print("q = {};".format(self.q))
         print("c1 = {};".format(self.c1))
         print("c2 = {};".format(self.c2))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("theta0 = {};\n".format(self.theta0)) +
                                   ("rho0 = {};\n".format(self.rho0)) + ("q = {};\n".format(self.q)) +
                                   ("c1 = {};\n".format(self.c1)) + ("c2 = {};".format(self.c2)))
@@ -2197,7 +2172,6 @@ class GammaRho(Base_Fit_Class):
         print("q = {};".format(self.q))
         print("c1 = {};".format(self.c1))
         print("c2 = {};".format(self.c2))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("gamma0 = {};\n".format(self.gamma0)) +
                                   ("rho0 = {};\n".format(self.rho0)) + ("q = {};\n".format(self.q)) +
                                   ("c1 = {};\n".format(self.c1)) + ("c2 = {};".format(self.c2)))
@@ -2267,7 +2241,6 @@ class GammaV(Base_Fit_Class):
         print("q = {};".format(self.q))
         print("c1 = {};".format(self.c1))
         print("c2 = {};".format(self.c2))
-        from curvallis.curve_editing.regions import update_fitter_info_window
         update_fitter_info_window(-1, False, ("gamma0 = {};\n".format(self.gamma0)) +
                                   ("V0 = {};\n".format(self.rho0)) + ("q = {};\n".format(self.q)) +
                                   ("c1 = {};\n".format(self.c1)) + ("c2 = {};".format(self.c2)))
