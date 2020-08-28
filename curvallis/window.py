@@ -19,6 +19,17 @@ from curvallis.version import version as VERSION_STRING
 from tkinter import ttk
 import tkinter
 
+show_window_errors = False
+
+
+def define_args(parser):
+    parser.add_argument("--show_window_errors", help="shows windowing errors when they occur", action="store_true")
+
+
+def process_args(args):
+    global show_window_errors
+    show_window_errors = args.show_window_errors
+
 
 class WindowedDisplay(object):
     """WindowedDisplay generates a display window that shows blocks of information
@@ -46,12 +57,11 @@ class WindowedDisplay(object):
             self._main_window_open = False
             self._main_window.destroy()
 
-        if (self._main_window_open):
-            self._main_window.lift()
-            self._main_window.focus_force()
+        if self._main_window_open:
+            self.bring_forward()
             return
 
-        if not(len(self._block_headers) == len(self._info_blocks)):
+        if not (len(self._block_headers) == len(self._info_blocks)):
             self.window_error("Text length mismatch error",
                               "The lengths of the text headers and the text blocks do not match", True)
 
@@ -126,6 +136,9 @@ class WindowedDisplay(object):
             for line in block:
                 if (len(line) > max_length):
                     max_length = len(line)
+        for line in self._block_headers:
+            if (len(line) > max_length):
+                max_length = len(line)
         max_length += extra_spacing
         return max_length
 
@@ -142,7 +155,7 @@ class WindowedDisplay(object):
     def set_resizability(self, resizability):
         # Enable / Disable window resizing (Horizontal, Vertical)
         self._resizeable = resizability
-        self._main_window.resizable(self._resizeable[0],self._resizeable[1])
+        self._main_window.resizable(self._resizeable[0], self._resizeable[1])
 
     def get_block_headers(self):
         return self._block_headers
@@ -156,7 +169,7 @@ class WindowedDisplay(object):
     def set_info_blocks(self, new_info_blocks):
         self._info_blocks = new_info_blocks
 
-    def set_window_size(self, width, height, x_offset=30, y_offset=30): # Might also need to resize canvases
+    def set_window_size(self, width, height, x_offset=30, y_offset=30):  # Might also need to resize canvases
         # width x height + x_offset + y_offset
         self._main_window.geometry("%dx%d+%d+%d" % (width, height, x_offset, y_offset))
 
@@ -177,16 +190,30 @@ class WindowedDisplay(object):
         self.set_window_size(window_width + self.scrollbar_width, window_height)
 
     def redraw(self):
-        if(self._main_window_open):
+        if self._main_window_open:
             self._main_window.destroy()
             self._main_window_open = False
             self.display_main_window()
+        else:
+            self.window_error("Redraw error", "Unable to redraw window that does not exist.")
+
+    def bring_forward(self):
+        if self._main_window_open:
+            self._main_window.lift()
+            self._main_window.focus_force()
+        else:
+            self.window_error("Window action error", "Unable to bring nonexistent window to front.")
+
+    def is_open(self):
+        return self._main_window_open
 
     def window_error(self, error, error_message, fatal=False):
-        print("Error: " + error)
-        print(error_message)
+        if show_window_errors:
+            print("Error: " + error)
+            print(error_message)
         if fatal:
             self._main_window.destroy()
+
 
 ########################################################################################################################
 def key_mappings_window_header():
@@ -248,3 +275,36 @@ key_mappings_window = WindowedDisplay(key_mappings_window_text(), key_mappings_w
 
 fitter_info_window = WindowedDisplay([], [],
                                      "Fitter Information", [False, True], 0.40, 0.80, [False, False])
+
+########################################################################################################################
+fitter_info_window_working_index = -1
+
+# This function is used to update the fitter info window in a more streamline manner.
+def update_fitter_info_window(index, reset_text, new_text):
+    """ Updates the contents of the fitter info window. Updated contents
+        are not shown until the window is refreshed.
+    """
+    # index = -1: Use the same index as was last used
+    # index = -2: Set index to the largest valid index and clear block entirely
+    global fitter_info_window_working_index
+    if index == -1:
+        index = fitter_info_window_working_index
+    elif index < 0:
+        pass
+    else:
+        fitter_info_window_working_index = index
+    info_blocks = fitter_info_window.get_info_blocks()
+    if index == -1 or index < -2 or index >= len(info_blocks):
+        fitter_info_window.window_error("Display Variable Update Error",
+                                        "An attempt was made to access a display variable out of bounds.")
+        return
+    if (index >= 0):
+        if reset_text:
+            info_blocks[index] = [info_blocks[index][0]]
+    else:
+        index = -1
+        if reset_text:
+            info_blocks[index] = []
+    lines = new_text.split('\n')
+    for line in lines:
+        info_blocks[index].append(line)
