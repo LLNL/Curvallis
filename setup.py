@@ -17,10 +17,12 @@ Setup file for curvallis
 
 from curvallis.version import version as VERSION_STRING
 from sys import version_info as version
+import urllib.request
 from sys import argv
 import subprocess
 import platform
 import argparse
+import datetime
 import sys
 import pip
 import os
@@ -172,7 +174,9 @@ parser.add_argument("--generic", help="run installer in generic mode", action="s
 # Run virtual python environment tools
 parser.add_argument("-env", "--environment", help="run virtual python environment tools", nargs=argparse.REMAINDER)
 # Allow for pre-commit hook for versioning to be added / updated
-parser.add_argument('--versioning', help="add or update the pre-commit hook that allows for versioning", action="store_true")
+parser.add_argument("--versioning", help="add or update the pre-commit hook that allows for versioning", action="store_true")
+# Check to sdd if a new version of Curvallis is available
+parser.add_argument("--update", help="check for new version of Curvallis", action="store_true")
 args = parser.parse_args()
 if(not(args.environment == None)):
     subprocess.check_call([sys.executable, "venv_tools.py"] + args.environment)
@@ -197,6 +201,39 @@ vprint("You are currently running Python " + py_ver_as_string() + " on " + \
 vprint("Installer configured for python version " + py_ver_as_string() + ", located at " + args.path + ".")
 ##################################################
 # End normal and verbose information about python, the os, and manually set variables
+
+# Start update checker
+##################################################
+if(args.update):
+    curvallis_github_version_url = "https://raw.githubusercontent.com/LLNL/Curvallis/master/curvallis/version.py"
+    try:
+        print("Checking for new version...")
+        latest_version = urllib.request.urlopen(curvallis_github_version_url)
+        latest_version = str(latest_version.read())
+        exec ("latest_" + latest_version[latest_version.find("version"):len(latest_version)-5])
+    except Exception as e:
+        print(e)
+        exit()
+    # except urllib.error.HTTPError as e:
+    # except urllib.error.URLError as e:
+    # except urllib.error.ContentTooShortError as e:
+    from curvallis.version import version as current_version
+    # from version import version as latest_version
+    current_version = datetime.datetime.strptime(current_version, "%a %b %d %H:%M:%S %Z %Y")
+    latest_version = datetime.datetime.strptime(latest_version, "%a %b %d %H:%M:%S %Z %Y")
+    if current_version == latest_version:
+        print("The latest version of Curvallis is already installed.")
+    elif current_version < latest_version:
+        print("A new version of Curvallis is available.")
+        # if(input("Would you like to update Curvallis? ").upper() == "Y"):
+            # subprocess.check_call([args.path, "git pull https://github.com/LLNL/Curvallis.git master"])
+    elif current_version > latest_version:
+        print("The current version of Curvallis is newer than the latest version.")
+    else:
+        print("An error occurred while comparing versions.")
+    exit()
+##################################################
+# End update checker
 
 # Start versioning pre-commit hook installer / updater
 ##################################################
@@ -234,6 +271,9 @@ if(py_ver[0] == 2 and py_ver[1] == 7):
         append_modules = py27_modules
     else:
         append_modules = group_module_checker(py27_modules)
+    print("Unsupported python version " + py_ver_as_string())
+    print("Python version 2.7.X is no longer supported.")
+    exit()
 elif(py_ver[0] == 3):
     if(args.generic):
         append_modules = py3_modules
