@@ -306,5 +306,9 @@ def update_fitter_info_window(index, reset_text, new_text):
         if reset_text:
             info_blocks[index] = []
     lines = new_text.split('\n')
-    for line in lines:
-        info_blocks[index].append(line)
+    if(len(info_blocks) > 0):
+        for line in lines:
+            info_blocks[index].append(line)
+    else:
+        fitter_info_window.window_error("Display Variable Empty Error",
+                                        "An attempt was made to access a display when the display variable was empty.")
