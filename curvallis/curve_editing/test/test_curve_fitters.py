@@ -81,7 +81,7 @@ class TestCurveFitters(ut.TestCase):
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
 
     def _get_random_degree(self, min_degree=1, max_degree=12):
-        return np.random.default_rng().integers(min_degree, max_degree, endpoint=True)
+        return np.random.randint(min_degree, max_degree+1)
 
     def _get_default_poly_args(self):
         return {'derivative_scale': 1,
