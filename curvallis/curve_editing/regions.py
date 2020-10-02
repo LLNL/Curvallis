@@ -694,6 +694,12 @@ class _Line_Sets(object):
         for name, line_set in self._sets.items():
             line_set.remove_point(event)
 
+    def remove_points(self, event, xmin, xmax, ymin, ymax):
+        # FIX: Will try to remove point from every line if more than one
+        # Currently disabled for 2d plots
+        for name, line_set in self._sets.items():
+            line_set.remove_points(event, xmin, xmax, ymin, ymax)
+
 
 # END Point movement ###########################################################
 
@@ -913,6 +919,9 @@ class _Region(object):
 
     def remove_point(self, event):
         self._line_sets.remove_point(event)
+
+    def remove_points(self, event, xmin, xmax, ymin, ymax):
+        self._line_sets.remove_points(event, xmin, xmax, ymin, ymax)
 
     # END Point movement #######################################################
 
@@ -1471,6 +1480,19 @@ class Regions(object):
         region_index = self.get_region_index(event.x, event.y)
         region = self._regions[region_index]
         region.remove_point(event)
+        # Redraw fit curve
+        self._moving_set_region_index = region_index
+        self.finish_move_set()
+
+    def _remove_points(self, event, xmin, xmax, ymin, ymax):
+        """
+        removes a group of points when pressing delete
+        """
+        event.x = (xmin+xmax)/2
+        event.y = (ymin+ymax)/2
+        region_index = self.get_region_index(event.x, event.y)
+        region = self._regions[region_index]
+        region.remove_points(event, xmin, xmax, ymin, ymax)
         # Redraw fit curve
         self._moving_set_region_index = region_index
         self.finish_move_set()

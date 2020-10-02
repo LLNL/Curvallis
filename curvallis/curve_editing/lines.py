@@ -513,6 +513,21 @@ class Line_Set(object):
             self.movable.set_xy_data(data_points)
         else:
             return
+
+    def remove_points(self, event, xmin, xmax, ymin, ymax):
+        data_points = self.movable.get_xy_data()
+        display_points = self.movable.points_to_display_space(data_points)
+        x_values, y_values = display_points[:,0], display_points[:,1]
+        remove_points_indecies = []
+        for i in range(len(display_points)):
+            if((xmin <= display_points[i][0] <= xmax) and (ymin <= display_points[i][1] <= ymax)):
+                #print(str(display_points[i]))
+                remove_points_indecies.append(i)
+        print("Deleting " + str(len(remove_points_indecies)) + " points.")
+        for i in range(len(remove_points_indecies)-1, 0, -1):
+            data_points.remove(data_points[remove_points_indecies[i]])
+        self.movable.set_xy_data(data_points)
+
         
 
 
