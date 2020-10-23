@@ -527,14 +527,16 @@ class CurveInteractor(object):
                     self._figure_padding = 0
                 self._figure.tight_layout(pad=self._figure_padding)
                 self._canvas.draw()
+            """ Currently broken
             elif event.key == 'delete':  # If "delete" pressed
                 if (self._move_set == True):
                     print("Block Delete Points.")
                     self._regions._remove_points(event, self._xmin, self._xmax, self._ymin, self._ymax)
                     self._draw()
-                    self._attempt_begin_move_point(event)
+                    #self._attempt_begin_move_point(event)
                 else:
                     print("Block selection is not enabled.")
+            """
 
     def xlim_changed_callback(self, event):
         """ xlim is changed by a zoom or a pan
