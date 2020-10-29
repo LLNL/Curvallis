@@ -7,7 +7,7 @@ print('__file__={0:<35} | __name__={1:<20} | __package__={2:<20}'.format(__file_
 
 
 from curvallis.curve_editing import curve_fitters as cf
-import test_utilities as util
+import curvallis.curve_editing.test.test_utilities as util
 
 
 class TestCurveFitters(ut.TestCase):
