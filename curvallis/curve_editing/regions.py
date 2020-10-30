@@ -199,39 +199,18 @@ class _Line_Set_With_Fit(lines.Line_Set):
         """
         assert x_first <= x_last, "Range for x-values given to calc_fit_points_for_range() has a higher start point than finish point."
 
-        old_x_values = self._calc_x_values(x_first, x_last, point_count, logarithmic)
-        old_y_values = []
-
-        # TODO: fix this so it's not in a loop - should be able to leverage numpy to do all operations as arrays
-        #       .... probably will require adding tests for every fitter :(
-        #       also fix in derivative and integral functions
         x_values = np.asarray(self._calc_x_values(x_first, x_last, point_count, logarithmic))
         y_values = []
 
         if (self._fitter2 == 'none'):
-            print("Fitter func used! ---------------------------------------------------------------------------------")
-            for x in old_x_values:
-                old_y_values.append(self._fitter.func(x))
             y_values = np.vectorize(self._fitter.func)(x_values)
-            self._test_new_point_fitter(old_x_values, old_y_values, x_values, y_values)
         else:
-            print("Fitter2 func used! --------------------------------------------------------------------------------")
-            for x in old_x_values:
-                old_y_values.append(self._fitter.func(x) - self._fitter2.func(x))
             y_values = np.vectorize(self._fitter_func_minus_fitter2_func)(x_values)
-            self._test_new_point_fitter(old_x_values, old_y_values, x_values, y_values)
 
         return [[x_values[i], y_values[i]] for i in range(len(x_values))]
 
     def _fitter_func_minus_fitter2_func(self, x):
         return self._fitter.func(x) - self._fitter2.func(x)
-
-    def _test_new_point_fitter(self, oldx, oldy, newx, newy):
-        for i in range(len(oldx)):
-            if(not(oldx[i] == newx[i])):
-                raise Exception("X missmatch!")
-            if(not(oldy[i] == newy[i])):
-                raise Exception("Y missmatch!")
 
     def _calc_derivative_points_for_range(self, x_first, x_last, point_count, logarithmic=False):
         """ For a given x range, interpolate x_count x values and calculate
@@ -242,14 +221,8 @@ class _Line_Set_With_Fit(lines.Line_Set):
         y_values = []
 
         if (self._fitter2 == 'none'):
-            print("Fitter derivative used! ---------------------------------------------------------------------------")
-            #for x in x_values:
-            #    y_values.append(self._fitter.derivative(x))
             y_values = np.vectorize(self._fitter.derivative)(x_values)
         else:
-            print("Fitter2 derivative used! --------------------------------------------------------------------------")
-            #for x in x_values:
-            #    y_values.append(self._fitter.derivative(x) - self._fitter2.derivative(x))
             y_values = np.vectorize(self._fitter_derivative_minus_fitter2_derivative)(x_values)
 
         return [[x_values[i], y_values[i]] for i in range(len(x_values))]
@@ -265,14 +238,8 @@ class _Line_Set_With_Fit(lines.Line_Set):
         x_values = np.asarray(self._calc_x_values(x_first, x_last, point_count, logarithmic))
         y_values = []
         if (self._fitter2 == 'none'):
-            print("Fitter second derivative used! --------------------------------------------------------------------")
-            #for x in x_values:
-            #    y_values.append(self._fitter.second_derivative(x))
             y_values = np.vectorize(self._fitter.second_derivative)(x_values)
         else:
-            print("Fitter2 second derivative used! -------------------------------------------------------------------")
-            #for x in x_values:
-            #    y_values.append(self._fitter.second_derivative(x) - self._fitter2.second_derivative(x))
             y_values = np.vectorize(self._fitter_second_derivative_minus_fitter2_second_derivative)(x_values)
 
         return [[x_values[i], y_values[i]] for i in range(len(x_values))]
@@ -289,14 +256,8 @@ class _Line_Set_With_Fit(lines.Line_Set):
         y_values = []
 
         if (self._fitter2 == 'none'):
-            print("Fitter integral used! -----------------------------------------------------------------------------")
-            #for x in x_values:
-            #    y_values.append(self._fitter.integral(x))
             y_values = np.vectorize(self._fitter.integral)(x_values)
         else:
-            print("Fitter2 integral used! -----------------------------------------------------------------------------")
-            #for x in x_values:
-            #    y_values.append(self._fitter.integral(x) - self._fitter2.integral(x))
             y_values = np.vectorize(self._fitter_integral_minus_fitter2_integral)(x_values)
 
         return [[x_values[i], y_values[i]] for i in range(len(x_values))]

@@ -175,7 +175,9 @@ parser.add_argument("--generic", help="run installer in generic mode", action="s
 parser.add_argument("-env", "--environment", help="run virtual python environment tools", nargs=argparse.REMAINDER)
 # Allow for pre-commit hook for versioning to be added / updated
 parser.add_argument("--versioning", help="add or update the pre-commit hook that allows for versioning", action="store_true")
-# Check to sdd if a new version of Curvallis is available
+# Check to sss if a new version of Curvallis is available
+parser.add_argument("--check_update", help="check for new version of Curvallis", action="store_true")
+# Update Curvallis to the latest version if an update is available
 parser.add_argument("--update", help="check for new version of Curvallis", action="store_true")
 args = parser.parse_args()
 if(not(args.environment == None)):
@@ -204,7 +206,7 @@ vprint("Installer configured for python version " + py_ver_as_string() + ", loca
 
 # Start update checker
 ##################################################
-if(args.update):
+if(args.check_update):
     curvallis_github_version_url = "https://raw.githubusercontent.com/LLNL/Curvallis/master/curvallis/version.py"
     try:
         print("Checking for new version...")
@@ -229,6 +231,7 @@ if(args.update):
             # subprocess.check_call([args.path, "git pull https://github.com/LLNL/Curvallis.git master"])
     elif current_version > latest_version:
         print("The current version of Curvallis is newer than the latest version.")
+        # Add check if automatic versioning is installed and give helpful message
     else:
         print("An error occurred while comparing versions.")
     exit()
