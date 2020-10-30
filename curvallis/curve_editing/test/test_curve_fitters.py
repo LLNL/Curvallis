@@ -7,7 +7,7 @@ print('__file__={0:<35} | __name__={1:<20} | __package__={2:<20}'.format(__file_
 
 
 from curvallis.curve_editing import curve_fitters as cf
-import test_utilities as util
+import curvallis.curve_editing.test.test_utilities as util
 
 
 class TestCurveFitters(ut.TestCase):
@@ -81,7 +81,7 @@ class TestCurveFitters(ut.TestCase):
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
 
     def _get_random_degree(self, min_degree=1, max_degree=12):
-        return np.random.randint(min_degree, max_degree+1)
+        return np.random.default_rng().integers(min_degree, max_degree, endpoint=True)
 
     def _get_default_poly_args(self):
         return {'derivative_scale': 1,

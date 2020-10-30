@@ -199,70 +199,71 @@ class _Line_Set_With_Fit(lines.Line_Set):
         """
         assert x_first <= x_last, "Range for x-values given to calc_fit_points_for_range() has a higher start point than finish point."
 
-        x_values = self._calc_x_values(x_first, x_last, point_count, logarithmic)
+        x_values = np.asarray(self._calc_x_values(x_first, x_last, point_count, logarithmic))
         y_values = []
 
-        # TODO: fix this so it's not in a loop - should be able to leverage numpy to do all operations as arrays
-        #       .... probably will require adding tests for every fitter :(
-        #       also fix in derivative and integral functions
         if (self._fitter2 == 'none'):
-            for x in x_values:
-                y_values.append(self._fitter.func(x))
+            y_values = np.vectorize(self._fitter.func)(x_values)
         else:
-            for x in x_values:
-                y_values.append(self._fitter.func(x) - self._fitter2.func(x))
+            y_values = np.vectorize(self._fitter_func_minus_fitter2_func)(x_values)
 
         return [[x_values[i], y_values[i]] for i in range(len(x_values))]
+
+    def _fitter_func_minus_fitter2_func(self, x):
+        return self._fitter.func(x) - self._fitter2.func(x)
 
     def _calc_derivative_points_for_range(self, x_first, x_last, point_count, logarithmic=False):
         """ For a given x range, interpolate x_count x values and calculate
             a derivative value for each, returning the calculated x and
             derivative values.
         """
-        x_values = self._calc_x_values(x_first, x_last, point_count, logarithmic)
+        x_values = np.asarray(self._calc_x_values(x_first, x_last, point_count, logarithmic))
         y_values = []
 
         if (self._fitter2 == 'none'):
-            for x in x_values:
-                y_values.append(self._fitter.derivative(x))
+            y_values = np.vectorize(self._fitter.derivative)(x_values)
         else:
-            for x in x_values:
-                y_values.append(self._fitter.derivative(x) - self._fitter2.derivative(x))
+            y_values = np.vectorize(self._fitter_derivative_minus_fitter2_derivative)(x_values)
 
         return [[x_values[i], y_values[i]] for i in range(len(x_values))]
+
+    def _fitter_derivative_minus_fitter2_derivative(self, x):
+        return self._fitter.derivative(x) - self._fitter2.derivative(x)
 
     def _calc_second_derivative_points_for_range(self, x_first, x_last, point_count, logarithmic=False):
         """ For a given x range, interpolate x_count x values and calculate
             a second derivative value for each, returning the calculated x
             and second derivative values.
         """
-        x_values = self._calc_x_values(x_first, x_last, point_count, logarithmic)
+        x_values = np.asarray(self._calc_x_values(x_first, x_last, point_count, logarithmic))
         y_values = []
         if (self._fitter2 == 'none'):
-            for x in x_values:
-                y_values.append(self._fitter.second_derivative(x))
+            y_values = np.vectorize(self._fitter.second_derivative)(x_values)
         else:
-            for x in x_values:
-                y_values.append(self._fitter.second_derivative(x) - self._fitter2.second_derivative(x))
+            y_values = np.vectorize(self._fitter_second_derivative_minus_fitter2_second_derivative)(x_values)
 
         return [[x_values[i], y_values[i]] for i in range(len(x_values))]
+
+    def _fitter_second_derivative_minus_fitter2_second_derivative(self, x):
+        return self._fitter.second_derivative(x) - self._fitter2.second_derivative(x)
 
     def _calc_integral_points_for_range(self, x_first, x_last, point_count):
         """ For a given x range, interpolate x_count x values and calculate
         a y value for each, returning the calculated x and y values.
 
         """
-        x_values = self._calc_x_values(x_first, x_last, point_count)
+        x_values = np.asarray(self._calc_x_values(x_first, x_last, point_count))
         y_values = []
 
         if (self._fitter2 == 'none'):
-            for x in x_values:
-                y_values.append(self._fitter.integral(x))
+            y_values = np.vectorize(self._fitter.integral)(x_values)
         else:
-            for x in x_values:
-                y_values.append(self._fitter.integral(x) - self._fitter2.integral(x))
+            y_values = np.vectorize(self._fitter_integral_minus_fitter2_integral)(x_values)
 
         return [[x_values[i], y_values[i]] for i in range(len(x_values))]
+
+    def _fitter_integral_minus_fitter2_integral(self, x):
+        return self._fitter.integral(x) - self._fitter2.integral(x)
 
     def get_ghost_points(self):
         return self._ghost_set
@@ -694,6 +695,13 @@ class _Line_Sets(object):
         for name, line_set in self._sets.items():
             line_set.remove_point(event)
 
+    # Function currently broken
+    def remove_points(self, event, xmin, xmax, ymin, ymax):
+        # FIX: Will try to remove point from every line if more than one
+        # Currently disabled for 2d plots
+        for name, line_set in self._sets.items():
+            line_set.remove_points(event, xmin, xmax, ymin, ymax)
+
 
 # END Point movement ###########################################################
 
@@ -913,6 +921,10 @@ class _Region(object):
 
     def remove_point(self, event):
         self._line_sets.remove_point(event)
+
+    # Function currently broken
+    def remove_points(self, event, xmin, xmax, ymin, ymax):
+        self._line_sets.remove_points(event, xmin, xmax, ymin, ymax)
 
     # END Point movement #######################################################
 
@@ -1471,6 +1483,21 @@ class Regions(object):
         region_index = self.get_region_index(event.x, event.y)
         region = self._regions[region_index]
         region.remove_point(event)
+        # Redraw fit curve
+        self._moving_set_region_index = region_index
+        self.finish_move_set()
+
+    # Function currently broken
+    def _remove_points(self, event, xmin, xmax, ymin, ymax):
+        """
+        removes a group of points when pressing delete
+        """
+        event.x = (xmin+xmax)/2
+        event.y = (ymin+ymax)/2
+        region_index = self.get_region_index(event.x, event.y)
+        region = self._regions[region_index]
+        print("x/y range: (" + str(xmin) + " " + str(xmax) + "), ( " + str(ymin) + " " + str(ymax) + ")")
+        region.remove_points(event, xmin, xmax, ymin, ymax)
         # Redraw fit curve
         self._moving_set_region_index = region_index
         self.finish_move_set()

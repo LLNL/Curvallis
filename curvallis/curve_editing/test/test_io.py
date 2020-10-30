@@ -1,7 +1,7 @@
 import unittest as ut
 from unittest.mock import patch
 
-import test_utilities as util
+import curvallis.curve_editing.test.test_utilities as util
 from curvallis.curve_editing import io,  curve_fitters as cf
 from curvallis.curve_editing.configargparse import ArgumentParser
 
