@@ -144,6 +144,10 @@ Options can be entered by either command line or initialization file. All option
 
    Specify the angle to use for acute repair smoothing. The smoother will remove any angles less than this value in degrees.
 
+   - **--minimum_points_per_region= _int_ (Default: 0)**
+
+   Set the minimum number of points that should be written out per region when saving fit curve.
+
 ### Input arguments
 **Input arguments** specify different input data sources. Exactly one must be specified.
 

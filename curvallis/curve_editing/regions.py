@@ -118,7 +118,10 @@ def define_args(parser):
         metavar='<int>')
     parser.add_argument(
         '--minimum_points_per_region',
-        help='Set the minimum number of points that should be written out per region when saving fit curve.')
+        type=int,
+        help='Set the minimum number of points that should be written out per region when saving fit curve. '
+             '[default: %(default)s]',
+        metavar='<int>')
 
     parser.set_defaults(
         do_derivative=False,
@@ -135,6 +138,7 @@ def define_args(parser):
         matchpt=-1.0,
         angle=90,
         interp="cubic",
+        minimum_points_per_region=0,
     )
 
 
@@ -489,6 +493,8 @@ class _Line_Sets(object):
             shift_up = 1 - self._x_low_limit
             total_points = int(
                 log10((self._x_high_limit + shift_up) / (self._x_low_limit + shift_up)) * self._args.points_per_decade)
+        if total_points < self._args.minimum_points_per_region:
+            total_points = self._args.minimum_points_per_region
 
         if total_points == 0:
             return
@@ -1088,8 +1094,9 @@ class Regions(object):
         result = []
         for region in self._regions:
             tmp = region.get_fit_curve_points(True)
-            # if tmp is None:
-            #     continue
+            if tmp is None:
+                print('Warning: No points were written for region ' + str(region._id) + ".")
+                continue
             result.extend(tmp)
 
         return result
