@@ -116,6 +116,9 @@ def define_args(parser):
         help='Select the angle for acute angle repair. '
              '[default: %(default)s]',
         metavar='<int>')
+    parser.add_argument(
+        '--minimum_points_per_region',
+        help='Set the minimum number of points that should be written out per region when saving fit curve.')
 
     parser.set_defaults(
         do_derivative=False,
@@ -1084,7 +1087,10 @@ class Regions(object):
         # Get fit curve points logarithmically by region
         result = []
         for region in self._regions:
-            result.extend(region.get_fit_curve_points(True))
+            tmp = region.get_fit_curve_points(True)
+            # if tmp is None:
+            #     continue
+            result.extend(tmp)
 
         return result
 

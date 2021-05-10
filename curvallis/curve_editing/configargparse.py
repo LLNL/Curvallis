@@ -438,6 +438,8 @@ class ArgumentParser(argparse.ArgumentParser):
             user_config_file = os.path.expanduser(user_config_file)
             if not os.path.isfile(user_config_file):
                 self.error('File not found: %s' % user_config_file)
+            print(os.path.abspath(user_config_file))
+            sys.path.insert(0, os.path.abspath(user_config_file))
 
             config_files += [open(user_config_file)]
 
