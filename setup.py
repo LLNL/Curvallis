@@ -178,7 +178,7 @@ parser.add_argument("--versioning", help="add or update the pre-commit hook that
 # Check to sss if a new version of Curvallis is available
 parser.add_argument("--check_update", help="check for new version of Curvallis", action="store_true")
 # Update Curvallis to the latest version if an update is available
-parser.add_argument("--update", help="check for new version of Curvallis", action="store_true")
+#parser.add_argument("--update", help="check for new version of Curvallis", action="store_true")
 args = parser.parse_args()
 if(not(args.environment == None)):
     subprocess.check_call([sys.executable, "venv_tools.py"] + args.environment)
@@ -208,21 +208,25 @@ vprint("Installer configured for python version " + py_ver_as_string() + ", loca
 ##################################################
 if(args.check_update):
     curvallis_github_version_url = "https://raw.githubusercontent.com/LLNL/Curvallis/master/curvallis/version.py"
+    curvallis_github_version_url = "https://raw.githubusercontent.com/sudo-Eric/Curvallis/master/curvallis/version.py"
     try:
         print("Checking for new version...")
         latest_version = urllib.request.urlopen(curvallis_github_version_url)
         latest_version = str(latest_version.read())
         exec ("latest_" + latest_version[latest_version.find("version"):len(latest_version)-5])
+        latest_version = latest_version[:22] + latest_version[22 + 1:]
     except Exception as e:
+        print("An error occurred while collecting latest version info:")
         print(e)
         exit()
     # except urllib.error.HTTPError as e:
     # except urllib.error.URLError as e:
     # except urllib.error.ContentTooShortError as e:
     from curvallis.version import version as current_version
+    current_version = current_version[:22] + current_version[22 + 1:]
     # from version import version as latest_version
-    current_version = datetime.datetime.strptime(current_version, "%a %b %d %H:%M:%S %Z %Y")
-    latest_version = datetime.datetime.strptime(latest_version, "%a %b %d %H:%M:%S %Z %Y")
+    current_version = datetime.datetime.strptime(current_version, "%Y-%m-%dT%H:%M:%S%z")
+    latest_version = datetime.datetime.strptime(latest_version, "%Y-%m-%dT%H:%M:%S%z")
     if current_version == latest_version:
         print("The latest version of Curvallis is already installed.")
     elif current_version < latest_version:
@@ -243,7 +247,7 @@ if(args.check_update):
 if(args.versioning):
     hook_code = [
         "# versioning begin",
-        "dt=\"$(date -u --iso-8601=ns)\"",
+        "dt=\"$(date -u --iso-8601=seconds)\"",
         "{ echo -n \"# This file is auto-generated. Any changes made to this file will be overwritten.\nversion = '\"; echo -n $dt; echo \"'\n\"; } > curvallis/version.py",
         "git add curvallis/version.py",
         "# versioning end"]
