@@ -243,7 +243,7 @@ if(args.check_update):
 if(args.versioning):
     hook_code = [
         "# versioning begin",
-        "dt=\"$(date -u)\"",
+        "dt=\"$(date -u --iso-8601=ns)\"",
         "{ echo -n \"# This file is auto-generated. Any changes made to this file will be overwritten.\nversion = '\"; echo -n $dt; echo \"'\n\"; } > curvallis/version.py",
         "git add curvallis/version.py",
         "# versioning end"]
@@ -258,7 +258,7 @@ if(args.versioning):
             write_hook(hook_code)
     else:
         print("Git has not been initialized yet. Please initialize git with \"git init\".")
-        exit()
+    exit()
 ##################################################
 # End versioning pre-commit hook installer / updater
 
