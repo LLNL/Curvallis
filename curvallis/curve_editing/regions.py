@@ -176,7 +176,9 @@ class _Line_Set_With_Fit(lines.Line_Set):
         """
 
         if self._logscale == True or logarithmic:
-            x_first = log10(x_first)
+            x_first = log10(0.000000001)
+            if(x_first > 0):
+                x_first = log10(x_first)
             x_last = log10(x_last)
             x_count = int((x_last - x_first) * self._args.points_per_decade)
 
@@ -1093,11 +1095,11 @@ class Regions(object):
         # Get fit curve points logarithmically by region
         result = []
         for region in self._regions:
-            tmp = region.get_fit_curve_points(True)
-            if tmp is None:
+            points = region.get_fit_curve_points(True)
+            if points is None:
                 print('Warning: No points were written for region ' + str(region._id) + ".")
                 continue
-            result.extend(tmp)
+            result.extend(points)
 
         return result
 
