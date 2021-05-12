@@ -11,7 +11,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-Setup file for curvallis
+Virtual environment tools for Curvallis
 @author: Eric Heinke (sudo-Eric)
 """
 
@@ -23,6 +23,7 @@ import platform
 import argparse
 import shutil
 import sys
+import os
 
 # https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/
 # https://docs.python-guide.org/dev/virtualenvs/
