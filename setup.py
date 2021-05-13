@@ -139,7 +139,8 @@ def write_hook(hook_code):
     for line in hook_code:
         hook.write(line + "\n")
     hook.close()
-    subprocess.check_call(["chmod", "+x", "./.git/hooks/pre-commit"])
+    if(args.os == "posix"):
+        subprocess.check_call(["chmod", "+x", "./.git/hooks/pre-commit"])
 
 
 def update_hook(hook_code):
