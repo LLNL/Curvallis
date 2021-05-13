@@ -290,7 +290,7 @@ if (args.check_update):
 # Start versioning pre-commit hook installer / updater
 ##################################################
 if (args.versioning):
-    if (args.os == "posix"):
+    if (args.os == "posix" or args.os == "nt"):
         hook_code = [
             "# versioning begin",
             "dt=\"$(date -u --iso-8601=seconds)\"",
@@ -309,8 +309,6 @@ if (args.versioning):
                 write_hook(hook_code)
         else:
             print("Git has not been initialized yet. Please initialize git with \"git init\".")
-    elif (args.os == "nt"):
-        print("Versioning setup not currently supported on Windows.")
     exit()
 ##################################################
 # End versioning pre-commit hook installer / updater

@@ -176,11 +176,12 @@ class _Line_Set_With_Fit(lines.Line_Set):
         """
 
         if self._logscale == True or logarithmic:
-            # if(x_first > 0):
-            #     x_first = log10(x_first)
-            # else:
-            #     x_first = -1000000000
-            x_first = log10(x_first)############
+            if(x_first > 0):
+                x_first = log10(x_first)
+            else:
+                x_first = -1000000000
+            #raise Exception
+            #x_first = log10(x_first)############
             x_last = log10(x_last)
             x_count = int((x_last - x_first) * self._args.points_per_decade)
 
