@@ -235,8 +235,9 @@ py_ver = [0, 0, 0, "()"]
 # Format for modules: ["module_name","module_version"] where "0" means latest version.
 py27_modules = [["Tkinter", "0"], ["scipy", "0"], ["numpy", "0"], ["matplotlib", "0"], ["argparse", "0"]]
 py3_modules = [["tkinter", "0"], ["scipy", "0"], ["numpy", "0"], ["matplotlib", "0"], ["argparse", "0"]]
-curvallis_github_url = "https://github.com/LLNL/Curvallis.git"
-curvallis_github_version_url = "https://raw.githubusercontent.com/LLNL/Curvallis/master/curvallis/version.py"
+curvallis_github_url = "https://github.com/%s/Curvallis.git"
+curvallis_github_version_url = "https://raw.githubusercontent.com/%s/Curvallis/master/curvallis/version.py"
+curvallis_github_download_page_url = "https://github.com/%s/Curvallis/archive/refs/heads/master.zip"
 ##################################################
 # End initial variables
 
@@ -273,6 +274,9 @@ parser.add_argument("--versioning", help="add or update the pre-commit hook that
 parser.add_argument("--check-update", help="check for new version of Curvallis", action="store_true")
 # Update Curvallis to the latest version if an update is available
 parser.add_argument("--update", help="update to new version of Curvallis if available", action="store_true")
+# Set GitHub repo for version checking and updating
+parser.add_argument("--repo", help="manually set which repo is used for updates (enter only username, eg. LLNL)",
+                    type=str, default="LLNL")
 args = parser.parse_args()
 if not (args.environment is None):
     try:
@@ -291,6 +295,9 @@ for i in args.package:
 if args.os != 'posix' and args.os != 'nt':
     print("Unknown or unsupported operating system detected.")
     exit()
+curvallis_github_url = curvallis_github_url % args.repo
+curvallis_github_version_url = curvallis_github_version_url % args.repo
+curvallis_github_download_page_url = curvallis_github_download_page_url % args.repo
 ##################################################
 # End Argument decoder
 
@@ -306,6 +313,7 @@ vprint("Installer configured for python version " + py_ver_as_string() + ", loca
 # Start update checker
 ##################################################
 if (args.check_update):
+    print(curvallis_github_version_url)
     update_available = check_for_updates(curvallis_github_version_url)
     if update_available:
         prompt = input("Would you like to update Curvallis? ").upper()
@@ -321,11 +329,6 @@ if (args.check_update):
 # Start update installer
 ##################################################
 if args.update:
-    print("Feature is currently in development and will be inaccessible until completed.")
-    curvallis_github_url = "https://github.com/sudo-Eric/Curvallis.git"
-    curvallis_github_version_url = "https://raw.githubusercontent.com/sudo-Eric/Curvallis/master/curvallis/version.py"
-    curvallis_download_page_url = "https://github.com/sudo-Eric/Curvallis/archive/refs/heads/master.zip"
-    # exit()
     # If update has not already been checked for, check for it.
     if not args.check_update and False:
         update_available = check_for_updates(curvallis_github_version_url)
@@ -353,7 +356,7 @@ if args.update:
                     os.remove("master.zip")
                 # Download Curvallis archive
                 print("Downloading Curvallis...")
-                subprocess.check_call(["wget", "-q", curvallis_download_page_url])
+                subprocess.check_call(["wget", "-q", curvallis_github_download_page_url])
                 # Unzip archive
                 print("Unzipping files...")
                 subprocess.check_call(["unzip", "-o", "-q", "master.zip"])
