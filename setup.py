@@ -31,21 +31,21 @@ import os
 # Start Functions
 ##################################################
 def vprint(message):  # For verbose output
-    if (args.verbose):
+    if args.verbose:
         print(message)
 
 
 def version_info():  # Version information
-    return ("Curvallis readiness tool version: " + VERSION_STRING)
+    return "Curvallis readiness tool version: " + VERSION_STRING
 
 
 def decode_python_version(ver):  # Decode python version
     tmp = ""
     new_ver = []
     for i in ver:
-        if (i.isdigit()):
+        if i.isdigit():
             tmp += i
-        elif (i == '.'):
+        elif i == '.':
             new_ver.append(int(tmp))
             tmp = ""
         else:
@@ -53,7 +53,7 @@ def decode_python_version(ver):  # Decode python version
                   "format of x, x.x, or x.x.x.")
             exit()
     new_ver.append(int(tmp))
-    if (len(new_ver) > 3):
+    if len(new_ver) > 3:
         print("Python version format error. Python version must be entered in the " + \
               "format of x, x.x, or x.x.x.")
         exit()
@@ -75,7 +75,7 @@ def module_checker(module_name):  # Checks if module is installed
 def group_module_checker(modules):  # Checks if group of module are installed
     needed = []
     for module in modules:
-        if (not (module_checker(module[0]))):
+        if not (module_checker(module[0])):
             needed.append(module)
     return needed
 
@@ -86,28 +86,28 @@ def py_ver_as_string():  # Returns python version as a string
 
 def install_package(package, version="0"):  # Package installer
     try:
-        if (args.level == 1):
-            if (hasattr(pip, "main")):
+        if args.level == 1:
+            if hasattr(pip, "main"):
                 pip.main(["install", package])
             else:
                 pip._internal.main(['install', package])
-        elif (args.level == 2):
-            if (version == "0"):
+        elif args.level == 2:
+            if version == "0":
                 subprocess.check_call([args.path, "-m", "pip", "install", package])
             else:
                 subprocess.check_call([args.path, "-m", "pip", "install", package + "==" + version])
-        elif (args.level == 3):
-            if (version == "0"):
+        elif args.level == 3:
+            if version == "0":
                 os.system(args.path + " -m pip install " + package)
             else:
                 os.system(args.path + " -m pip install " + package + "==" + version)
     except Exception:
-        print("An error occured while installing " + package)
+        print("An error occurred while installing " + package)
     # python -m pip install module==version
 
 
 def add_package(name, version):
-    if (version[0] == "-"):
+    if version[0] == "-":
         py27_modules.append([name, "0"])
         py3_modules.append([name, "0"])
         return 1
@@ -118,7 +118,7 @@ def add_package(name, version):
 
 
 def decode_package(package):
-    if ("==" in package):
+    if "==" in package:
         return [package[0:package.find("==")], package[package.find("==") + 2:len(package)]]
     else:
         return [package, "0"]
@@ -139,7 +139,7 @@ def write_hook(hook_code):
     for line in hook_code:
         hook.write(line + "\n")
     hook.close()
-    if(args.os == "posix"):
+    if args.os == "posix":
         subprocess.check_call(["chmod", "+x", "./.git/hooks/pre-commit"])
 
 
@@ -151,11 +151,11 @@ def update_hook(hook_code):
     pre_commit_file.close()
     new_hook = []
     i = 0
-    while (i < len(old_hook)):
-        if (old_hook[i] != "# versioning begin\n"):
+    while i < len(old_hook):
+        if old_hook[i] != "# versioning begin\n":
             new_hook.append(old_hook[i])
         else:
-            while (old_hook[i] != "# versioning end\n"):
+            while old_hook[i] != "# versioning end\n":
                 i += 1
         i += 1
     for line in hook_code:
@@ -172,7 +172,7 @@ def check_for_updates(github_version_url):
         print("Checking for new version...")
         latest_version = urllib.request.urlopen(github_version_url)
         latest_version = str(latest_version.read())
-        latest_version = latest_version[latest_version.find("version")+11:latest_version.find("version")+36]
+        latest_version = latest_version[latest_version.find("version") + 11:latest_version.find("version") + 36]
     except Exception as e:
         print("An error occurred while collecting latest version info:")
         print(e)
@@ -184,8 +184,12 @@ def check_for_updates(github_version_url):
     from curvallis.version import version as current_version
 
     # Convert date-time string to datetime object
-    current_version = ISO8601_decode(current_version)
-    latest_version = ISO8601_decode(latest_version)
+    try:
+        current_version = ISO8601_decode(current_version)
+        latest_version = ISO8601_decode(latest_version)
+    except ValueError:
+        print("There was an error decoding version information.")
+        exit()
     if current_version == latest_version:
         print("The latest version of Curvallis is already installed.")
         return False
@@ -231,6 +235,8 @@ py_ver = [0, 0, 0, "()"]
 # Format for modules: ["module_name","module_version"] where "0" means latest version.
 py27_modules = [["Tkinter", "0"], ["scipy", "0"], ["numpy", "0"], ["matplotlib", "0"], ["argparse", "0"]]
 py3_modules = [["tkinter", "0"], ["scipy", "0"], ["numpy", "0"], ["matplotlib", "0"], ["argparse", "0"]]
+curvallis_github_url = "https://github.com/LLNL/Curvallis.git"
+curvallis_github_version_url = "https://raw.githubusercontent.com/LLNL/Curvallis/master/curvallis/version.py"
 ##################################################
 # End initial variables
 
@@ -268,19 +274,21 @@ parser.add_argument("--check-update", help="check for new version of Curvallis",
 # Update Curvallis to the latest version if an update is available
 parser.add_argument("--update", help="update to new version of Curvallis if available", action="store_true")
 args = parser.parse_args()
-if (not (args.environment == None)):
-    subprocess.check_call([sys.executable, "venv_tools.py"] + args.environment)
-    exit()
-if (args.level < 1 or args.level > 3):
+if not (args.environment is None):
+    try:
+        subprocess.check_call([sys.executable, "venv_tools.py"] + args.environment)
+    finally:
+        exit()
+if args.level < 1 or args.level > 3:
     print("Installation level must be between 1 and 3.")
     exit()
-if (args.python == None):
+if args.python is None:
     py_ver = [version.major, version.minor, version.micro, version.releaselevel]
 else:
     decode_python_version(args.python)
 for i in args.package:
     modules_needed.append(decode_package(i))
-if (args.os != 'posix' and args.os != 'nt'):
+if args.os != 'posix' and args.os != 'nt':
     print("Unknown or unsupported operating system detected.")
     exit()
 ##################################################
@@ -289,8 +297,8 @@ if (args.os != 'posix' and args.os != 'nt'):
 # Start normal and verbose information about python, the os, and manually set variables
 ##################################################
 version_info()
-vprint("You are currently running Python " + py_ver_as_string() + " on " + \
-       platform.system() + " " + platform.release() + ".")
+vprint("You are currently running Python " + py_ver_as_string() + " on "
+       + platform.system() + " " + platform.release() + ".")
 vprint("Installer configured for python version " + py_ver_as_string() + ", located at " + args.path + ".")
 ##################################################
 # End normal and verbose information about python, the os, and manually set variables
@@ -298,12 +306,10 @@ vprint("Installer configured for python version " + py_ver_as_string() + ", loca
 # Start update checker
 ##################################################
 if (args.check_update):
-    curvallis_github_version_url = "https://raw.githubusercontent.com/LLNL/Curvallis/master/curvallis/version.py"
-    curvallis_github_version_url = "https://raw.githubusercontent.com/sudo-Eric/Curvallis/master/curvallis/version.py"
     update_available = check_for_updates(curvallis_github_version_url)
-    if update_available or True:
+    if update_available:
         prompt = input("Would you like to update Curvallis? ").upper()
-        if not(prompt == "Y" or prompt == "YES"):
+        if not (prompt == "Y" or prompt == "YES"):
             exit()
         # If 'Y' or 'YES', continue to the update code below
         args.update = True
@@ -314,8 +320,57 @@ if (args.check_update):
 
 # Start update installer
 ##################################################
-if (args.update):
+if args.update:
     print("Feature is currently in development and will be inaccessible until completed.")
+    curvallis_github_url = "https://github.com/sudo-Eric/Curvallis.git"
+    curvallis_github_version_url = "https://raw.githubusercontent.com/sudo-Eric/Curvallis/master/curvallis/version.py"
+    curvallis_download_page_url = "https://github.com/sudo-Eric/Curvallis/archive/refs/heads/master.zip"
+    # exit()
+    # If update has not already been checked for, check for it.
+    if not args.check_update and False:
+        update_available = check_for_updates(curvallis_github_version_url)
+        if not update_available:
+            print("There are no updates available for Curvallis.")
+            exit()
+    # Check if git has been set up for Curvallis
+    if os.path.exists(".git"):
+        print("Git directory found.")
+        if args.os == 'posix' or args.os == 'nt':
+            subprocess.check_call(["git", "pull", curvallis_github_url, "master"])
+    else:
+        # If git has not been set up, ask if the user wants to do a manual update
+        print("Git directory not found.")
+        if args.os == 'nt':
+            print("Alternate update method is not supported on windows.")
+            exit()
+        prompt = input("Would you like to switch to the alternate update method?\n"
+                       "Warning: This will overwrite your current installation (y/n) ").upper()
+        if not (prompt == "Y" or prompt == "YES"):
+            exit()
+        if args.os == 'posix':
+            try:
+                if os.path.exists("master.zip"):
+                    os.remove("master.zip")
+                # Download Curvallis archive
+                print("Downloading Curvallis...")
+                subprocess.check_call(["wget", "-q", curvallis_download_page_url])
+                # Unzip archive
+                print("Unzipping files...")
+                subprocess.check_call(["unzip", "-o", "-q", "master.zip"])
+                # Copy uncompressed archive files to correct place, overwriting existing files
+                print("Processing files...")
+                for file in os.listdir("./Curvallis-master"):
+                    subprocess.check_call(["cp", "-rf", "./Curvallis-master/" + file, "."])
+                # Remove temporary/unneeded files
+                print("Cleaning up...")
+                subprocess.check_call(["rm", "master.zip"])
+                subprocess.check_call(["rm", "-rf", "./Curvallis-master"])
+                print("Done.\nUpdate successful!")
+            except Exception as e:
+                print("An error has occurred while trying to update.")
+                vprint(e)
+        elif args.os == 'nt':
+            pass  # Not supported yet
     exit()
     # check if git is initialized or not
     # subprocess.check_call([args.path, "git pull https://github.com/LLNL/Curvallis.git master"])
@@ -324,8 +379,8 @@ if (args.update):
 
 # Start versioning pre-commit hook installer / updater
 ##################################################
-if (args.versioning):
-    if (args.os == "posix" or args.os == "nt"):
+if args.versioning:
+    if args.os == "posix" or args.os == "nt":
         hook_code = [
             "# versioning begin",
             "dt=\"$(date -u --iso-8601=seconds)\"",
@@ -333,9 +388,9 @@ if (args.versioning):
             "'\"; echo -n $dt; echo \"'\n\"; } > curvallis/version.py",
             "git add curvallis/version.py",
             "# versioning end"]
-        if (os.path.exists(".git")):  # Check if git has been initialized in current directory
+        if os.path.exists(".git"):  # Check if git has been initialized in current directory
             print("Git directory found.")
-            if (os.path.exists(".git/hooks/pre-commit")):  # Check if pre-commit hook already exists
+            if os.path.exists(".git/hooks/pre-commit"):  # Check if pre-commit hook already exists
                 print("Pre-commit hook already exists. Updating relevant code.")
                 update_hook(hook_code)
             else:  # Create pre-commit hook
@@ -343,21 +398,21 @@ if (args.versioning):
                 hook_code.insert(0, "#!/bin/sh\n")
                 write_hook(hook_code)
         else:
-            print("Git has not been initialized yet. Please initialize git with \"git init\".")
+            print("Git has not been initialized yet. Please initialize git.")
     exit()
 ##################################################
 # End versioning pre-commit hook installer / updater
 
 # Start module checker
 ##################################################
-if (not (check_pip())):  # Check if pip is installed
+if not check_pip():  # Check if pip is installed
     print("pip is not installed.")
     print("Please install pip.")
     exit()
 append_modules = []
 # If python version 2.7.X is detected
-if (py_ver[0] == 2 and py_ver[1] == 7):
-    if (args.generic):
+if py_ver[0] == 2 and py_ver[1] == 7:
+    if args.generic:
         append_modules = py27_modules
     else:
         append_modules = group_module_checker(py27_modules)
@@ -366,8 +421,8 @@ if (py_ver[0] == 2 and py_ver[1] == 7):
     print("Python 2.7 is no longer supported by Curvallis. Please try again with Python 3.")
     exit()
 # If python version 3.X.X is detected
-elif (py_ver[0] == 3):
-    if (args.generic):
+elif py_ver[0] == 3:
+    if args.generic:
         append_modules = py3_modules
     else:
         append_modules = group_module_checker(py3_modules)
@@ -376,12 +431,12 @@ else:
     exit()
 for i in append_modules:
     modules_needed.append(i)
-if (len(modules_needed) == 0):
+if len(modules_needed) == 0:
     print("All modules are already installed.")
     exit()
 vprint("The following modules will be installed:")
 for module in modules_needed:
-    if (module[1] == "0"):
+    if module[1] == "0":
         vprint(" * " + module[0])
     else:
         vprint(" * " + module[0] + " version " + module[1])
@@ -401,14 +456,14 @@ print("Done.")
 ##################################################
 print("Verifying installed modules...")
 modules_not_installed = []
-if (py_ver[0] == 2 and py_ver[1] == 7):
+if py_ver[0] == 2 and py_ver[1] == 7:
     modules_not_installed = group_module_checker(py27_modules)
-elif (py_ver[0] == 3):
+elif py_ver[0] == 3:
     modules_not_installed = group_module_checker(py3_modules)
-if (len(modules_not_installed) > 0):
+if len(modules_not_installed) > 0:
     print("The following modules were not / could not be installed:")
     for module in modules_not_installed:
-        if (module[1] == "0"):
+        if module[1] == "0":
             print(" * " + module[0])
         else:
             print(" * " + module[0] + " version " + module[1])
