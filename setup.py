@@ -166,9 +166,57 @@ def update_hook(hook_code):
     pre_commit_file.close()
 
 
+# Check for updates at the given location. Return True if update available, False otherwise.
+def check_for_updates(github_version_url):
+    try:
+        print("Checking for new version...")
+        latest_version = urllib.request.urlopen(github_version_url)
+        latest_version = str(latest_version.read())
+        latest_version = latest_version[latest_version.find("version")+11:latest_version.find("version")+36]
+    except Exception as e:
+        print("An error occurred while collecting latest version info:")
+        print(e)
+        exit()
+    # except urllib.error.HTTPError as e:
+    # except urllib.error.URLError as e:
+    # except urllib.error.ContentTooShortError as e:
+    # from version import version as latest_version
+    from curvallis.version import version as current_version
+
+    # Convert date-time string to datetime object
+    current_version = ISO8601_decode(current_version)
+    latest_version = ISO8601_decode(latest_version)
+    if current_version == latest_version:
+        print("The latest version of Curvallis is already installed.")
+        return False
+    elif current_version < latest_version:
+        print("A new version of Curvallis is available.")  # A new version of Curvallis was found
+        return True
+    elif current_version > latest_version:
+        print("The current version of Curvallis is newer than the latest version.")
+        if os.path.exists(".git"):
+            versioning_setup = False
+            pre_commit_file = open(".git/hooks/pre-commit", 'r')
+            for line in pre_commit_file:
+                if line == "# versioning begin\n":
+                    versioning_setup = True
+            pre_commit_file.close()
+            if versioning_setup:
+                print("Setup is unable to automatically update Curvallis.")
+            else:
+                print("Automatic versioning is nto set up. If you are developing Curvallis, please run this setup "
+                      "file with \"--versioning\" flag to set up automatic versioning.")
+        else:
+            print("Git has not been initialized yet. Please initialize git with \"git init\".")
+        return False
+    else:
+        print("An error occurred while comparing versions.")
+        return False
+
+
+# Converts an ISO8601 fate-time (YYY-MM-DDThh:mm:ss+hh:mm) to a datetime object
+# https://en.wikipedia.org/wiki/ISO_8601
 def ISO8601_decode(date_time):
-    # Converts an ISO8601 fate-time (YYY-MM-DDThh:mm:ss+hh:mm) to a datetime object
-    # https://en.wikipedia.org/wiki/ISO_8601
     date_time = date_time[:22] + date_time[22 + 1:]
     return datetime.datetime.strptime(date_time, "%Y-%m-%dT%H:%M:%S%z")
 
@@ -216,9 +264,9 @@ parser.add_argument("-env", "--environment", help="run virtual python environmen
 parser.add_argument("--versioning", help="add or update the pre-commit hook that allows for versioning",
                     action="store_true")
 # Check to sss if a new version of Curvallis is available
-parser.add_argument("--check_update", help="check for new version of Curvallis", action="store_true")
+parser.add_argument("--check-update", help="check for new version of Curvallis", action="store_true")
 # Update Curvallis to the latest version if an update is available
-# parser.add_argument("--update", help="check for new version of Curvallis", action="store_true")
+parser.add_argument("--update", help="update to new version of Curvallis if available", action="store_true")
 args = parser.parse_args()
 if (not (args.environment == None)):
     subprocess.check_call([sys.executable, "venv_tools.py"] + args.environment)
@@ -252,40 +300,27 @@ vprint("Installer configured for python version " + py_ver_as_string() + ", loca
 if (args.check_update):
     curvallis_github_version_url = "https://raw.githubusercontent.com/LLNL/Curvallis/master/curvallis/version.py"
     curvallis_github_version_url = "https://raw.githubusercontent.com/sudo-Eric/Curvallis/master/curvallis/version.py"
-    try:
-        print("Checking for new version...")
-        latest_version = urllib.request.urlopen(curvallis_github_version_url)
-        latest_version = str(latest_version.read())
-        exec("latest_" + latest_version[latest_version.find("version"):len(latest_version) - 5])
-    except Exception as e:
-        print("An error occurred while collecting latest version info:")
-        print(e)
-        exit()
-    # except urllib.error.HTTPError as e:
-    # except urllib.error.URLError as e:
-    # except urllib.error.ContentTooShortError as e:
-    # from version import version as latest_version
-    from curvallis.version import version as current_version
-
-    # Convert date-time string to datetime object
-    current_version = ISO8601_decode(current_version)
-    latest_version = ISO8601_decode(latest_version)
-    if current_version == latest_version:
-        print("The latest version of Curvallis is already installed.")
-    elif current_version < latest_version:
-        print("A new version of Curvallis is available.")  # A new version of Curvallis was found
-        # prompt = input("Would you like to update Curvallis? ").upper()
-        # if(prompt == "Y" or prompt == "YES"):
-        # check if git is initialized or not
-        # subprocess.check_call([args.path, "git pull https://github.com/LLNL/Curvallis.git master"])
-    elif current_version > latest_version:
-        print("The current version of Curvallis is newer than the latest version.")
-        # Add check if automatic versioning is installed and give helpful message
+    update_available = check_for_updates(curvallis_github_version_url)
+    if update_available or True:
+        prompt = input("Would you like to update Curvallis? ").upper()
+        if not(prompt == "Y" or prompt == "YES"):
+            exit()
+        # If 'Y' or 'YES', continue to the update code below
+        args.update = True
     else:
-        print("An error occurred while comparing versions.")
-    exit()
+        exit()
 ##################################################
 # End update checker
+
+# Start update installer
+##################################################
+if (args.update):
+    print("Feature is currently in development and will be inaccessible until completed.")
+    exit()
+    # check if git is initialized or not
+    # subprocess.check_call([args.path, "git pull https://github.com/LLNL/Curvallis.git master"])
+##################################################
+# End update installer
 
 # Start versioning pre-commit hook installer / updater
 ##################################################
