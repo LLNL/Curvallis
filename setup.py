@@ -289,7 +289,7 @@ if (args.check_update):
 
 # Start versioning pre-commit hook installer / updater
 ##################################################
-if (args.versioning):
+if (args.versioning): #Test
     if (args.os == "posix"):
         hook_code = [
             "# versioning begin",
