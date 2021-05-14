@@ -28,6 +28,7 @@ import os
 
 # https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/
 # https://docs.python-guide.org/dev/virtualenvs/
+# https://docs.python.org/3/tutorial/venv.html
 
 # Begin Functions
 ##################################################
@@ -124,7 +125,6 @@ py_ver = [version.major, version.minor, version.micro, version.releaselevel]
 
 # Begin Argument decoder
 ##################################################
-# https://docs.python.org/3/library/argparse.html
 parser = argparse.ArgumentParser()
 group = parser.add_mutually_exclusive_group(required=True)
 # Visplay version information
