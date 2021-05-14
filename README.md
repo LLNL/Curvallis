@@ -5,21 +5,23 @@
 Curvallis is a plotting program written in Python 3 using MatPlotLib to visualize and modify experimental equation of state data. It does this by plotting individual isotherms as lines. Data can be either 1d or 2d, meaning there can be 1 or many isotherms plotted at once. Data points on these lines can be moved around, and new points can be added or removed. 1d data can have different equations fitted to them, which best fit the data. Some popular equations are currently Nth degree polynomials and Equations of State, but more exist and any equation can be added. Manipulating data points causes this fitted line to be recalculated and redisplayed. The manipulated data points, the fitted line, and calculated derivatives can be written to a file.
 
 ## Contents
- - [Installation](#Installation)
- - [Virtual Python Environments](#Virtual-Python-Environments)
- - [Running](#Running)
- - [Options](#Options)
-    - [Optional arguments](#Optional-arguments)
-    - [Input arguments](#Input-arguments)
-    - [Output arguments](#Output-arguments)
-    - [Shift, Limit, and Point Exclusion arguments](#Shift,-Limit,-and Point-Exclusion-arguments)
-    - [View arguments](#View-arguments)
-    - [Curve fitter arguments](#Curve-fitter-arguments)
- - [Interactive Commands](#Interactive-Commands)
- - [Input Files](#Input-Files)
-    - [1d Data](#1d-Data)
-    - [2d Data](#2d-Data)
- - [Configuration File Syntax](#Configuration-File-Syntax)
+ - [Curvallis](#curvallis)
+ - [Contents](#contents)
+ - [Installation](#installation)
+ - [Virtual Python Environments](#virtual-python-environments)
+ - [Running](#running)
+ - [Options](#options)
+    - [Optional arguments](#optional-arguments)
+    - [Input arguments](#input-arguments)
+    - [Output arguments](#output-arguments)
+    - [Shift, Limit, and Point Exclusion arguments](#shift-limit-and-point-exclusion-arguments)
+    - [View arguments](#view-arguments)
+    - [Curve fitter arguments](#curve-fitter-arguments)
+ - [Interactive Commands](#interactive-commands)
+ - [Input Files](#input-files)
+    - [1d Data](#1d-data)
+    - [2d Data](#2d-data)
+ - [Configuration File Syntax](#configuration-file-syntax)
 
 ## Installation
 
