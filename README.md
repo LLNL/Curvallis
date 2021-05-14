@@ -1,4 +1,4 @@
-#![Lawrence Livermore National Laboratory](https://github.com/sudo-Eric/Curvallis/blob/master/llnl-logo.png?raw=true)
+# ![Lawrence Livermore National Laboratory](immages/llnl-logo.png)
 
 # Curvallis
 
