@@ -1093,11 +1093,11 @@ class Regions(object):
         # Get fit curve points logarithmically by region
         result = []
         for region in self._regions:
-            tmp = region.get_fit_curve_points(True)
-            if tmp is None:
+            points = region.get_fit_curve_points(True)
+            if points is None:
                 print('Warning: No points were written for region ' + str(region._id) + ".")
                 continue
-            result.extend(tmp)
+            result.extend(points)
 
         return result
 
