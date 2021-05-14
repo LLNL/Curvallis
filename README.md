@@ -1,37 +1,54 @@
+#![Lawrence Livermore National Laboratory](https://github.com/sudo-Eric/Curvallis/blob/master/llnl-logo.png?raw=true)
+
 # Curvallis
 
 Curvallis is a plotting program written in Python 3 using MatPlotLib to visualize and modify experimental equation of state data. It does this by plotting individual isotherms as lines. Data can be either 1d or 2d, meaning there can be 1 or many isotherms plotted at once. Data points on these lines can be moved around, and new points can be added or removed. 1d data can have different equations fitted to them, which best fit the data. Some popular equations are currently Nth degree polynomials and Equations of State, but more exist and any equation can be added. Manipulating data points causes this fitted line to be recalculated and redisplayed. The manipulated data points, the fitted line, and calculated derivatives can be written to a file.
 
 ## Installation
 
-Curvallis has the following dependencies which should be installed automatically by the installer:
+###### Note: `python` will refer to your python executeable, whatever it may be.
 
-matplotlib, Tkinter, numpy, scipy, argparse
+Curvallis has the following dependencies which need to be installed. These should be easilly installable through the setup program.
 
-Scipy can be difficult to install, so it may have to be installed manually if the installer fails. The installer has been tested using Python v 3.6.9, and Python v 3.8.1. The program itself requires Python 3.
+* matplotlib
+* Tkinter
+* numpy
+* scipy
+* argparse
 
-To install this program, type "python3 setup.py" into a terminal in the directory containing 'setup.py'.
-Run 'python setup.py --help' for more instalation options.
+######Scipy can be difficult to install, so it may have to be installed manually if the installer fails.
 
-For those adding features to Curvallis there is a versioning system for automatically updating the version string of Curvallis. To enable or update this feature add the "--versioning" argument to the setup program. You should only need to run the versioning setup once and the feature will be enabled for your local repository indefinitely.
+ The installer has been tested using Python v 3.6.9, Python v 3.8.1, and Python 3.8.5. The program itself **requires** Python 3.
+
+To install this program, type `python setup.py` into a terminal in the directory containing 'setup.py'.
+Run `python setup.py --help` for more instalation options.
+
+For those adding features to Curvallis, there is a versioning system for automatically updating the version string of Curvallis when you commit changes. To enable or update this feature run `python setup.py --versioning`. You should only need to run the versioning setup once and the feature will be enabled for your local repository indefinitely, although you might want to rerun it occasionally for updates to versioning code.
 
 ## Virtual Python Environments
 
-Virtual python environments are a great way to create new instances of python. Virtual python environments act like a normal installation of python except they are completely isolated from your systems main python installation. This separation means that the virtual environment has its own executable, pip package manager, and packages.
+###### Note: `python` will refer to your python executeable, whatever it may be.
+
+Virtual python environments are a great way to create new instances of python that are seperate from eachoter. Virtual python environments act just like a normal installation of python, except they are completely isolated from your systems main python installation. This separation means that the virtual environment has its own executable, pip package manager, and packages.
+
 It is recommended to create a virtual python environment in the following circumstances:
- - When one wants to have a program isolated from their main installation
- - When there are two or more programs that require conflicting packages or different versions of the same package
+
+ - When one wants to have a python program isolated from their main python installation
+ - When there are two or more python programs that require conflicting packages or differing versions of the same package
  - When an isolated python environment is desired
+ 
+ To set up a virtual environment, run `python venv_tools.py -c <location_to_create_virtual_environment>`.
+ 
 
 ## Running
 
-Once installed, typing "curvallis" into a terminal should run the program at any location. The program can also be run if it's not installed. Just run curvallis.py. If you run the program this way, make sure you have manually installed all dependencies. 
+Once installed, typing `curvallis` into a terminal should run the program at any location. The program can also be run if it's not installed. Just run `curvallis.py`. If you run the program this way, make sure you have manually installed all dependencies. 
 
-To get started, the examples directory contains example configuration files and example data files. To test the configuration files, go to the examples directory and type "curvallis --config_file _config-file-name_". Each config file has an explanation of what its commands are doing.
+To get started, the examples directory contains example configuration files and example data files. To test the configuration files, go to the examples directory and type `curvallis --config_file <config-file-name>`. Each config file has an explanation of what its commands are doing.
 
 ## Options
 
-Options can be entered by either command line or initialization file. All options can be entered either way. The default initialization file is named curve_editor.ini, so the program will automatically read all arguments out of this file if it is in the same directory as the program is being run from. To read a different ini file, use the --config_file option. Command line arguments and ini files can be used simultaneously. If there are conflicting arguments, the command line arguments get priority. To input an option by command line, put --_name_ _value_ _value_ .... For example to use the fit_type option type: --fit_type poly5 poly4. To input options using the ini file, don't include the dashes. If there are multiple values for the option, enclose them in brackets as well. You can also put "=" or ":" instead of a space between _name_ and _value_. More details about how configuration files work can be found in the "Configuration File Syntax" section in this document.
+Options can be entered by either command line or initialization file. All options can be entered either way. The default initialization file is named curve_editor.ini, so the program will automatically read all arguments out of this file if it is in the same directory as the program is being run from. To read a different ini file, use the `--config_file` option. Command line arguments and ini files can be used simultaneously. If there are conflicting arguments, the command line arguments get priority. To input an option by command line, put `--<name> <value> <value> ....` For example to use the fit_type option type: `--fit_type poly5 poly4`. To input options using the ini file, don't include the dashes. If there are multiple values for the option, enclose them in brackets as well. You can also put "=" or ":" instead of a space between _name_ and _value_. More details about how configuration files work can be found in the "Configuration File Syntax" section in this document.
 
 ### Optional arguments
 **Optional arguments** are options which aren't required to be given in order to run the program. This is either because there are default values or that option doesn't need to be specified at all. Options outside of this group may be optional as well, but these are the miscellaneous options which don't fit into another group. Here is a list of all options in this category:
@@ -502,7 +519,7 @@ Some format details:
 
 - \# in any column starts a comment
 
-- ; in any column also starts a comment (.ini style)
+- ; in any column starts a comment (.ini style)
 
 - --- in the FIRST column starts a comment (.yaml style)
 
