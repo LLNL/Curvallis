@@ -567,5 +567,5 @@ To specify an argument with multiple values or with a type of "list":
 
 ### Example Configuration File
 
-See "[examples/config-complete-list.ini](https://github.com/LLNL/Curvallis/blob/master/examples/config-complete-list.ini)" for an example configuration file.
+
 See "[examples/config-complete-list.ini](examples/config-complete-list.ini)" for an example configuration file.
