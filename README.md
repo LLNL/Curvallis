@@ -11,7 +11,15 @@ Curvallis is a plotting program written in Python 3 using MatPlotLib to visualiz
  - [Options](#Options)
     - [Optional arguments](#Optional-arguments)
     - [Input arguments](#Input-arguments)
- - []()
+    - [Output arguments](#Output-arguments)
+    - [Shift, Limit, and Point Exclusion arguments](#Shift,-Limit,-and Point-Exclusion-arguments)
+    - [View arguments](#View-arguments)
+    - [Curve fitter arguments](#Curve-fitter-arguments)
+ - [Interactive Commands](#Interactive-Commands)
+ - [Input Files](#Input-Files)
+    - [1d Data](#1d-Data)
+    - [2d Data](#2d-Data)
+ - [Configuration File Syntax](#Configuration-File-Syntax)
 
 ## Installation
 
