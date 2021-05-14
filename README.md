@@ -4,6 +4,15 @@
 
 Curvallis is a plotting program written in Python 3 using MatPlotLib to visualize and modify experimental equation of state data. It does this by plotting individual isotherms as lines. Data can be either 1d or 2d, meaning there can be 1 or many isotherms plotted at once. Data points on these lines can be moved around, and new points can be added or removed. 1d data can have different equations fitted to them, which best fit the data. Some popular equations are currently Nth degree polynomials and Equations of State, but more exist and any equation can be added. Manipulating data points causes this fitted line to be recalculated and redisplayed. The manipulated data points, the fitted line, and calculated derivatives can be written to a file.
 
+## Contents
+ - [Installation](#Installation)
+ - [Virtual Python Environments](#Virtual-Python-Environments)
+ - [Running](#Running)
+ - [Options](#Options)
+    - [Optional arguments](#Optional-arguments)
+    - [Input arguments](#Input-arguments)
+ - []()
+
 ## Installation
 
 ###### Note: `python` will refer to your python executeable, whatever it may be.
