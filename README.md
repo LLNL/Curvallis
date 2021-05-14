@@ -1,4 +1,4 @@
-# ![Lawrence Livermore National Laboratory](immages/llnl-logo.png)
+# ![Lawrence Livermore National Laboratory](images/llnl-logo.png)
 
 # Curvallis
 
