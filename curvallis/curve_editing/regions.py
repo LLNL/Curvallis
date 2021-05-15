@@ -175,6 +175,8 @@ class _Line_Set_With_Fit(lines.Line_Set):
         :return: list
         """
 
+        """ I am here
+        """
         if self._logscale == True or logarithmic:
             x_first = log10(x_first)
             x_last = log10(x_last)
