@@ -178,9 +178,17 @@ class _Line_Set_With_Fit(lines.Line_Set):
         """ I am here
         """
         if self._logscale == True or logarithmic:
-            x_first = log10(x_first)
-            x_last = log10(x_last)
-            x_count = int((x_last - x_first) * self._args.points_per_decade)
+
+            # make sure that the log function can work by using abs() functions
+            if x_first < 0:
+                x_first = log10(abs(x_first)) * -1
+            elif x_last < 0:
+                x_last = log10(abs(x_last)) * -1
+            else:
+                x_first = log10(x_first)
+                x_last = log10(x_last)
+
+            x_count = int(abs((x_last - x_first)) * self._args.points_per_decade)
 
         # If only one point is asked for, return x_first to avoid
         # a 'division by 0' error in the for loop below
