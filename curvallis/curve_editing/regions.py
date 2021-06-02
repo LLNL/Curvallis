@@ -175,8 +175,6 @@ class _Line_Set_With_Fit(lines.Line_Set):
         :return: list
         """
 
-        """ I am here
-        """
         if self._logscale == True or logarithmic:
 
             # make sure that the log function can work by using abs() functions
