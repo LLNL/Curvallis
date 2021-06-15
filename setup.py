@@ -285,6 +285,18 @@ if args.debug_info:
     print("========== Curvallis Debug Info ==========")
     print("Python version: %d.%d.%d %s" % (version.major, version.minor, version.micro, version.releaselevel))
     print("Curvallis version: %s" % VERSION_STRING)
+    try: from matplotlib import __version__ as matplotlib_version
+    except: matplotlib_version = "Not installed"
+    print("Matplotlib version: %s" % matplotlib_version)
+    try: from tkinter import TkVersion as tkinter_version
+    except: tkinter_version = "Not installed"
+    print("Tkinter version version: %s" % tkinter_version)
+    try: from scipy import __version__ as scipy_version
+    except: scipy_version = "Not installed"
+    print("Scipy version: %s" % scipy_version)
+    try: from numpy import __version__ as numpy_version
+    except: numpy_version = "Not installed"
+    print("Numpy version: %s" % numpy_version)
     exit()
 if not (args.environment is None):
     try:
@@ -320,7 +332,7 @@ vprint("Installer configured for python version " + py_ver_as_string() + ", loca
 
 # Start update checker
 ##################################################
-if (args.check_update):
+if args.check_update:
     print(curvallis_github_version_url)
     update_available = check_for_updates(curvallis_github_version_url)
     if update_available:
