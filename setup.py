@@ -247,6 +247,9 @@ curvallis_github_download_page_url = "https://github.com/%s/Curvallis/archive/re
 parser = argparse.ArgumentParser()
 # Visplay version information
 parser.add_argument("--version", action="version", version=version_info())
+# Display debug info (for helping debug user problems)
+parser.add_argument('--debug-info', help="Display some info that can be useful for debugging new issues",
+                    action="store_true", dest="debug_info")
 # Enable verbose output
 parser.add_argument("-v", "--verbose", help="enable verbose output", action="store_true")
 # Set python version
@@ -278,6 +281,11 @@ parser.add_argument("--update", help="update to new version of Curvallis if avai
 parser.add_argument("--repo", help="manually set which repo is used for updates (enter only username, eg. LLNL)",
                     type=str, default="LLNL")
 args = parser.parse_args()
+if args.debug_info:
+    print("========== Curvallis Debug Info ==========")
+    print("Python version: %d.%d.%d %s" % (version.major, version.minor, version.micro, version.releaselevel))
+    print("Curvallis version: %s" % VERSION_STRING)
+    exit()
 if not (args.environment is None):
     try:
         subprocess.check_call([sys.executable, "venv_tools.py"] + args.environment)
