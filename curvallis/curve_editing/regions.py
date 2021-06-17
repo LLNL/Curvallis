@@ -175,13 +175,13 @@ class _Line_Set_With_Fit(lines.Line_Set):
         :return: list
         """
 
-        positive = False
+        positive = True
         if x_first <= 0:
-            positive = True
+            positive = False
         elif x_last <= 0:
-            positive = True
+            positive = False
 
-        if self._logscale == True or logarithmic or positive:
+        if self._logscale == True or logarithmic and positive:
             x_first = log10(x_first)
             x_last = log10(x_last)
 
@@ -190,7 +190,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
         # If only one point is asked for, return x_first to avoid
         # a 'division by 0' error in the for loop below
         if x_count == 1:
-            if self._logscale or logarithmic or positive:
+            if self._logscale or logarithmic and positive:
                 x_first = pow(10, x_first)
             return [x_first]
 
@@ -201,7 +201,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
             portion = float(i) / float(x_count - 1)
             x = x_first + (portion * x_range)
 
-            if self._logscale == True or logarithmic or positive:
+            if self._logscale == True or logarithmic and positive:
                 result.append(pow(10, x))
             else:
                 result.append(x)
