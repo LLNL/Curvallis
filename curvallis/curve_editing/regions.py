@@ -176,23 +176,36 @@ class _Line_Set_With_Fit(lines.Line_Set):
         """
 
         if self._logscale == True or logarithmic:
-
-            # make sure that the log function can work by using abs() functions
-            if x_first < 0:
-                x_first = log10(abs(x_first)) * -1
-            elif x_last < 0:
-                x_last = log10(abs(x_last)) * -1
+            if x_first <= 0:
+                pass
+            elif x_last <= 0:
+                pass
             else:
                 x_first = log10(x_first)
                 x_last = log10(x_last)
 
-            x_count = int(abs((x_last - x_first)) * self._args.points_per_decade)
+            x_count = int((x_last - x_first) * self._args.points_per_decade)
+
+            
+            # make sure that the log function can work by using abs() functions
+            """if x_first < 0:
+                x_first = -1 * log10(1+abs(x_first))
+            elif x_last < 0:
+                x_last = -1 * log10(1+abs(x_last))
+            else:
+                x_first = log10(x_first)
+                x_last = log10(x_last)
+
+            x_count = int(abs((x_last - x_first)) * self._args.points_per_decade) """
 
         # If only one point is asked for, return x_first to avoid
         # a 'division by 0' error in the for loop below
         if x_count == 1:
             if self._logscale or logarithmic:
-                x_first = pow(10, x_first)
+                if x_first <= 0:
+                    pass
+                else:
+                    x_first = pow(10, x_first)
             return [x_first]
 
         result = []
@@ -203,7 +216,10 @@ class _Line_Set_With_Fit(lines.Line_Set):
             x = x_first + (portion * x_range)
 
             if self._logscale == True or logarithmic:
-                result.append(pow(10, x))
+                if x_first <= 0:
+                    result.append(x)
+                else:
+                    result.append(pow(10, x))
             else:
                 result.append(x)
         return result
