@@ -175,37 +175,23 @@ class _Line_Set_With_Fit(lines.Line_Set):
         :return: list
         """
 
-        if self._logscale == True or logarithmic:
-            if x_first <= 0:
-                pass
-            elif x_last <= 0:
-                pass
-            else:
-                x_first = log10(x_first)
-                x_last = log10(x_last)
+        positive = False
+        if x_first <= 0:
+            positive = True
+        elif x_last <= 0:
+            positive = True
+
+        if self._logscale == True or logarithmic or positive:
+            x_first = log10(x_first)
+            x_last = log10(x_last)
 
             x_count = int((x_last - x_first) * self._args.points_per_decade)
-
-            
-            # make sure that the log function can work by using abs() functions
-            """if x_first < 0:
-                x_first = -1 * log10(1+abs(x_first))
-            elif x_last < 0:
-                x_last = -1 * log10(1+abs(x_last))
-            else:
-                x_first = log10(x_first)
-                x_last = log10(x_last)
-
-            x_count = int(abs((x_last - x_first)) * self._args.points_per_decade) """
 
         # If only one point is asked for, return x_first to avoid
         # a 'division by 0' error in the for loop below
         if x_count == 1:
-            if self._logscale or logarithmic:
-                if x_first <= 0:
-                    pass
-                else:
-                    x_first = pow(10, x_first)
+            if self._logscale or logarithmic or positive:
+                x_first = pow(10, x_first)
             return [x_first]
 
         result = []
@@ -215,11 +201,8 @@ class _Line_Set_With_Fit(lines.Line_Set):
             portion = float(i) / float(x_count - 1)
             x = x_first + (portion * x_range)
 
-            if self._logscale == True or logarithmic:
-                if x_first <= 0:
-                    result.append(x)
-                else:
-                    result.append(pow(10, x))
+            if self._logscale == True or logarithmic or positive:
+                result.append(pow(10, x))
             else:
                 result.append(x)
         return result
