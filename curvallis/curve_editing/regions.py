@@ -185,7 +185,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
             x_first = log10(x_first)
             x_last = log10(x_last)
 
-            x_count = int((x_last - x_first) * self._args.points_per_decade)
+        x_count = int((x_last - x_first) * self._args.points_per_decade)
 
         # If only one point is asked for, return x_first to avoid
         # a 'division by 0' error in the for loop below
@@ -492,7 +492,7 @@ class _Line_Sets(object):
 
         # Find total amount of points needed through multiplying the
         # logarithmic decades covered by x-value range by the points per decade
-        if self._x_low_limit >= 1:
+        if self._x_low_limit >= 0:
             total_points = int(log10(self._x_high_limit / self._x_low_limit) * self._args.points_per_decade)
         else:
             # It isn't mathematically accurate to just shift up the x-values,
@@ -1119,6 +1119,7 @@ class Regions(object):
         for region in self._regions:
             result.extend(region.get_derivative_curve_points(True))
 
+        print(len(result))
         return result
 
     def _get_second_derivative_curve_points(self):
