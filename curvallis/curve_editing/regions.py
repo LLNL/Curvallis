@@ -1024,7 +1024,7 @@ class Regions(object):
                 data = list(self._data_sets.get_name_set_items())[0][1]
                 # Check if the user wants to have the minimum number of points to always be in the region itself
                 want_to = input('Do you want to set the minimum number of points in each region to be ' + str(
-                    self._args.region_data_points) + '? ')
+                    self._args.region_data_points) + '? \n')
                 if 'Y' in want_to or 'y' in want_to:
                     self._args.minimum_points_per_region = self._args.region_data_points
 
