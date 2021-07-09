@@ -492,7 +492,7 @@ class _Line_Sets(object):
 
         # Find total amount of points needed through multiplying the
         # logarithmic decades covered by x-value range by the points per decade
-        if self._x_low_limit >= 0:
+        if self._x_low_limit >= 1:
             total_points = int(log10(self._x_high_limit / self._x_low_limit) * self._args.points_per_decade)
         else:
             # It isn't mathematically accurate to just shift up the x-values,
@@ -1022,6 +1022,11 @@ class Regions(object):
                 # Create as many regions as possible that contain the amount of data points as the user gave
                 # in the Command Line argument 'region_data_points'
                 data = list(self._data_sets.get_name_set_items())[0][1]
+                # Check if the user wants to have the minimum number of points to always be in the region itself
+                want_to = input('Do you want to set the minimum number of points in each region to be ' + str(
+                    self._args.region_data_points) + '? ')
+                if 'Y' in want_to or 'y' in want_to:
+                    self._args.minimum_points_per_region = self._args.region_data_points
 
                 assert len(
                     data) >= self._args.region_data_points, "%E points wanted per region but an insufficient number of data points, %E, has been given" % (
@@ -1119,7 +1124,6 @@ class Regions(object):
         for region in self._regions:
             result.extend(region.get_derivative_curve_points(True))
 
-        print(len(result))
         return result
 
     def _get_second_derivative_curve_points(self):
@@ -1513,8 +1517,8 @@ class Regions(object):
         """
         removes a group of points when pressing delete
         """
-        event.x = (xmin+xmax)/2
-        event.y = (ymin+ymax)/2
+        event.x = (xmin + xmax) / 2
+        event.y = (ymin + ymax) / 2
         region_index = self.get_region_index(event.x, event.y)
         region = self._regions[region_index]
         print("x/y range: (" + str(xmin) + " " + str(xmax) + "), ( " + str(ymin) + " " + str(ymax) + ")")
