@@ -247,6 +247,9 @@ curvallis_github_download_page_url = "https://github.com/%s/Curvallis/archive/re
 parser = argparse.ArgumentParser()
 # Visplay version information
 parser.add_argument("--version", action="version", version=version_info())
+# Display debug info (for helping debug user problems)
+parser.add_argument('--get-info', help="Display some useful information about current setup",
+                    action="store", nargs="?", default="NONE", dest="get_info")
 # Enable verbose output
 parser.add_argument("-v", "--verbose", help="enable verbose output", action="store_true")
 # Set python version
@@ -278,6 +281,45 @@ parser.add_argument("--update", help="update to new version of Curvallis if avai
 parser.add_argument("--repo", help="manually set which repo is used for updates (enter only username, eg. LLNL)",
                     type=str, default="LLNL")
 args = parser.parse_args()
+
+# Display useful info about configuration
+if args.get_info is None or args.get_info.upper() != "NONE":
+    if args.get_info is None:
+        args.get_info = "STANDARD"
+    if args.get_info.upper() == "HELP":
+        print("%s --get-info [NONE, STANDARD, FULL, HELP]" % parser.prog)
+        exit()
+    print("========== Curvallis Debug Info ==========")
+    print("Python version: %d.%d.%d %s" % (version.major, version.minor, version.micro, version.releaselevel))
+    print("Curvallis version: %s" % VERSION_STRING)
+    try: from matplotlib import __version__ as matplotlib_version
+    except: matplotlib_version = "Not installed"
+    print("Matplotlib version: %s" % matplotlib_version)
+    try: from tkinter import TkVersion as tkinter_version
+    except: tkinter_version = "Not installed"
+    print("Tkinter version version: %s" % tkinter_version)
+    try: from scipy import __version__ as scipy_version
+    except: scipy_version = "Not installed"
+    print("Scipy version: %s" % scipy_version)
+    try: from numpy import __version__ as numpy_version
+    except: numpy_version = "Not installed"
+    print("Numpy version: %s" % numpy_version)
+    if args.get_info.upper() == "FULL":
+        print("System: %s %s" % (platform.system(), platform.release()))
+        print("System type: %s" % args.os)
+        print("Git initialized: %s" % os.path.exists(".git"))
+        if os.path.exists(".git" + os.path.sep + "config"):
+            tmp_file = open(".git" + os.path.sep + "config", 'r')
+            lines = tmp_file.readlines()
+            tmp_file.close()
+            for i in range(len(lines)):
+                if lines[i].strip() == "[remote \"origin\"]":
+                    line = lines[i+1].strip()
+                    line = line[line.find('=')+1:].strip()
+                    print("Git repository URL: %s" % line)
+                    break
+    exit()
+
 if not (args.environment is None):
     try:
         subprocess.check_call([sys.executable, "venv_tools.py"] + args.environment)
@@ -312,7 +354,7 @@ vprint("Installer configured for python version " + py_ver_as_string() + ", loca
 
 # Start update checker
 ##################################################
-if (args.check_update):
+if args.check_update:
     print(curvallis_github_version_url)
     update_available = check_for_updates(curvallis_github_version_url)
     if update_available:
