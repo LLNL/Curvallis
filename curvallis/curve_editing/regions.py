@@ -175,15 +175,22 @@ class _Line_Set_With_Fit(lines.Line_Set):
         :return: list
         """
 
-        if self._logscale == True or logarithmic:
+        positive = True
+        if x_first <= 0:
+            positive = False
+        elif x_last <= 0:
+            positive = False
+
+        if self._logscale == True or logarithmic and positive:
             x_first = log10(x_first)
             x_last = log10(x_last)
-            x_count = int((x_last - x_first) * self._args.points_per_decade)
+
+        x_count = int((x_last - x_first) * self._args.points_per_decade)
 
         # If only one point is asked for, return x_first to avoid
         # a 'division by 0' error in the for loop below
         if x_count == 1:
-            if self._logscale or logarithmic:
+            if self._logscale or logarithmic and positive:
                 x_first = pow(10, x_first)
             return [x_first]
 
@@ -194,7 +201,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
             portion = float(i) / float(x_count - 1)
             x = x_first + (portion * x_range)
 
-            if self._logscale == True or logarithmic:
+            if self._logscale == True or logarithmic and positive:
                 result.append(pow(10, x))
             else:
                 result.append(x)
@@ -1015,6 +1022,9 @@ class Regions(object):
                 # Create as many regions as possible that contain the amount of data points as the user gave
                 # in the Command Line argument 'region_data_points'
                 data = list(self._data_sets.get_name_set_items())[0][1]
+                # Set the number of minimum points per region equal to the number of data points to ensure that there
+                # are always a set amount of X points in every region.
+                self._args.minimum_points_per_region = self._args.region_data_points
 
                 assert len(
                     data) >= self._args.region_data_points, "%E points wanted per region but an insufficient number of data points, %E, has been given" % (
@@ -1505,8 +1515,8 @@ class Regions(object):
         """
         removes a group of points when pressing delete
         """
-        event.x = (xmin+xmax)/2
-        event.y = (ymin+ymax)/2
+        event.x = (xmin + xmax) / 2
+        event.y = (ymin + ymax) / 2
         region_index = self.get_region_index(event.x, event.y)
         region = self._regions[region_index]
         print("x/y range: (" + str(xmin) + " " + str(xmax) + "), ( " + str(ymin) + " " + str(ymax) + ")")
