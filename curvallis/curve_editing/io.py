@@ -254,9 +254,9 @@ def process_args (parser, args):
                         args.decimate < 2:
             parser.error("decimate value was %s, must be at least 2." %
                               args.decimate)
-        if args.step < 1:
+        if args.step_count < 1:
             parser.error("step value was %s, must be at least 1." %
-                              args.step)
+                         args.step_count)
 
     def check_input_arg():
         """ Make sure there is exactly one of these.
@@ -944,8 +944,8 @@ def _decimate(points_in, name, args):
     :return:          sequence of possibly fewer(x, y) values
     """
     result = points_in
-    if args.step > 1:
-        result = _decimate_by_stepping(result, args.step, name)
+    if args.step_count > 1:
+        result = _decimate_by_stepping(result, args.step_count, name)
     if args.decimate != _NO_DECIMATE:
         result = _decimate_to_limit(result, args.decimate, name)
     return result
