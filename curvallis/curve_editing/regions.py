@@ -185,7 +185,7 @@ class _Line_Set_With_Fit(lines.Line_Set):
             x_first = log10(x_first)
             x_last = log10(x_last)
 
-        x_count = int((x_last - x_first) * self._args.points_per_decade)
+            x_count = int((x_last - x_first) * self._args.points_per_decade)
 
         # If only one point is asked for, return x_first to avoid
         # a 'division by 0' error in the for loop below

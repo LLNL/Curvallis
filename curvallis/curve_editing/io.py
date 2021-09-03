@@ -256,7 +256,7 @@ def process_args (parser, args):
                               args.decimate)
         if args.step < 1:
             parser.error("step value was %s, must be at least 1." %
-                              args.step)
+                         args.step)
 
     def check_input_arg():
         """ Make sure there is exactly one of these.
