@@ -120,10 +120,34 @@ def define_args(parser):
         '--gamma0_guess', dest='gamma0',
         type=float, metavar='<float>',
         help='Initial guess for gamma0 [default: %(default)s]')
-    # fitter_args.add_argument(
-    #     '--z_guess', dest='z',
-    #     type=float, metavar='<float>',
-    #     help='Initial guess for z parameter [default: %(default)s]')
+    fitter_args.add_argument(
+        '--T0_guess', dest='T0',
+        type=float, metavar='<float>',
+        help='Initial guess for simong fit T0 parameter [default: %(default)s]')
+    fitter_args.add_argument(
+        '--P0_guess', dest='P0',
+        type=float, metavar='<float>',
+        help='Initial guess for simong fit P0 parameter [default: %(default)s]')
+    fitter_args.add_argument(
+        '--a_guess', dest='a',
+        type=float, metavar='<float>',
+        help='Initial guess for the generic a fit parameter [default: %(default)s]')
+    fitter_args.add_argument(
+        '--b_guess', dest='b',
+        type=float, metavar='<float>',
+        help='Initial guess for the generic b fit parameter [default: %(default)s]')
+    fitter_args.add_argument(
+        '--c_guess', dest='c',
+        type=float, metavar='<float>',
+        help='Initial guess for the generic c fit parameter [default: %(default)s]')
+    fitter_args.add_argument(
+        '--d_guess', dest='d',
+        type=float, metavar='<float>',
+        help='Initial guess for the generic d fit parameter [default: %(default)s]')
+    fitter_args.add_argument(
+        '--e_guess', dest='e',
+        type=float, metavar='<float>',
+        help='Initial guess for the generic e fit parameter [default: %(default)s]')
 
     parser.set_defaults(
         fit_type=['poly5'],
@@ -165,6 +189,8 @@ def define_args(parser):
         c3=1.0,
         c4=1.0,
         cn=[1.0] * 12,  # 12 is maximum power of eseries
+        T0=None, #Required input for simong to work
+        P0=None, #Required input for simong to work
     )
 
 # ------------------------------------------------------------------------------
@@ -598,7 +624,6 @@ class Energy_Fit_Class(Base_Fit_Class):
               self.k0_prime, self.rho0)
 
         self._is_first_fit = False
-
 
 # ------------------------------------------------------------------------------
 # EOS models tested against MEOS Equations
@@ -2432,3 +2457,63 @@ class GammaPolyV(GammaPoly):
 
 
 factory.register(GammaPolyV.name_prefix, GammaPolyV)
+
+
+class SimonGlatzel(Base_Fit_Class):
+    """ Simon-Glatzel PmTm Fit  (sometimes just called Simon)
+        Simon, F.E., Nature 172, 746 (1953), DOI: 10.1038/172746a0, equation 1
+        Note the the paper's Tref and Pref are renamed to T0 and P0
+    """
+
+    def __init__(self, args, name):
+        super(SimonGlatzel, self).__init__(args, name)
+        self.T0 = args.T0  # temperature at the triple point
+        self.P0 = args.P0  # pressure at the triple point
+        self.a  = args.a
+        self.b  = args.b
+        
+    def _set_coefficients(self, coeffs):
+        (self.T0, self.P0, self.a, self.b) = coeffs
+
+    def _get_coefficients(self):
+        return self.T0, self.P0, self.a, self.b
+
+    def _print_coefficients(self):
+        print("P0 = {};".format(self.P0))
+        print("T0 = {};".format(self.T0))
+        print("a = {};".format(self.a))
+        print("b = {};".format(self.b))
+        update_fitter_info_window(-1, False, ("P0 = {};\n".format(self.P0)) +
+                                  ("T0 = {};\n".format(self.T0)) + ("a = {};\n".format(self.a)) +
+                                  ("b = {};\n".format(self.b)))
+
+    def guess_coefficients(self,
+                           points):  
+        if (self.P0 == None):
+            print("ERROR: --P0_guess MUST be defined for the simong model")
+        if (self.T0 == None):
+            print("ERROR: --P0_guess MUST be defined for the simong model")
+
+    @staticmethod
+    def _f(P, *coeffs):
+        (T0, P0, a, b) = coeffs
+        # Tm = T0( ((P-P0)/a) + 1)^b
+        inner_term = ((P-P0) / a) + 1;
+        power_term = pow(inner_term, b)
+        Tm = T0 * power_term;
+        return Tm
+
+    def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _energy_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _pressure_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+
+factory.register('simong', SimonGlatzel)

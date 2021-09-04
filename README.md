@@ -286,7 +286,7 @@ Options can be entered by either command line or initialization file. All option
 
    Select an equation to fit to the data points for each region. For example, if you have three regions, `--fit_type none poly5 birch3` would set no equation for the first region, "poly5" for the second region, and "birch3" for the third region. Regions are ordered from smallest to greatest x value. If a fit type is not specified for any region, then the default "poly5" equation will be used. This means if there are five regions, but only three fit types, the the last two regions will be set to "poly5".
    The available equations are:
-> anton, ap1, ap2, bardeen, birch2, birch3, birch4, ebirch3, ebirch4, emurnaghan, evinet, johnson, kumari, log, log2, murnaghan, none, poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11, poly12, sandiapc, shank, vinet, highp.
+> anton, ap1, ap2, bardeen, birch2, birch3, birch4, ebirch3, ebirch4, emurnaghan, evinet, johnson, kumari, log, log2, murnaghan, none, poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11, poly12, sandiapc, shank, vinet, highp, simong.
 
 Options starting with an "e" are energy equations, "poly<b>n</b>" are nth degree polynomials, and the rest are pressure. Only some of these equations have been thoroughly tested to check if they work properly. 
     These are:
@@ -359,6 +359,22 @@ Options starting with an "e" are energy equations, "poly<b>n</b>" are nth degree
    - **`--gamma0_guess <float>`**
 
    Set an initial guess for gamma (gamma0).
+
+   - **`--P0_guess <float>`**
+
+   Set an initial guess for P0, only used by simong fit currently.
+
+   - **`--T0_guess <float>`**
+
+   Set an initial guess for T0, only used by simong fit currently.
+
+   - **`--a_guess <float>`**
+
+   Set an initial guess for a, only used by simong fit currently.
+
+   - **`--b_guess <float>`**
+
+   Set an initial guess for b, only used by simong fit currently.
 
 ## Interactive Commands
 

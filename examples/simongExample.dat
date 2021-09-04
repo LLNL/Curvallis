@@ -1,0 +1,47 @@
+#Experiment: melt of Ni measured by XAS in a laser-heated DAC
+#S. Boccato, R. Torchio, I. Kantor, G. Morard, S. Anzellini, R. Giampaoli, R. Briggs, A. Smareglia, T. Irifune, S. Pascarelli
+#Journal of Geophysical Research: Solid Earth 122, 9921-9930 (2017)
+#Taken digitally from figure 7, border of solid and liquid
+#P (Mbar)	T (K) - shifted to match ambient melt of 1727 K, as stated in equation on page 9928.
+0.00	1727.00
+0.05	1908.34
+0.09	2057.67
+0.16	2281.67
+0.21	2409.67
+0.28	2569.67
+0.36	2751.00
+0.40	2847.00
+0.45	2932.34
+0.52	3049.67
+0.59	3167.00
+0.63	3241.67
+0.69	3327.00
+0.74	3423.00
+0.79	3476.34
+0.87	3593.67
+0.92	3657.67
+0.97	3732.34
+1.02	3785.67
+1.07	3849.67
+#Data from orinal digitization:
+#P (Mbar)	T (K)
+#0.00	1745.33
+#0.05	1926.67
+#0.09	2076.00
+#0.16	2300.00
+#0.21	2428.00
+#0.28	2588.00
+#0.36	2769.33
+#0.40	2865.33
+#0.45	2950.67
+#0.52	3068.00
+#0.59	3185.33
+#0.63	3260.00
+#0.69	3345.33
+#0.74	3441.33
+#0.79	3494.67
+#0.87	3612.00
+#0.92	3676.00
+#0.97	3750.67
+#1.02	3804.00
+1.07	3868.00
