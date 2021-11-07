@@ -864,7 +864,7 @@ class Murnaghan(Pressure_Fit_Class):
     """ Fit function for Murnaghan EOS (MU2)
         FD Stacey, et al., "Finite Strain Theories and Comparisons with Seismological Data
             Geophysical Surveys 4 (1981) 189-232
-    """
+    """  
 
     def __init__(self, args, name):
         super(Murnaghan, self).__init__(args, name)
@@ -2467,40 +2467,51 @@ class SimonGlatzel(Base_Fit_Class):
 
     def __init__(self, args, name):
         super(SimonGlatzel, self).__init__(args, name)
-        self.T0 = args.T0  # temperature at the triple point
-        self.P0 = args.P0  # pressure at the triple point
+        #All coefficents passed to the function get optimized, but we don't want
+        #to optimize P0 and T0, so I can't pass them as arguments.  But _f is a @staticmethod,
+        #so they can't be instance variables either. So I made them global. It seems clunky, is there a better way?
+        global global_T0     
+        global global_P0
+        global_T0 = args.T0  # temperature at the triple point
+        global_P0 = args.P0  # pressure at the triple point
         self.a  = args.a
         self.b  = args.b
         
     def _set_coefficients(self, coeffs):
-        (self.T0, self.P0, self.a, self.b) = coeffs
+        (self.a, self.b) = coeffs
 
     def _get_coefficients(self):
-        return self.T0, self.P0, self.a, self.b
+        return self.a, self.b
 
     def _print_coefficients(self):
-        print("P0 = {};".format(self.P0))
-        print("T0 = {};".format(self.T0))
+        global global_T0 
+        global global_P0         
+        print("T0 = {};".format(global_T0))
+        print("P0 = {};".format(global_P0))
         print("a = {};".format(self.a))
         print("b = {};".format(self.b))
-        update_fitter_info_window(-1, False, ("P0 = {};\n".format(self.P0)) +
-                                  ("T0 = {};\n".format(self.T0)) + ("a = {};\n".format(self.a)) +
+        update_fitter_info_window(-1, False, ("P0 = {};\n".format(global_P0)) +
+                                  ("T0 = {};\n".format(global_T0)) + ("a = {};\n".format(self.a)) +
                                   ("b = {};\n".format(self.b)))
 
     def guess_coefficients(self,
                            points):  
-        if (self.P0 == None):
+        global global_T0 
+        global global_P0 
+        if (global_P0 == None):
             print("ERROR: --P0_guess MUST be defined for the simong model")
-        if (self.T0 == None):
+        if (global_T0 == None):
             print("ERROR: --P0_guess MUST be defined for the simong model")
 
     @staticmethod
     def _f(P, *coeffs):
-        (T0, P0, a, b) = coeffs
+        (a, b) = coeffs
+        global global_P0
+        global global_T0
         # Tm = T0( ((P-P0)/a) + 1)^b
-        inner_term = ((P-P0) / a) + 1;
+        inner_term = ((P-global_P0) / a) + 1;
         power_term = pow(inner_term, b)
-        Tm = T0 * power_term;
+        Tm = global_T0 * power_term;
         return Tm
 
     def _derivative(self, x):
