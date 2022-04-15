@@ -668,7 +668,7 @@ class Holzapfel_AP2(Pressure_Fit_Class):
         (k0, k0_prime, rho0, a, z) = coeffs
         #print("vvvvvvvvvvvvvvvvvvvvvvvVVVVV")
         short_x = np.power((rho0 / x), (1.0/3.0))
-        c0 = np.log( ((0.02337 * 1e-25) / (3 * k0)) * np.power((( z * rho0 * 0.6022) / a), (5/3)))
+        c0 = np.log( ((0.02337 * 1e-25) / (3 * k0)) * np.power((( z * 1e24 * rho0 * 0.6022) / a), (5/3)))
         cAP2 = (3/2) * (k0_prime - 3) - c0
         retval = 3 * k0 * ( (1-short_x) / np.power(short_x, 5) ) * np.exp( c0 * (1-short_x) ) * (1 + cAP2 * short_x * (1 - short_x) )
         #print("^^^^^^^^^^^^^^^^^^^^^^^^")
@@ -689,6 +689,143 @@ class Holzapfel_AP2(Pressure_Fit_Class):
 
 
 factory.register('Holzapfel_AP2', Holzapfel_AP2)
+
+class Ali_AP2(Pressure_Fit_Class):
+    """ Suzanne Ali's formulation of the Holzapfel AP2 model 
+        (Copied from MEOS source code)(
+        Holzapfel, High Pressure Research, Vol. 16, pp81-126 (1998)
+    """   
+
+    def __init__(self, args, name):
+        super(Ali_AP2, self).__init__(args, name)
+        self.k0 = args.k0
+        self.k0_prime = args.k0_prime
+        self.rho0 = args.rho0
+        self.a = args.a #Atomic mass        
+        self.z = args.z #Atomic number
+
+    def _set_coefficients(self, coeffs):
+        (self.k0, self.k0_prime, self.rho0, self.a, self.z) = coeffs
+
+    def _get_coefficients(self):
+        return self.k0, self.k0_prime, self.rho0, self.a, self.z
+
+    def _print_coefficients(self):
+        print("B0 = {};".format(self.k0))
+        print("Bp = {};".format(self.k0_prime))
+        print("rho0 = {};".format(self.rho0))
+        print("A = {};".format(self.a))
+        print("Z = {};".format(self.z))
+        update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
+                                  ("rho0 = {};\n".format(self.rho0)) + ("A = {};\n".format(self.a)) +
+                                  ("Z = {};".format(self.z)))
+
+    @staticmethod
+    def _f(rho, *coeffs):
+        (k0, k0_prime, rho0, a, z) = coeffs
+        v0 = 1/rho0
+        atomicV0 = v0 * (a/0.602214179)
+
+        x = np.power(rho0/rho, 1./3.);
+        aFG = 0.02337E-25
+        A3_TO_CM3 = 1e-24
+        pFGr = aFG * np.power(z / (atomicV0 * A3_TO_CM3), 5./3.);
+
+        c0 = -1. * np.log(3. * k0/pFGr);
+        cAP2 = (3./2.) * (k0_prime - 3) - c0;
+        Pc_frac = (3 * k0 * (1-x)) / np.power(x, 5); 
+        Pc_exp  = np.exp(c0 * (1-x)) * (1 + cAP2 * x * (1-x));
+        Pc = Pc_frac * Pc_exp;
+
+        return Pc;
+        
+
+    def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _energy_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _pressure_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+factory.register('AP2', Ali_AP2)
+
+
+class E_Ali_AP2(Energy_Fit_Class):
+    """ Suzanne Ali's formulation of the Holzapfel AP2 model 
+        (Copied from MEOS source code)(
+        Holzapfel, High Pressure Research, Vol. 16, pp81-126 (1998)
+    """
+    
+    def __init__(self, args, name):
+        super(Energy_Ali_AP2, self).__init__(args, name)
+        self.k0 = args.k0
+        self.k0_prime = args.k0_prime
+        self.rho0 = args.rho0
+        self.a = args.a #Atomic mass        
+        self.z = args.z #Atomic number
+
+    def _set_coefficients(self, coeffs):
+        (self.k0, self.k0_prime, self.rho0, self.a, self.z) = coeffs
+
+    def _get_coefficients(self):
+        return self.k0, self.k0_prime, self.rho0, self.a, self.z
+
+    def _print_coefficients(self):
+        print("B0 = {};".format(self.k0))
+        print("Bp = {};".format(self.k0_prime))
+        print("rho0 = {};".format(self.rho0))
+        print("A = {};".format(self.a))
+        print("Z = {};".format(self.z))
+        update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
+                                  ("rho0 = {};\n".format(self.rho0)) + ("A = {};\n".format(self.a)) +
+                                  ("Z = {};".format(self.z)))
+
+    @staticmethod
+    def _f(rho, *coeffs):
+        (k0, k0_prime, rho0, a, z) = coeffs
+        v0 = 1/rho0
+        atomicV0 = v0 * (a/0.602214179)
+        x = np.power(rho0/rho, 1./3.);
+        aFG = 0.02337E-25
+        A3_TO_CM3 = 1e-24
+        pFGr = aFG * np.power(z / (atomicV0 * A3_TO_CM3), 5./3.);
+        c0 = -1. * np.log(3. * k0/pFGr);
+        cAP2 = (3./2.) * (k0_prime - 3) - c0;
+
+        D2 = (cAP2 * (2. - x)) / c0;
+        S2 = (cAP2 * (c0 + 2.)) / c0;
+
+        mm = x*c0;
+        mei_top = np.power(mm, 2) + 2.334733 * mm + 0.250621;
+        mei_bot = np.power(mm, 2) + 3.330657 * mm + 1.681534;
+        mei = mei_top / mei_bot;
+     
+        E1_top = (9. * V0 * k0) * np.exp(c0 * (1-x)); 
+        E1_bot = (2. * np.power(x , 2));   
+        E2 = 1 - (c0 + 2 - (2. * S2)) * x * (1-mei) - (2. * x * D2);
+        E = (E1_top / E1_bot) * E2;
+        Fcold = E0 + E;
+        return Fcold;
+        
+
+    def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _energy_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _pressure_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+factory.register('eAP2', E_Ali_AP2)
 
 
 
@@ -1563,7 +1700,7 @@ factory.register('shank', Shankar)
 # Incomplete EOS models
 
 
-class Ap1(Pressure_Fit_Class):
+class Broken_Ap1(Pressure_Fit_Class):
     """ Fit function for first-order Adapted Polynomial EOS (AP1)
         W. Holzapfel, "Equations of state for regular solids"
         High Pressure Research 22(1) 209-216 (2002)
@@ -1627,10 +1764,10 @@ class Ap1(Pressure_Fit_Class):
                    spec.expi(_c0x(x, self.k0, self.rho0, self.z))))))
 
 
-factory.register('ap1', Ap1)
+factory.register('broken_ap1', Broken_Ap1)
 
 
-class Ap2(Pressure_Fit_Class):
+class Broken_Ap2(Pressure_Fit_Class):
     """ Fit function for second-order Adapted Polynomial EOS
         Jun Jiuxun, et al. "Equation of state for solids with high accuracy
         and satisfying the limitation condition at high pressure"
@@ -1681,7 +1818,7 @@ class Ap2(Pressure_Fit_Class):
         raise RuntimeError("Not implemented")
 
 
-factory.register('ap2', Ap2)
+factory.register('broken_ap2', Broken_Ap2)
 
 
 # def ap3(self, x, k0, k0_prime, k0_prime_prime, z, rho0):
