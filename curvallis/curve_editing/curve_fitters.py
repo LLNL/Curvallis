@@ -131,7 +131,7 @@ def define_args(parser):
     fitter_args.add_argument(
         '--a_guess', dest='a',
         type=float, metavar='<float>',
-        help='Initial guess for the generic a fit parameter [default: %(default)s]')
+        help='Initial guess for the generic a fit parameter (Atomic Mass) [default: %(default)s]')
     fitter_args.add_argument(
         '--b_guess', dest='b',
         type=float, metavar='<float>',
@@ -148,6 +148,10 @@ def define_args(parser):
         '--e_guess', dest='e',
         type=float, metavar='<float>',
         help='Initial guess for the generic e fit parameter [default: %(default)s]')
+    fitter_args.add_argument(
+        '--z_guess', dest='z',
+        type=float, metavar='<float>',
+        help='Initial guess for the generic z fit parameter (Atomic Number) [default: %(default)s]')
 
     parser.set_defaults(
         fit_type=['poly5'],
@@ -630,6 +634,64 @@ class Energy_Fit_Class(Base_Fit_Class):
 # These models have all been tested against the MEOS data to make sure they
 # produce the same curve.
 
+class Holzapfel_AP2(Pressure_Fit_Class):
+    """ Holzapfel AP2 model 
+        Holzapfel, High Pressure Research, Vol. 16, pp81-126 (1998)
+    """   
+
+    def __init__(self, args, name):
+        super(Holzapfel_AP2, self).__init__(args, name)
+        self.k0 = args.k0
+        self.k0_prime = args.k0_prime
+        self.rho0 = args.rho0
+        self.a = args.a #Atomic mass        
+        self.z = args.z #Atomic number
+
+    def _set_coefficients(self, coeffs):
+        (self.k0, self.k0_prime, self.rho0, self.a, self.z) = coeffs
+
+    def _get_coefficients(self):
+        return self.k0, self.k0_prime, self.rho0, self.a, self.z
+
+    def _print_coefficients(self):
+        print("B0 = {};".format(self.k0))
+        print("Bp = {};".format(self.k0_prime))
+        print("rho0 = {};".format(self.rho0))
+        print("A = {};".format(self.a))
+        print("Z = {};".format(self.z))
+        update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
+                                  ("rho0 = {};\n".format(self.rho0)) + ("A = {};\n".format(self.a)) +
+                                  ("Z = {};".format(self.z)))
+
+    @staticmethod
+    def _f(x, *coeffs):
+        (k0, k0_prime, rho0, a, z) = coeffs
+        #print("vvvvvvvvvvvvvvvvvvvvvvvVVVVV")
+        short_x = np.power((rho0 / x), (1.0/3.0))
+        c0 = np.log( ((0.02337 * 1e-25) / (3 * k0)) * np.power((( z * rho0 * 0.6022) / a), (5/3)))
+        cAP2 = (3/2) * (k0_prime - 3) - c0
+        retval = 3 * k0 * ( (1-short_x) / np.power(short_x, 5) ) * np.exp( c0 * (1-short_x) ) * (1 + cAP2 * short_x * (1 - short_x) )
+        #print("^^^^^^^^^^^^^^^^^^^^^^^^")
+              
+        return retval
+
+    def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _energy_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _pressure_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+
+factory.register('Holzapfel_AP2', Holzapfel_AP2)
+
+
+
 class Birch_Murnaghan3(Pressure_Fit_Class):
     """ Fit function for third-order Birch-Murnaghan EOS (BE2?)
     Jeanloz, Raymond. "Finite-Strain Equation of State for High-Pressure Phases"
@@ -862,9 +924,9 @@ factory.register('vinet', Vinet)
 
 class Murnaghan(Pressure_Fit_Class):
     """ Fit function for Murnaghan EOS (MU2)
-        FD Stacey, et al., "Finite Strain Theories and Comparisons with Seismological Data
+        FD Stacey, et al., "Finite Strain Theories and Comparisons with Seismological Data"
             Geophysical Surveys 4 (1981) 189-232
-    """  
+    """   
 
     def __init__(self, args, name):
         super(Murnaghan, self).__init__(args, name)
