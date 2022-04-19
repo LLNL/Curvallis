@@ -634,61 +634,61 @@ class Energy_Fit_Class(Base_Fit_Class):
 # These models have all been tested against the MEOS data to make sure they
 # produce the same curve.
 
-class Holzapfel_AP2(Pressure_Fit_Class):
-    """ Holzapfel AP2 model (Seems to work fine, but the Ali version matchs MEOS, so it's preferred.)
-        Holzapfel, High Pressure Research, Vol. 16, pp81-126 (1998)
-    """   
+# class Holzapfel_AP2(Pressure_Fit_Class):
+#     """ Holzapfel AP2 model (Seems to work fine, but the Ali version matchs MEOS, so it's preferred.)
+#         Holzapfel, High Pressure Research, Vol. 16, pp81-126 (1998)
+#     """   
 
-    def __init__(self, args, name):
-        super(Holzapfel_AP2, self).__init__(args, name)
-        self.k0 = args.k0
-        self.k0_prime = args.k0_prime
-        self.rho0 = args.rho0
-        self.a = args.a #Atomic mass        
-        self.z = args.z #Atomic number
+#     def __init__(self, args, name):
+#         super(Holzapfel_AP2, self).__init__(args, name)
+#         self.k0 = args.k0
+#         self.k0_prime = args.k0_prime
+#         self.rho0 = args.rho0
+#         self.a = args.a #Atomic mass        
+#         self.z = args.z #Atomic number
 
-    def _set_coefficients(self, coeffs):
-        (self.k0, self.k0_prime, self.rho0, self.a, self.z) = coeffs
+#     def _set_coefficients(self, coeffs):
+#         (self.k0, self.k0_prime, self.rho0, self.a, self.z) = coeffs
 
-    def _get_coefficients(self):
-        return self.k0, self.k0_prime, self.rho0, self.a, self.z
+#     def _get_coefficients(self):
+#         return self.k0, self.k0_prime, self.rho0, self.a, self.z
 
-    def _print_coefficients(self):
-        print("B0 = {};".format(self.k0))
-        print("Bp = {};".format(self.k0_prime))
-        print("rho0 = {};".format(self.rho0))
-        print("A = {};".format(self.a))
-        print("Z = {};".format(self.z))
-        update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
-                                  ("rho0 = {};\n".format(self.rho0)) + ("A = {};\n".format(self.a)) +
-                                  ("Z = {};".format(self.z)))
+#     def _print_coefficients(self):
+#         print("B0 = {};".format(self.k0))
+#         print("Bp = {};".format(self.k0_prime))
+#         print("rho0 = {};".format(self.rho0))
+#         print("A = {};".format(self.a))
+#         print("Z = {};".format(self.z))
+#         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
+#                                   ("rho0 = {};\n".format(self.rho0)) + ("A = {};\n".format(self.a)) +
+#                                   ("Z = {};".format(self.z)))
 
-    @staticmethod
-    def _f(x, *coeffs):
-        (k0, k0_prime, rho0, a, z) = coeffs
-        #print("vvvvvvvvvvvvvvvvvvvvvvvVVVVV")
-        short_x = np.power((rho0 / x), (1.0/3.0))
-        c0 = np.log( ((0.02337 * 1e-25) / (3 * k0)) * np.power((( z * 1e24 * rho0 * 0.6022) / a), (5/3)))
-        cAP2 = (3/2) * (k0_prime - 3) - c0
-        retval = 3 * k0 * ( (1-short_x) / np.power(short_x, 5) ) * np.exp( c0 * (1-short_x) ) * (1 + cAP2 * short_x * (1 - short_x) )
-        #print("^^^^^^^^^^^^^^^^^^^^^^^^")
+#     @staticmethod
+#     def _f(x, *coeffs):
+#         (k0, k0_prime, rho0, a, z) = coeffs
+#         #print("vvvvvvvvvvvvvvvvvvvvvvvVVVVV")
+#         short_x = np.power((rho0 / x), (1.0/3.0))
+#         c0 = np.log( ((0.02337 * 1e-25) / (3 * k0)) * np.power((( z * 1e24 * rho0 * 0.6022) / a), (5/3)))
+#         cAP2 = (3/2) * (k0_prime - 3) - c0
+#         retval = 3 * k0 * ( (1-short_x) / np.power(short_x, 5) ) * np.exp( c0 * (1-short_x) ) * (1 + cAP2 * short_x * (1 - short_x) )
+#         #print("^^^^^^^^^^^^^^^^^^^^^^^^")
               
-        return retval
+#         return retval
 
-    def _derivative(self, x):
-        raise RuntimeError("NOT YET IMPLEMENTED")
+#     def _derivative(self, x):
+#         raise RuntimeError("NOT YET IMPLEMENTED")
 
-    def _second_derivative(self, x):
-        raise RuntimeError("NOT YET IMPLEMENTED")
+#     def _second_derivative(self, x):
+#         raise RuntimeError("NOT YET IMPLEMENTED")
 
-    def _energy_integral(self, x):
-        raise RuntimeError("NOT YET IMPLEMENTED")
+#     def _energy_integral(self, x):
+#         raise RuntimeError("NOT YET IMPLEMENTED")
 
-    def _pressure_integral(self, x):
-        raise RuntimeError("NOT YET IMPLEMENTED")
+#     def _pressure_integral(self, x):
+#         raise RuntimeError("NOT YET IMPLEMENTED")
 
 
-factory.register('Holzapfel_AP2', Holzapfel_AP2)
+# factory.register('Holzapfel_AP2', Holzapfel_AP2)
 
 class Ali_AP2(Pressure_Fit_Class):
     """ Suzanne Ali's formulation of the Holzapfel AP2 model 
