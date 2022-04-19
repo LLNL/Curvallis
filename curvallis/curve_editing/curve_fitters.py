@@ -635,7 +635,7 @@ class Energy_Fit_Class(Base_Fit_Class):
 # produce the same curve.
 
 class Holzapfel_AP2(Pressure_Fit_Class):
-    """ Holzapfel AP2 model 
+    """ Holzapfel AP2 model (Seems to work fine, but the Ali version matchs MEOS, so it's preferred.)
         Holzapfel, High Pressure Research, Vol. 16, pp81-126 (1998)
     """   
 
@@ -698,38 +698,44 @@ class Ali_AP2(Pressure_Fit_Class):
 
     def __init__(self, args, name):
         super(Ali_AP2, self).__init__(args, name)
+        global global_A
+        global global_Z
         self.k0 = args.k0
         self.k0_prime = args.k0_prime
         self.rho0 = args.rho0
-        self.a = args.a #Atomic mass        
-        self.z = args.z #Atomic number
+        global_A = args.a #Atomic mass        
+        global_Z = args.z #Atomic number
 
     def _set_coefficients(self, coeffs):
-        (self.k0, self.k0_prime, self.rho0, self.a, self.z) = coeffs
+        (self.k0, self.k0_prime, self.rho0) = coeffs
 
     def _get_coefficients(self):
-        return self.k0, self.k0_prime, self.rho0, self.a, self.z
+        return self.k0, self.k0_prime, self.rho0
 
     def _print_coefficients(self):
+        global_A
+        global_Z
         print("B0 = {};".format(self.k0))
         print("Bp = {};".format(self.k0_prime))
         print("rho0 = {};".format(self.rho0))
-        print("A = {};".format(self.a))
-        print("Z = {};".format(self.z))
+        print("A = {};".format(global_A))
+        print("Z = {};".format(global_Z))
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
-                                  ("rho0 = {};\n".format(self.rho0)) + ("A = {};\n".format(self.a)) +
-                                  ("Z = {};".format(self.z)))
+                                  ("rho0 = {};\n".format(self.rho0)) + ("A = {};\n".format(global_A)) +
+                                  ("Z = {};".format(global_Z)))
 
     @staticmethod
     def _f(rho, *coeffs):
-        (k0, k0_prime, rho0, a, z) = coeffs
+        global global_A
+        global global_Z
+        (k0, k0_prime, rho0) = coeffs
         v0 = 1/rho0
-        atomicV0 = v0 * (a/0.602214179)
+        atomicV0 = v0 * (global_A/0.602214179)
 
         x = np.power(rho0/rho, 1./3.);
         aFG = 0.02337E-25
         A3_TO_CM3 = 1e-24
-        pFGr = aFG * np.power(z / (atomicV0 * A3_TO_CM3), 5./3.);
+        pFGr = aFG * np.power(global_Z / (atomicV0 * A3_TO_CM3), 5./3.);
 
         c0 = -1. * np.log(3. * k0/pFGr);
         cAP2 = (3./2.) * (k0_prime - 3) - c0;
