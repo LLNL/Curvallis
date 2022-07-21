@@ -164,7 +164,7 @@ def define_args(parser):
         y_axis='P',
         y_integral_ref=0,
 
-        a=1.0,
+        a=0.90,  #sentinal values for atomic mass, never < 1
         b=1.0,
         c=1.0,
         d=1.0,
@@ -187,7 +187,7 @@ def define_args(parser):
         q=None,  # For Theta and Gamma fitters
         theta0=None,  # For Theta fitters
         gamma0=None,  # For gamma fitters
-        z=1.0,
+        z=None,
         c1=1.0,
         c2=1.0,
         c3=1.0,
@@ -401,13 +401,19 @@ class Base_Fit_Class(object):
         """
         x_values = [point[0] for point in points]
         y_values = [point[1] for point in points]
-        new_coefficients, unused = opt.curve_fit(
-            f=self._f,
-            xdata=x_values,
-            ydata=y_values,
-            p0=self._get_coefficients(),
-            bounds=self.bounds(),
-            maxfev=self.maxfev)
+        try:
+            new_coefficients, unused = opt.curve_fit(
+                f=self._f,
+                xdata=x_values,
+                ydata=y_values,
+                p0=self._get_coefficients(),
+                bounds=self.bounds(),
+                maxfev=self.maxfev)
+        except RuntimeError as e:
+            print("Was unable to find a reasonable fit.")
+            print("Please try to find better guesses for all this fit_type's parameters.")
+            exit(13)
+        
         self._set_coefficients(new_coefficients)
         #        print("curve_fit parameters out = ", new_coefficients)
         self._print_coefficients()
@@ -705,6 +711,18 @@ class Ali_AP2(Pressure_Fit_Class):
         self.rho0 = args.rho0
         global_A = args.a #Atomic mass        
         global_Z = args.z #Atomic number
+        error = False
+        if (global_A == 0.9):
+            print("ERROR: --a_guess MUST be defined for the AP2 model")
+            error = True
+        if (global_Z == None):
+            print("ERROR: --z_guess MUST be defined for the AP2 model")
+            error = True
+        if(self.rho0 == None):
+            print("ERROR: --rho0 MUST be defined for the AP2 model")
+            error = True
+        if(error):
+            exit(12)
 
     def _set_coefficients(self, coeffs):
         (self.k0, self.k0_prime, self.rho0) = coeffs
@@ -712,6 +730,7 @@ class Ali_AP2(Pressure_Fit_Class):
     def _get_coefficients(self):
         return self.k0, self.k0_prime, self.rho0
 
+    
     def _print_coefficients(self):
         global_A
         global_Z
@@ -774,6 +793,18 @@ class E_Ali_AP2(Energy_Fit_Class):
         self.rho0 = args.rho0
         self.a = args.a #Atomic mass        
         self.z = args.z #Atomic number
+        error = False
+        if (global_A == 0.9):
+            print("ERROR: --z_guess MUST be defined for the AP2 model")
+            error = True
+        if (global_Z == None):
+            print("ERROR: --z_guess MUST be defined for the AP2 model")
+            error = True
+        if(self.rho0 == None):
+            print("ERROR: --rho0 MUST be defined for the AP2 model")
+            error = True
+        if(error):
+            exit(12)
 
     def _set_coefficients(self, coeffs):
         (self.k0, self.k0_prime, self.rho0, self.a, self.z) = coeffs
@@ -2681,7 +2712,16 @@ class SimonGlatzel(Base_Fit_Class):
         global_P0 = args.P0  # pressure at the triple point
         self.a  = args.a
         self.b  = args.b
-        
+        error = False
+        if (global_P0 == None):
+            print("ERROR: --P0_guess MUST be defined for the simong model")
+            error = True
+        if (global_T0 == None):
+            print("ERROR: --T0_guess MUST be defined for the simong model")
+            error = True
+        if(error):
+            exit(12)
+            
     def _set_coefficients(self, coeffs):
         (self.a, self.b) = coeffs
 
