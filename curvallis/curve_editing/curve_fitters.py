@@ -732,8 +732,8 @@ class Ali_AP2(Pressure_Fit_Class):
 
     
     def _print_coefficients(self):
-        global_A
-        global_Z
+        global global_A
+        global global_Z
         print("B0 = {};".format(self.k0))
         print("Bp = {};".format(self.k0_prime))
         print("rho0 = {};".format(self.rho0))
@@ -787,12 +787,15 @@ class E_Ali_AP2(Energy_Fit_Class):
     """
     
     def __init__(self, args, name):
-        super(Energy_Ali_AP2, self).__init__(args, name)
+        super(E_Ali_AP2, self).__init__(args, name)
+        global global_A
+        global global_Z
         self.k0 = args.k0
         self.k0_prime = args.k0_prime
         self.rho0 = args.rho0
-        self.a = args.a #Atomic mass        
-        self.z = args.z #Atomic number
+        self.e0 = args.e0
+        global_A = args.a #Atomic mass        
+        global_Z = args.z #Atomic number
         error = False
         if (global_A == 0.9):
             print("ERROR: --z_guess MUST be defined for the AP2 model")
@@ -807,30 +810,35 @@ class E_Ali_AP2(Energy_Fit_Class):
             exit(12)
 
     def _set_coefficients(self, coeffs):
-        (self.k0, self.k0_prime, self.rho0, self.a, self.z) = coeffs
+        (self.k0, self.k0_prime, self.rho0, self.e0) = coeffs
 
     def _get_coefficients(self):
-        return self.k0, self.k0_prime, self.rho0, self.a, self.z
+        return self.k0, self.k0_prime, self.rho0, self.e0
 
     def _print_coefficients(self):
+        global global_A
+        global global_Z
         print("B0 = {};".format(self.k0))
         print("Bp = {};".format(self.k0_prime))
         print("rho0 = {};".format(self.rho0))
-        print("A = {};".format(self.a))
-        print("Z = {};".format(self.z))
+        print("E0 = {};".format(self.e0))
+        print("A = {};".format(global_A))
+        print("Z = {};".format(global_Z))
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
-                                  ("rho0 = {};\n".format(self.rho0)) + ("A = {};\n".format(self.a)) +
-                                  ("Z = {};".format(self.z)))
+                                  ("rho0 = {};\n".format(self.rho0)) + ("A = {};\n".format(global_A)) +
+                                  ("Z = {};".format(global_Z)))
 
     @staticmethod
     def _f(rho, *coeffs):
-        (k0, k0_prime, rho0, a, z) = coeffs
+        global global_A
+        global global_Z
+        (k0, k0_prime, rho0, e0) = coeffs
         v0 = 1/rho0
-        atomicV0 = v0 * (a/0.602214179)
+        atomicV0 = v0 * (global_A/0.602214179)
         x = np.power(rho0/rho, 1./3.);
         aFG = 0.02337E-25
         A3_TO_CM3 = 1e-24
-        pFGr = aFG * np.power(z / (atomicV0 * A3_TO_CM3), 5./3.);
+        pFGr = aFG * np.power(global_Z / (atomicV0 * A3_TO_CM3), 5./3.);
         c0 = -1. * np.log(3. * k0/pFGr);
         cAP2 = (3./2.) * (k0_prime - 3) - c0;
 
@@ -842,11 +850,11 @@ class E_Ali_AP2(Energy_Fit_Class):
         mei_bot = np.power(mm, 2) + 3.330657 * mm + 1.681534;
         mei = mei_top / mei_bot;
      
-        E1_top = (9. * V0 * k0) * np.exp(c0 * (1-x)); 
+        E1_top = (9. * v0 * k0) * np.exp(c0 * (1-x)); 
         E1_bot = (2. * np.power(x , 2));   
         E2 = 1 - (c0 + 2 - (2. * S2)) * x * (1-mei) - (2. * x * D2);
         E = (E1_top / E1_bot) * E2;
-        Fcold = E0 + E;
+        Fcold = e0 + E;
         return Fcold;
         
 
