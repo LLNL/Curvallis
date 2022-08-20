@@ -818,16 +818,32 @@ class E_Ali_AP2(Energy_Fit_Class):
     def _print_coefficients(self):
         global global_A
         global global_Z
-        print("B0 = {};".format(self.k0))
-        print("Bp = {};".format(self.k0_prime))
-        print("rho0 = {};".format(self.rho0))
-        print("E0 = {};".format(self.e0))
+        print("B0 = {:e};".format(self.k0))
+        print("Bp = {:e};".format(self.k0_prime))
+        print("rho0 = {:e};".format(self.rho0))
+        print("E0 = {:e};".format(self.e0))
         print("A = {};".format(global_A))
         print("Z = {};".format(global_Z))
         update_fitter_info_window(-1, False, ("B0 = {};\n".format(self.k0)) + ("Bp = {};\n".format(self.k0_prime)) +
                                   ("rho0 = {};\n".format(self.rho0)) + ("A = {};\n".format(global_A)) +
                                   ("Z = {};".format(global_Z)))
 
+    #Special case, calculate E at rho0 for use in _f to calculate E0 to the MEOS standard instead of
+    #what's published in the AP2 paper.  As described by Carrie:
+    #Historically, the declaration of E0 allows the user to set the value of
+    #energy at a given density, usually rho0.  This works because for models
+    #like Vinet and Birch-Murnaghan, when rho = rho0, the entire analytical
+    #equation becomes 0 (i.e. E=0), and all that remains is E0.
+    #Today we realized that the AP2 model doesn’t work that way.  When
+    #rho = rho0, E equals some finite value.  Therefore, the declaration of
+    #E0 doesn’t have the same meaning.  We would like it to work the way we
+    #are used to, so we are asking that the model be adjusted to reflect the
+    #following:
+    #Fcold = E(rho) – E(rho0)+E0
+    #This involves evaluating E at rho = rho0 and inserting that value into
+    #the calculation of Fcold.  In this way, when rho = rho0, Fcold = E0
+    #as we are used to.
+ 
     @staticmethod
     def _f(rho, *coeffs):
         global global_A
@@ -854,7 +870,18 @@ class E_Ali_AP2(Energy_Fit_Class):
         E1_bot = (2. * np.power(x , 2));   
         E2 = 1 - (c0 + 2 - (2. * S2)) * x * (1-mei) - (2. * x * D2);
         E = (E1_top / E1_bot) * E2;
-        Fcold = e0 + E;
+
+        #This is a dodgy little trick to get around the fact that the AP2 paper
+        #and MEOS disagree on the meaning of E0. This moves the E0 to match the MEOS
+        #definition, ie, the value of E at rho0
+        #but since we do a recursive call to get E(rho0) we have to
+        #have a check for when we're doing that (different than a normal call.)
+        #So check that we're calling with a scalar, and that the scalar == rho0
+        if(isinstance(rho, np.floating) and rho == rho0):
+            return E
+        
+        E_rho0 = E_Ali_AP2._f(rho0, *coeffs)
+        Fcold = E - E_rho0 + e0;
         return Fcold;
         
 
