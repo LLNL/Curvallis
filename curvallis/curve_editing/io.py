@@ -1006,7 +1006,8 @@ def write_point_file(file_name, points):
     print('Writing points to %s' % file_name)
     try:
         with open(file_name, 'w') as out_file:
-            out_file.write (_POINT_FILE_HEADER_LINE + '\n')
+            # This header line is pretty useless, and Christine wants it gone. -Jim
+            #            out_file.write (_POINT_FILE_HEADER_LINE + '\n')
             for point in points:
                 x = point[0]
                 y = point[1]
