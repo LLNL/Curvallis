@@ -2808,3 +2808,88 @@ class SimonGlatzel(Base_Fit_Class):
 
 
 factory.register('simong', SimonGlatzel)
+
+class SimonGlatzelExtension(Base_Fit_Class):
+    """ Simon-Glatzel Extension PmTm Fit
+        Adds an exponent to the standard Simon-Glatzel form.
+        Kechin V. V., J. Phys. Condens. Matter, 1995, 7, 531–535
+        Note the the paper's Tref and Pref are renamed to T0 and P0
+    """
+
+    def __init__(self, args, name):
+        super(SimonGlatzelExtension, self).__init__(args, name)
+        #All coefficents passed to the function get optimized, but we don't want
+        #to optimize P0 and T0, so I can't pass them as arguments.  But _f is a @staticmethod,
+        #so they can't be instance variables either. So I made them global. It seems clunky, is there a better way?
+        global global_T0     
+        global global_P0
+        global_T0 = args.T0  # temperature at the triple point
+        global_P0 = args.P0  # pressure at the triple point
+        self.a  = args.a
+        self.b  = args.b
+        self.c  = args.c
+        error = False
+        if (global_P0 == None):
+            print("ERROR: --P0_guess MUST be defined for the simong model")
+            error = True
+        if (global_T0 == None):
+            print("ERROR: --T0_guess MUST be defined for the simong model")
+            error = True
+        if(error):
+            exit(12)
+            
+    def _set_coefficients(self, coeffs):
+        (self.a, self.b, self.c) = coeffs
+
+    def _get_coefficients(self):
+        return self.a, self.b, self.c
+
+    def _print_coefficients(self):
+        global global_T0 
+        global global_P0         
+        print("T0 = {};".format(global_T0))
+        print("P0 = {};".format(global_P0))
+        print("a = {};".format(self.a))
+        print("b = {};".format(self.b))
+        print("c = {};".format(self.c))
+        update_fitter_info_window(-1, False, ("P0 = {};\n".format(global_P0)) +
+                                  ("T0 = {};\n".format(global_T0)) + ("a = {};\n".format(self.a)) +
+                                  ("b = {};\n".format(self.b)) + ("c = {};\n".format(self.c)))
+
+    def guess_coefficients(self,
+                           points):  
+        global global_T0 
+        global global_P0 
+        if (global_P0 == None):
+            print("ERROR: --P0_guess MUST be defined for the simongexp model")
+        if (global_T0 == None):
+            print("ERROR: --P0_guess MUST be defined for the simongexp model")
+
+    @staticmethod
+    def _f(P, *coeffs):
+        (a, b, c) = coeffs
+        global global_P0
+        global global_T0
+        # Tm = T0( ((P-P0)/a) + 1)^b * exp[ -c (P - P0) ]
+        inner_term = ((P-global_P0) / a) + 1;
+        power_term = pow(inner_term, b)
+        sgTerm = global_T0 * power_term;  #This completes the original Simon-Glatzel
+        expTerm = np.exp ( -c * (P-global_P0))
+        Tm = sgTerm * expTerm
+        return Tm
+
+    def _derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _second_derivative(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _energy_integral(self, x):
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+    def _pressure_integral(self, x):
+
+        raise RuntimeError("NOT YET IMPLEMENTED")
+
+
+factory.register('simongexp', SimonGlatzelExtension)
